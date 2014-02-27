@@ -8,18 +8,8 @@ var fs = require('fs'),
 var jasmineRequire = require('jasmine-core');
 var jasmine = jasmineRequire.boot(jasmineRequire);
 
-function getFiles(baseDir, patterns) {
-  patterns.forEach(function(pattern) {
-    var filepaths = glob.sync(path.join(baseDir, pattern == void 0 ? "" : pattern));
-    filepaths.forEach(function(file) {
-      require(path.resolve(file));
-    });
-  });
-}
-
-var config = JSON.parse(fs.readFileSync("spec/support/jasmine.json"));
-getFiles(config.spec_dir, config.helper_files);
-getFiles(config.spec_dir, config.spec_files);
+var Config = require('../lib/config.js');
+var config = new Config(path.resolve());
 
 var done = function(passed) {
   if (passed) {
@@ -29,14 +19,5 @@ var done = function(passed) {
   }
 };
 
-var consoleReporter = new jasmine.ConsoleReporter({
-  print: util.print,
-  onComplete: done,
-  showColors: true,
-  timer: new jasmine.Timer()
-});
-
-var env = jasmine.getEnv();
-env.addReporter(consoleReporter);
-
-env.execute();
+var Runner = require('../lib/runner.js');
+var runner = new Runner(util.print, config, jasmine.getEnv(), done);

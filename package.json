@@ -6,7 +6,8 @@
     "node": "~0.10.26"
   },
   "files": [
-    "./bin/jasmine"
+    "./bin/jasmine",
+    "./lib/**/*.js"
   ],
   "dependencies": {
     "jasmine-core": "*",
@@ -14,5 +15,11 @@
   },
   "bin": {
     "jasmine": "./bin/jasmine"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "load-grunt-tasks": "~0.4.0",
+    "grunt-contrib-jshint": "~0.8.0",
+    "grunt-contrib-copy": "~0.5.0"
   }
 }
