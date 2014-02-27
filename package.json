@@ -1,0 +1,18 @@
+{
+  "name": "jasmine",
+  "version": "0.0.0",
+  "description": "Command line jasmine",
+  "engines": {
+    "node": "~0.10.26"
+  },
+  "files": [
+    "./bin/jasmine"
+  ],
+  "dependencies": {
+    "jasmine-core": "*",
+    "glob": "~3.2.9"
+  },
+  "bin": {
+    "jasmine": "./bin/jasmine"
+  }
+}

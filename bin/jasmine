@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+
+var fs = require('fs'),
+  path = require('path'),
+  util = require('util'),
+  glob = require('glob');
+
+var jasmineRequire = require('jasmine-core');
+var jasmine = jasmineRequire.boot(jasmineRequire);
+
+function getFiles(baseDir, patterns) {
+  patterns.forEach(function(pattern) {
+    var filepaths = glob.sync(path.join(baseDir, pattern == void 0 ? "" : pattern));
+    filepaths.forEach(function(file) {
+      require(path.resolve(file));
+    });
+  });
+}
+
+var config = JSON.parse(fs.readFileSync("spec/support/jasmine.json"));
+getFiles(config.spec_dir, config.helper_files);
+getFiles(config.spec_dir, config.spec_files);
+
+var done = function(passed) {
+  if (passed) {
+    process.exit(0);
+  } else {
+    process.exit(1);
+  }
+};
+
+var consoleReporter = new jasmine.ConsoleReporter({
+  print: util.print,
+  onComplete: done,
+  showColors: true,
+  timer: new jasmine.Timer()
+});
+
+var env = jasmine.getEnv();
+env.addReporter(consoleReporter);
+
+env.execute();
