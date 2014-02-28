@@ -14,9 +14,22 @@ function getFiles(baseDir, patterns) {
   return files;
 }
 
+function removeDuplicates(arr) {
+  for (var i = arr.length - 1; i >= 0; i--) {
+    var item = arr[i];
+    if (i > arr.indexOf(item)) {
+      arr = arr.slice(0, i).concat(arr.slice(i+1, arr.length));
+    }
+  }
+
+  return arr;
+}
+
 module.exports = function(projectBaseDir) {
-  var config = JSON.parse(fs.readFileSync(path.join(projectBaseDir, "spec/support/jasmine.json")));
+  var config = JSON.parse(fs.readFileSync(path.join(projectBaseDir, process.env.JASMINE_JSON || "spec/support/jasmine.json")));
   this.userFiles = function() {
-    return getFiles(config.spec_dir, config.helper_files).concat(getFiles(config.spec_dir, config.spec_files));
+    var files = getFiles(config.spec_dir, config.helper_files).concat(getFiles(config.spec_dir, config.spec_files));
+
+    return removeDuplicates(files);
   };
 };
