@@ -26,7 +26,7 @@ function removeDuplicates(arr) {
 }
 
 module.exports = function(projectBaseDir) {
-  var config = JSON.parse(fs.readFileSync(path.join(projectBaseDir, process.env.JASMINE_JSON || "spec/support/jasmine.json")));
+  var config = JSON.parse(fs.readFileSync(path.join(projectBaseDir, process.env.JASMINE_CONFIG_PATH || "spec/support/jasmine.json")));
   this.userFiles = function() {
     var files = getFiles(config.spec_dir, config.helper_files).concat(getFiles(config.spec_dir, config.spec_files));
 

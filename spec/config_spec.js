@@ -28,11 +28,11 @@ describe("config", function() {
 
     describe("when an environment variable for where to find the config file is set", function() {
       beforeEach(function() {
-        process.env.JASMINE_JSON="spec/support/jasmine_alternate.json";
+        process.env.JASMINE_CONFIG_PATH="spec/support/jasmine_alternate.json";
       });
 
       afterEach(function() {
-        delete process.env.JASMINE_JSON;
+        delete process.env.JASMINE_CONFIG_PATH;
       });
 
       it("defers to that", function() {
