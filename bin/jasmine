@@ -20,4 +20,4 @@ var done = function(passed) {
 };
 
 var Runner = require('../lib/runner.js');
-var runner = new Runner(util.print, config, jasmine.getEnv(), done);
+var runner = new Runner(util.print, config, jasmine.getEnv(), done, process.argv);

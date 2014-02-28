@@ -2,19 +2,20 @@ var path = require("path");
 var Runner = require("../src/runner");
 
 describe("runner", function() {
-  var runner, print, config, env, done;
+  var runner, print, config, env, done, flags;
 
   beforeEach(function() {
     print = jasmine.createSpy("printSpy");
     config = jasmine.createSpyObj("jasmineConfig", ["userFiles"]);
     env = jasmine.createSpyObj("fakeJasmineEnv", ["addReporter", "execute"]);
     done = jasmine.createSpy("doneCallback");
+    flags = [];
 
     config.userFiles.and.callFake(function() {
       return [path.resolve("spec/fixtures/sample_project/spec/fixture_spec.js")];
     });
 
-    runner = new Runner(print, config, env, done);
+    runner = new Runner(print, config, env, done, flags);
   });
 
   it("requires the user files", function() {
@@ -25,10 +26,29 @@ describe("runner", function() {
     var reporter = env.addReporter.calls.first().args[0];
     expect(reporter instanceof jasmine.ConsoleReporter).toBe(true);
 
-    reporter.jasmineStarted();
-    reporter.jasmineDone();
+    spyOn(jasmine, "ConsoleReporter");
+    runner = new Runner(print, config, env, done, flags);
 
-    expect(done).toHaveBeenCalled();
-    expect(print).toHaveBeenCalledWith("0 specs, 0 failures");
+    expect(jasmine.ConsoleReporter).toHaveBeenCalledWith({
+      print: print,
+      onComplete: done,
+      showColors: true,
+      timer: jasmine.any(jasmine.Timer)
+    });
+  });
+
+  describe("with a --no-color flag", function() {
+    it("doesn't print in color", function() {
+      spyOn(jasmine, "ConsoleReporter");
+      flags = ["", "", "--no-color"];
+      runner = new Runner(print, config, env, done, flags);
+
+      expect(jasmine.ConsoleReporter).toHaveBeenCalledWith({
+        print: print,
+        onComplete: done,
+        showColors: false,
+        timer: jasmine.any(jasmine.Timer)
+      });
+    });
   });
 });
