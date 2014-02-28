@@ -17,13 +17,12 @@ module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
 
   grunt.registerTask('specs', function() {
-    var execFile = require("child_process").execFile;
+    var exec = require("shelljs").exec;
     var done = this.async();
 
-    var child = execFile('./bin/jasmine', done);
-
-    child.stdout.on('data', function(data) {
-      process.stdout.write(data);
+    exec('./bin/jasmine', function(code) {
+      var error = code > 0 ? new Error("Specs have failed.") : null;
+      done(error);
     });
   });
 
