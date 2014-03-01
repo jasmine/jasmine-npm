@@ -37,4 +37,24 @@ describe("command", function() {
       fs.rmdirSync("spec/fixtures/sample_empty_project/spec/");
     });
   });
+
+  // describe("examples", function() {
+  //   beforeEach(function() {
+  //     command = new Command("spec/fixtures/sample_empty_project/", ['examples']);
+  //   });
+  //
+  //   it("should create init files if they don't exist", function() {
+  //     var configFilePath = "spec/fixtures/sample_empty_project/spec/support/jasmine.json";
+  //     expect(fs.existsSync(configFilePath)).toBe(true);
+  //
+  //     expect(fs.existsSync("spec/fixtures/sample_empty_project/spec/jasmine_examples/")).toBe(true);
+  //   });
+  //
+  //   afterEach(function () {
+  //     fs.unlinkSync("spec/fixtures/sample_empty_project/spec/support/jasmine.json");
+  //     fs.rmdirSync("spec/fixtures/sample_empty_project/spec/support/");
+  //     fs.rmdirSync("spec/fixtures/sample_empty_project/spec/jasmine_examples/");
+  //     fs.rmdirSync("spec/fixtures/sample_empty_project/spec/");
+  //   })
+  // });
 });
