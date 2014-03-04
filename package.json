@@ -5,18 +5,12 @@
   "engines": {
     "node": "~0.10.26"
   },
-  "files": [
-    "./bin/jasmine",
-    "./lib/**/*.js"
-  ],
   "dependencies": {
     "jasmine-core": "*",
     "glob": "~3.2.9",
     "commander": "~2.1.0"
   },
-  "bin": {
-    "jasmine": "./bin/jasmine"
-  },
+  "bin": "./bin/jasmine.js",
   "devDependencies": {
     "grunt": "~0.4.2",
     "load-grunt-tasks": "~0.4.0",
