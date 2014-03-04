@@ -67,7 +67,7 @@ module.exports = function(projectBaseDir, commands) {
     makeDirStructure(spec_jasmine_examples);
     makeDirStructure(src_jasmine_examples);
     makeDirStructure(path.join(spec, "helpers/jasmine_examples/"));
-
+    fs.writeFileSync(defaultConfigPath, jasmineJSON);
     if(fs.existsSync(defaultConfigPath)) {
       copyFiles(jasmine_core_example_specs, path.join(spec, "helpers/",
         "jasmine_examples/"), new RegExp(/[Hh]elper\.js/));
