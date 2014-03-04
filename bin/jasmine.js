@@ -2,8 +2,7 @@
 
 var fs = require('fs'),
   path = require('path'),
-  util = require('util'),
-  glob = require('glob');
+  util = require('util');
 
 var Command = require('../lib/command.js');
 var command = new Command(path.resolve(), process.argv);
