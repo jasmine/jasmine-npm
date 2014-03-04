@@ -13,7 +13,7 @@ module.exports = function(projectBaseDir, commands) {
 
   var jasmine_core = path.join(__dirname,   "../", "node_modules/", "jasmine-core/");
   var jasmine_core_examples = path.join(jasmine_core, "lib/",
-    "jasmine-core/", "example/");
+    "jasmine-core/", "example/", "node_example/");
 
 
   var jasmine_core_example_specs = path.join(jasmine_core_examples, "spec/");
@@ -67,16 +67,10 @@ module.exports = function(projectBaseDir, commands) {
     makeDirStructure(spec_jasmine_examples);
     makeDirStructure(src_jasmine_examples);
     makeDirStructure(path.join(spec, "helpers/jasmine_examples/"));
-    fs.writeFileSync(defaultConfigPath, jasmineJSON);
-    if(fs.existsSync(defaultConfigPath)) {
-      copyFiles(jasmine_core_example_specs, path.join(spec, "helpers/",
-        "jasmine_examples/"), new RegExp(/[Hh]elper\.js/));
-      copyFiles(jasmine_core_example_src, src_jasmine_examples, new RegExp(/\.js/));
-      copyFiles(jasmine_core_example_specs, spec_jasmine_examples, new RegExp(/[Ss]pec.js/));
-    }
-    else {
-      console.log("Your JASMINE_CONFIG_PATH environment variable needs to point to your jasmine.json");
-    }
+    copyFiles(jasmine_core_example_specs, path.join(spec, "helpers/",
+      "jasmine_examples/"), new RegExp(/[Hh]elper\.js/));
+    copyFiles(jasmine_core_example_src, src_jasmine_examples, new RegExp(/\.js/));
+    copyFiles(jasmine_core_example_specs, spec_jasmine_examples, new RegExp(/[Ss]pec.js/));
   }
 
   this.jasmineStop = jasmineStop;
