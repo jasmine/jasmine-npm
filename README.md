@@ -5,7 +5,7 @@ The [Jasmine](https://github.com/pivotal/jasmine) module is a package of helper 
 ## Contents
 This module allows you to run Jasmine specs for your Node.js code. The output will be displayed in your terminal.
 
-You can get this using npm: `npm install -g jasmine.`
+You can get this using npm: `npm install -g jasmine`.
 
 ## Initializing
 
