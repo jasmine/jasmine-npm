@@ -1,6 +1,6 @@
 # The Jasmine Module
 
-The [Jasmine](https://github.com/pivotal/jasmine-npm) module is a package of helper code for developing Jasmine projects for Node.js.
+The [Jasmine](https://github.com/pivotal/jasmine) module is a package of helper code for developing Jasmine projects for Node.js.
 
 ## Contents
 This module allows you to run Jasmine specs for your Node.js code. The output will be displayed in your terminal.
