@@ -30,7 +30,7 @@ You may use dir glob strings.
 
 Alternatively, you may specify the path to your `jasmine.json` by setting an environment variable:
 
-`export JASMINE_CONFIG_PATH=relative/path/to/your/jasmine.json`
+`jasmine JASMINE_CONFIG_PATH=relative/path/to/your/jasmine.json`
 
 ## Support
 
