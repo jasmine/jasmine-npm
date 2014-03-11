@@ -1,10 +1,9 @@
 {
   "name": "jasmine",
-  "version": "0.0.0",
   "description": "Command line jasmine",
-  "engines": {
-    "node": "~0.10.26"
-  },
+  "homepage": "http://jasmine.github.io/",
+  "keywords": ["test", "jasmine", "tdd", "bdd"],
+  "version": "2.1.0-pre",
   "dependencies": {
     "jasmine-core": "*",
     "glob": "~3.2.9",
@@ -13,7 +12,6 @@
   "bin": "./bin/jasmine.js",
   "devDependencies": {
     "grunt": "~0.4.2",
-    "load-grunt-tasks": "~0.4.0",
     "grunt-contrib-jshint": "~0.8.0",
     "grunt-contrib-copy": "~0.5.0",
     "shelljs": "~0.2.6"

@@ -14,13 +14,14 @@ module.exports = function(grunt) {
     }
   });
 
-  require('load-grunt-tasks')(grunt);
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-copy');
 
   grunt.registerTask('specs', function() {
     var exec = require("shelljs").exec;
     var done = this.async();
 
-    exec('./bin/jasmine', function(code) {
+    exec('jasmine', function(code) {
       var error = code > 0 ? new Error("Specs have failed.") : null;
       done(error);
     });

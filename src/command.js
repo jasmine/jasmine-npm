@@ -2,7 +2,7 @@ var path = require('path'),
   fs = require('fs');
 
 module.exports = function(projectBaseDir, commands) {
-  var jasmineStop = false;
+  var execJasmine = true;
 
   var defaultConfigPath = path.join(projectBaseDir, "spec/support/jasmine.json");
   var spec = path.join(projectBaseDir, "spec/");
@@ -19,42 +19,13 @@ module.exports = function(projectBaseDir, commands) {
   var jasmine_core_example_specs = path.join(jasmine_core_examples, "spec/");
   var jasmine_core_example_src = path.join(jasmine_core_examples, "src/");
 
-  var jasmineJSON = JSON.stringify({
-      "spec_dir": "spec",
-      "spec_files": [
-        "**/*[sS]pec.js"
-      ],
-      "helpers": [
-        "helpers/**/*.js"
-      ]
-    }, null, '  ');
-
-  function copyFiles(srcDir, destDir, pattern) {
-    var srcDirFiles = fs.readdirSync(srcDir);
-    srcDirFiles.forEach(function(file) {
-      if (file.search(pattern) !== -1) {
-        fs.writeFileSync(path.join(destDir, file), fs.readFileSync(path.join(srcDir, file)));
-      }
-    });
-  }
-
-  function makeDirStructure(absolutePath) {
-    var splitPath = absolutePath.split("/");
-    splitPath.forEach(function(dir, index) {
-      if(index > 1) {
-        var fullPath = path.join(splitPath.slice(0, index).join("/"), dir);
-        if (!fs.existsSync(fullPath)) {
-          fs.mkdirSync(fullPath);
-        }
-      }
-    });
-  }
+  setEnvironmentVariables(commands);
 
   if(commands.indexOf('init') !== -1) {
-    jasmineStop = true;
+    execJasmine = false;
     makeDirStructure(support);
     if(!fs.existsSync(defaultConfigPath)) {
-      fs.writeFileSync(defaultConfigPath, jasmineJSON);
+      fs.writeFileSync(defaultConfigPath, fs.readFileSync(path.join(__dirname, "../lib/examples/jasmine.json"), 'utf-8'));
     }
     else {
       console.log("spec/support/jasmine.json already exists in your project.");
@@ -62,7 +33,7 @@ module.exports = function(projectBaseDir, commands) {
   }
 
   else if(commands.indexOf('examples') !== -1) {
-    jasmineStop = true;
+    execJasmine = false;
     makeDirStructure(support);
     makeDirStructure(spec_jasmine_examples);
     makeDirStructure(src_jasmine_examples);
@@ -73,5 +44,38 @@ module.exports = function(projectBaseDir, commands) {
     copyFiles(jasmine_core_example_specs, spec_jasmine_examples, new RegExp(/[Ss]pec.js/));
   }
 
-  this.jasmineStop = jasmineStop;
+  this.execJasmine = execJasmine;
 };
+
+function copyFiles(srcDir, destDir, pattern) {
+  var srcDirFiles = fs.readdirSync(srcDir);
+  srcDirFiles.forEach(function(file) {
+    if (file.search(pattern) !== -1) {
+      fs.writeFileSync(path.join(destDir, file), fs.readFileSync(path.join(srcDir, file)));
+    }
+  });
+}
+
+function makeDirStructure(absolutePath) {
+  var splitPath = absolutePath.split("/");
+  splitPath.forEach(function(dir, index) {
+    if(index > 1) {
+      var fullPath = path.join(splitPath.slice(0, index).join("/"), dir);
+      if (!fs.existsSync(fullPath)) {
+        fs.mkdirSync(fullPath);
+      }
+    }
+  });
+}
+
+function setEnvironmentVariables(commands) {
+  var envRegExp = /(.*)=(.*)/;
+  commands.forEach(function (command) {
+    var regExpMatch = command.match(envRegExp);
+    if(regExpMatch) {
+      var key = regExpMatch[1];
+      var value = regExpMatch[2];
+      process.env[key] = value;
+    }
+  });
+}

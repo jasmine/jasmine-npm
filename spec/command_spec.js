@@ -33,13 +33,23 @@ function emptyDirectory(dir) {
 describe("command", function() {
   var command;
 
+  describe('passing in environment variables', function() {
+    beforeEach(function () {
+      command = new Command(projectBaseDir, ['TESTKEY=TESTVALUE']);
+    });
+
+    it('should run with those environment variables', function() {
+      expect(process.env.TESTKEY).toBe('TESTVALUE');
+    });
+  });
+
   describe("init", function() {
     beforeEach(function() {
       command = new Command(projectBaseDir, ['init']);
     });
 
-    it("should set jasmineStop to true", function() {
-      expect(command.jasmineStop).toBe(true);
+    it("should set execJasmine to false", function() {
+      expect(command.execJasmine).toBe(false);
     });
 
     it("creates setup folders and files for specs", function() {
@@ -48,15 +58,7 @@ describe("command", function() {
 
     it("writes default settings to jasmine.json", function() {
       var realJson = fs.readFileSync(defaultConfigPath, 'utf-8');
-      var fixtureJson = JSON.stringify({
-        "spec_dir": "spec",
-        "spec_files": [
-          "**/*[sS]pec.js"
-        ],
-        "helpers": [
-          "helpers/**/*.js"
-        ]
-      }, null, '  ');
+      var fixtureJson = fs.readFileSync(path.join(__dirname, "../", "lib/", "examples/", "jasmine.json"), 'utf-8');
       expect(realJson).toEqual(fixtureJson);
     });
 

@@ -7,7 +7,7 @@ var fs = require('fs'),
 var Command = require('../lib/command.js');
 var command = new Command(path.resolve(), process.argv);
 
-if(!command.jasmineStop) {
+if(command.execJasmine) {
   var jasmineRequire = require('jasmine-core');
   var jasmine = jasmineRequire.boot(jasmineRequire);
 
