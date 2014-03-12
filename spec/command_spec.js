@@ -4,15 +4,7 @@ var fs = require('fs'),
 var Command = require('../src/command');
 
 var projectBaseDir = "spec/fixtures/sample_empty_project/";
-
-var src = projectBaseDir;
 var spec = path.join(projectBaseDir, "spec/");
-
-var support = path.join(spec, "support/");
-var defaultConfigPath = path.join(support, "jasmine.json");
-
-var spec_jasmine_examples = path.join(spec, "jasmine_examples/");
-var src_jasmine_examples = path.join(src, "jasmine_examples/");
 
 function emptyDirectory(dir) {
   if(fs.existsSync(dir)) {
@@ -53,18 +45,18 @@ describe("command", function() {
     });
 
     it("creates setup folders and files for specs", function() {
-      expect(fs.existsSync(defaultConfigPath)).toBe(true);
+      expect(fs.existsSync(path.join(spec, "support/", "jasmine.json"))).toBe(true);
     });
 
     it("writes default settings to jasmine.json", function() {
-      var realJson = fs.readFileSync(defaultConfigPath, 'utf-8');
+      var realJson = fs.readFileSync(path.join(spec, "support/", "jasmine.json"), 'utf-8');
       var fixtureJson = fs.readFileSync(path.join(__dirname, "../", "lib/", "examples/", "jasmine.json"), 'utf-8');
       expect(realJson).toEqual(fixtureJson);
     });
 
     afterEach(function() {
-      fs.unlinkSync(defaultConfigPath);
-      fs.rmdirSync(support);
+      fs.unlinkSync(path.join(spec, "support/", "jasmine.json"));
+      fs.rmdirSync(path.join(spec, "support/"));
       fs.rmdirSync(spec);
     });
   });
@@ -75,16 +67,16 @@ describe("command", function() {
     });
 
     it("should create init files if they don't exist", function() {
-      expect(fs.existsSync(spec_jasmine_examples)).toBe(true);
-      expect(fs.existsSync(src_jasmine_examples)).toBe(true);
+      expect(fs.existsSync(path.join(spec, "jasmine_examples/"))).toBe(true);
+      expect(fs.existsSync(path.join(projectBaseDir, "jasmine_examples/"))).toBe(true);
       expect(fs.existsSync(path.join(spec, "helpers/"))).toBe(true);
       expect(fs.existsSync(path.join(spec, "helpers/jasmine_examples/"))).toBe(true);
     });
 
     it("should copy files into the appropriate folder", function() {
-      expect(fs.existsSync(path.join(src_jasmine_examples, "Player.js"))).toBe(true);
-      expect(fs.existsSync(path.join(src_jasmine_examples, "Song.js"))).toBe(true);
-      expect(fs.existsSync(path.join(spec_jasmine_examples, "PlayerSpec.js"))).toBe(true);
+      expect(fs.existsSync(path.join(projectBaseDir, "jasmine_examples/", "Player.js"))).toBe(true);
+      expect(fs.existsSync(path.join(projectBaseDir, "jasmine_examples/", "Song.js"))).toBe(true);
+      expect(fs.existsSync(path.join(spec, "jasmine_examples/", "PlayerSpec.js"))).toBe(true);
       expect(fs.existsSync(path.join(spec, "helpers/", "jasmine_examples/", "SpecHelper.js"))).toBe(true);
     });
 
