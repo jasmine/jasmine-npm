@@ -5,7 +5,7 @@
   "keywords": ["test", "jasmine", "tdd", "bdd"],
   "version": "2.1.0-pre",
   "dependencies": {
-    "jasmine-core": "*",
+    "jasmine-core": "https://github.com/pivotal/jasmine/archive/jasmine-node.tar.gz",
     "glob": "~3.2.9",
     "commander": "~2.1.0"
   },
