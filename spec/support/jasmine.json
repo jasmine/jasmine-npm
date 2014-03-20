@@ -2,5 +2,9 @@
   "spec_dir": "spec",
   "spec_files": [
     "**/*.js"
+  ],
+  "src_dir": "src",
+  "src_files": [
+    "**/*.js"
   ]
 }

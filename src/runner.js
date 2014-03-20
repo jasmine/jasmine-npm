@@ -1,12 +1,14 @@
 var program = require("commander");
 
-module.exports = function(print, config, env, done, argv) {
+exports = module.exports = Runner;
+
+function Runner(print, config, env, done, argv) {
   program
     .option('--no-color', 'turns off color in output')
     .parse(argv);
 
-  config.userFiles().forEach(function(specFile) {
-    require(specFile);
+  config.userFiles().forEach(function(file) {
+    require(file);
   });
 
   var consoleReporter = new jasmine.ConsoleReporter({
@@ -19,4 +21,4 @@ module.exports = function(print, config, env, done, argv) {
   env.addReporter(consoleReporter);
 
   env.execute();
-};
+}

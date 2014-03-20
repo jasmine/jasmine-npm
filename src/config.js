@@ -2,13 +2,15 @@ var fs = require("fs"),
   path = require("path"),
   glob = require("glob");
 
-module.exports = function(projectBaseDir) {
+exports = module.exports = Config;
+
+function Config(projectBaseDir) {
   var config = JSON.parse(fs.readFileSync(path.join(projectBaseDir, process.env.JASMINE_CONFIG_PATH || "spec/support/jasmine.json")));
   this.userFiles = function() {
-    var files = getFiles(config.spec_dir, config.helpers).concat(getFiles(config.spec_dir, config.spec_files));
+    var files = getFiles(config.src_dir, config.src_files).concat(getFiles(config.spec_dir, config.helpers)).concat(getFiles(config.spec_dir, config.spec_files));
     return removeDuplicates(files);
   };
-};
+}
 
 function getFiles(baseDir, patterns) {
   patterns = patterns || [];
