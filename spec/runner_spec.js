@@ -6,12 +6,12 @@ describe("runner", function() {
 
   beforeEach(function() {
     print = jasmine.createSpy("printSpy");
-    config = jasmine.createSpyObj("jasmineConfig", ["userFiles"]);
+    config = jasmine.createSpyObj("jasmineConfig", ["specFiles"]);
     env = jasmine.createSpyObj("fakeJasmineEnv", ["addReporter", "execute"]);
     done = jasmine.createSpy("doneCallback");
     flags = [];
 
-    config.userFiles.and.callFake(function() {
+    config.specFiles.and.callFake(function() {
       return [path.resolve("spec/fixtures/sample_project/spec/fixture_spec.js")];
     });
 
