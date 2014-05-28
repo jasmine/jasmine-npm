@@ -10,20 +10,13 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
 
   grunt.registerTask('specs', function() {
-    var exec = require("shelljs").exec;
-    var done = this.async();
+    var Jasmine = require('./lib/jasmine.js');
+    var jasmine = new Jasmine();
 
-    exec('bin/jasmine.js', function(code) {
-      var error = code > 0 ? new Error("Specs have failed.") : null;
-      done(error);
-    });
+    jasmine.loadConfigFile('./spec/support/jasmine.json');
+    jasmine.addReporter({});
+    jasmine.execute();
   });
 
   grunt.registerTask('default', ['jshint:all', 'specs']);
-
-  grunt.registerTask('buildDistribution',
-    'Builds and lints the files needed for jasmine-node',
-    ['jshint:all', 'copy:lib']
-  );
-
 };
