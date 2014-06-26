@@ -5,7 +5,7 @@ var fs = require("fs"),
 exports = module.exports = Config;
 
 function Config(projectBaseDir) {
-  this.config = JSON.parse(fs.readFileSync(path.join(projectBaseDir, process.env.JASMINE_CONFIG_PATH || "spec/support/jasmine.json")));
+  this.config = JSON.parse(fs.readFileSync(path.resolve(projectBaseDir, process.env.JASMINE_CONFIG_PATH || "spec/support/jasmine.json")));
 }
 
 Config.prototype.specFiles = function() {
