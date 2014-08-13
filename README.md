@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/pivotal/jasmine-npm.png?branch=master)](https://travis-ci.org/pivotal/jasmine-npm)
+
 # The Jasmine Module
 
 The [Jasmine](https://github.com/pivotal/jasmine) module is a package of helper code for developing Jasmine projects for Node.js.
