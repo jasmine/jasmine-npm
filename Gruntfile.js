@@ -21,7 +21,7 @@ module.exports = function(grunt) {
     var exec = require("shelljs").exec;
     var done = this.async();
 
-    exec('jasmine', function(code) {
+    exec('bin/jasmine.js', function(code) {
       var error = code > 0 ? new Error("Specs have failed.") : null;
       done(error);
     });
