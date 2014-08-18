@@ -1,4 +1,4 @@
-var Config = require('../src/config.js');
+var Config = require('../lib/config.js');
 
 var path = require("path");
 
@@ -6,7 +6,7 @@ describe("config", function() {
   var config;
 
   beforeEach(function() {
-    config = new Config("spec/fixtures/sample_project/")
+    config = new Config("spec/fixtures/sample_project/");
   });
 
   describe("#userFiles", function() {

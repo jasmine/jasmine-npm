@@ -4,18 +4,10 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: pkg,
-    jshint: {all: ['src/**/*.js']},
-    copy: {
-      lib: {
-        files: [
-          {expand: true, cwd: 'src', src: ['**/*.js'], dest: 'lib/'}
-        ]
-      }
-    }
+    jshint: {all: ['lib/**/*.js', 'spec/**/*.js']}
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-copy');
 
   grunt.registerTask('specs', function() {
     var exec = require("shelljs").exec;

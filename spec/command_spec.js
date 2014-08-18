@@ -1,7 +1,7 @@
 var fs = require('fs'),
   path = require('path');
 
-var Command = require('../src/command');
+var Command = require('../lib/command');
 
 var projectBaseDir = "spec/fixtures/sample_empty_project/";
 var spec = path.join(projectBaseDir, "spec/");

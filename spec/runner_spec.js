@@ -1,5 +1,5 @@
 var path = require("path");
-var Runner = require("../src/runner");
+var Runner = require("../lib/runner");
 
 describe("runner", function() {
   var runner, print, config, env, done, flags;
