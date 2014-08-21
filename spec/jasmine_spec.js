@@ -22,7 +22,7 @@ describe('Jasmine', function() {
 
   describe('#addReporter', function() {
     it('creates a reporter with the passed in options', function() {
-      spyOn(jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});;
+      spyOn(jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
       spyOn(testJasmine.env, 'addReporter');
 
       var reporterOptions = {
@@ -38,7 +38,7 @@ describe('Jasmine', function() {
     });
 
     it('creates a reporter with a default option if an option is not specified', function() {
-      spyOn(jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});;
+      spyOn(jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
       spyOn(testJasmine.env, 'addReporter');
 
       var reporterOptions = {};
@@ -69,7 +69,15 @@ describe('Jasmine', function() {
 
       testJasmine.loadConfigFile('spec/support/jasmine.json');
 
-      expect(testJasmine.specFiles).toEqual([path.resolve('spec/jasmine_spec.js')]);
+      expect(testJasmine.specFiles).toEqual([path.resolve('spec/command_spec.js'), path.resolve('spec/jasmine_spec.js')]);
+    });
+
+    it('loads the specified configuration file from an absolute path', function() {
+      spyOn(testJasmine, 'addSpecFile');
+
+      testJasmine.loadConfigFile(__dirname + '/support/jasmine.json');
+
+      expect(testJasmine.specFiles).toEqual([path.resolve('spec/command_spec.js'), path.resolve('spec/jasmine_spec.js')]);
     });
 
     it('loads the default configuration file', function() {
@@ -77,7 +85,7 @@ describe('Jasmine', function() {
 
       testJasmine.loadConfigFile();
 
-      expect(testJasmine.specFiles).toEqual([path.resolve('spec/jasmine_spec.js')]);
+      expect(testJasmine.specFiles).toEqual([path.resolve('spec/command_spec.js'), path.resolve('spec/jasmine_spec.js')]);
     });
   });
 

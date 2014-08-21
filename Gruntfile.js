@@ -12,9 +12,15 @@ module.exports = function(grunt) {
   grunt.registerTask('specs', function() {
     var Jasmine = require('./lib/jasmine.js');
     var jasmine = new Jasmine();
+    var done = this.async();
 
     jasmine.loadConfigFile('./spec/support/jasmine.json');
-    jasmine.addReporter({});
+    jasmine.addReporter({
+      onComplete: function(passed) {
+        done(passed);
+      }
+    });
+
     jasmine.execute();
   });
 

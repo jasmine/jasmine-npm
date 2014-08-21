@@ -14,10 +14,11 @@
     "url": "https://github.com/pivotal/jasmine-npm"
   },
   "dependencies": {
-    "commander": "~2.1.0",
+    "jasmine-core": "~2.0.1",
     "glob": "^3.2.11",
-    "jasmine-core": "https://github.com/pivotal/jasmine/archive/jasmine-node2.tar.gz"
+    "commander": "~2.1.0"
   },
+  "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
   "devDependencies": {
     "grunt": "~0.4.2",
