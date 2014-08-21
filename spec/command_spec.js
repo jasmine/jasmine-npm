@@ -6,25 +6,32 @@ var Command = require('../lib/command');
 var projectBaseDir = 'spec/fixtures/sample_empty_project/';
 var spec = path.join(projectBaseDir, 'spec/');
 
-function emptyDirectory(dir) {
+function deleteDirectory(dir) {
   if(fs.existsSync(dir)) {
     var dirFiles = fs.readdirSync(dir);
     dirFiles.forEach(function(file) {
-      if(file === '.keep') { return; }
       var fullPath = path.join(dir, file);
       if(fs.statSync(fullPath).isDirectory()) {
-        emptyDirectory(fullPath);
-        fs.rmdirSync(fullPath);
+        deleteDirectory(fullPath);
       }
       else if(fs.statSync(fullPath).isFile()){
         fs.unlinkSync(fullPath);
       }
     });
+    fs.rmdirSync(dir);
   }
 }
 
 describe('command', function() {
   var command;
+
+  beforeEach(function() {
+    fs.mkdirSync(projectBaseDir);
+  });
+
+  afterEach(function() {
+    deleteDirectory(projectBaseDir);
+  });
 
   describe('passing in environment variables', function() {
     beforeEach(function () {
@@ -54,12 +61,6 @@ describe('command', function() {
       var fixtureJson = fs.readFileSync(path.join(__dirname, '../', 'lib/', 'examples/', 'jasmine.json'), 'utf-8');
       expect(realJson).toEqual(fixtureJson);
     });
-
-    afterEach(function() {
-      fs.unlinkSync(path.join(spec, 'support/', 'jasmine.json'));
-      fs.rmdirSync(path.join(spec, 'support/'));
-      fs.rmdirSync(spec);
-    });
   });
 
   describe('examples', function() {
@@ -79,10 +80,6 @@ describe('command', function() {
       expect(fs.existsSync(path.join(projectBaseDir, 'jasmine_examples/', 'Song.js'))).toBe(true);
       expect(fs.existsSync(path.join(spec, 'jasmine_examples/', 'PlayerSpec.js'))).toBe(true);
       expect(fs.existsSync(path.join(spec, 'helpers/', 'jasmine_examples/', 'SpecHelper.js'))).toBe(true);
-    });
-
-    afterEach(function () {
-      emptyDirectory(projectBaseDir);
     });
   });
 });
