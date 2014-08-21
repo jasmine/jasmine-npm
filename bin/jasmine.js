@@ -16,7 +16,7 @@ if(command.execJasmine) {
 
   jasmine.loadConfigFile(process.env.JASMINE_CONFIG_PATH);
 
-  jasmine.addReporter({
+  jasmine.configureDefaultReporter({
     showColors: program.color
   });
   jasmine.execute();
