@@ -1,5 +1,3 @@
-src/
-spec/
-Gruntfile.js
 .npmignore
 .git
+spec/
