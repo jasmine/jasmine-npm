@@ -10,6 +10,7 @@ function emptyDirectory(dir) {
   if(fs.existsSync(dir)) {
     var dirFiles = fs.readdirSync(dir);
     dirFiles.forEach(function(file) {
+      if(file === '.keep') { return; }
       var fullPath = path.join(dir, file);
       if(fs.statSync(fullPath).isDirectory()) {
         emptyDirectory(fullPath);
