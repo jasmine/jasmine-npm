@@ -63,32 +63,6 @@ describe('Jasmine', function() {
     expect(jasmine.Expectation.addMatchers).toHaveBeenCalledWith(['fake matcher 1', 'fake matcher 2']);
   });
 
-  describe('#loadConfigFile', function() {
-    it('loads the specified configuration file and adds specs to the jasmine runner', function() {
-      spyOn(testJasmine, 'addSpecFile');
-
-      testJasmine.loadConfigFile('spec/support/jasmine.json');
-
-      expect(testJasmine.specFiles).toEqual([path.resolve('spec/command_spec.js'), path.resolve('spec/jasmine_spec.js')]);
-    });
-
-    it('loads the specified configuration file from an absolute path', function() {
-      spyOn(testJasmine, 'addSpecFile');
-
-      testJasmine.loadConfigFile(__dirname + '/support/jasmine.json');
-
-      expect(testJasmine.specFiles).toEqual([path.resolve('spec/command_spec.js'), path.resolve('spec/jasmine_spec.js')]);
-    });
-
-    it('loads the default configuration file', function() {
-      spyOn(testJasmine, 'addSpecFile');
-
-      testJasmine.loadConfigFile();
-
-      expect(testJasmine.specFiles).toEqual([path.resolve('spec/command_spec.js'), path.resolve('spec/jasmine_spec.js')]);
-    });
-  });
-
   it('#execute', function() {
     spyOn(testJasmine, 'loadSpecs');
     spyOn(testJasmine.env, 'execute');
@@ -97,5 +71,41 @@ describe('Jasmine', function() {
 
     expect(testJasmine.loadSpecs).toHaveBeenCalled();
     expect(testJasmine.env.execute).toHaveBeenCalled();
+  });
+
+  describe('#loadConfigFile', function() {
+    var fixtureJasmine;
+    beforeEach(function() {
+      fixtureJasmine = new Jasmine({projectBaseDir: 'spec/fixtures/sample_project'});
+    });
+
+    it('loads the specified configuration file and adds unique specs to the jasmine runner', function() {
+      fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.json');
+
+      expect(fixtureJasmine.specFiles).toEqual([
+        'spec/fixtures/sample_project/spec/helper.js',
+        'spec/fixtures/sample_project/spec/fixture_spec.js',
+        'spec/fixtures/sample_project/spec/other_fixture_spec.js'
+      ]);
+    });
+
+    it('loads the specified configuration file from an absolute path', function() {
+      var absoluteConfigPath = path.join(__dirname, 'fixtures/sample_project/spec/support/jasmine_alternate.json');
+      fixtureJasmine.loadConfigFile(absoluteConfigPath);
+
+      expect(fixtureJasmine.specFiles).toEqual([
+        'spec/fixtures/sample_project/spec/helper.js',
+        'spec/fixtures/sample_project/spec/fixture_spec.js',
+        'spec/fixtures/sample_project/spec/other_fixture_spec.js'
+      ]);
+    });
+
+    it('loads the default configuration file', function() {
+      fixtureJasmine.loadConfigFile();
+
+      expect(fixtureJasmine.specFiles).toEqual([
+        'spec/fixtures/sample_project/spec/fixture_spec.js',
+      ]);
+    });
   });
 });
