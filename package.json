@@ -15,8 +15,7 @@
   },
   "dependencies": {
     "jasmine-core": "~2.0.1",
-    "glob": "^3.2.11",
-    "commander": "~2.1.0"
+    "glob": "^3.2.11"
   },
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
