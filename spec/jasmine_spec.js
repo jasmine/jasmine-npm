@@ -146,5 +146,21 @@ describe('Jasmine', function() {
       expect(testJasmine.loadSpecs).toHaveBeenCalled();
       expect(testJasmine.env.execute).toHaveBeenCalled();
     });
+
+    it('can run only specified files', function() {
+      spyOn(testJasmine, 'configureDefaultReporter');
+      spyOn(testJasmine, 'loadSpecs');
+      spyOn(testJasmine.env, 'execute');
+
+      testJasmine.loadConfigFile();
+
+      testJasmine.execute(['spec/fixtures/**/*spec.js']);
+
+      var relativePaths = testJasmine.specFiles.map(function(path) {
+        return path.replace(__dirname, '');
+      });
+
+      expect(relativePaths).toEqual(['/fixtures/sample_project/spec/fixture_spec.js', '/fixtures/sample_project/spec/other_fixture_spec.js']);
+    });
   });
 });
