@@ -9,20 +9,7 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
 
-  grunt.registerTask('specs', function() {
-    var Jasmine = require('./lib/jasmine.js');
-    var jasmine = new Jasmine();
-    var done = this.async();
-
-    jasmine.loadConfigFile('./spec/support/jasmine.json');
-    jasmine.configureDefaultReporter({
-      onComplete: function(passed) {
-        done(passed);
-      }
-    });
-
-    jasmine.execute();
-  });
+  grunt.loadTasks('tasks');
 
   grunt.registerTask('default', ['jshint:all', 'specs']);
 };
