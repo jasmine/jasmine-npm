@@ -22,7 +22,7 @@ describe('Jasmine', function() {
 
   describe('#configureDefaultReporter', function() {
     it('creates a reporter with the passed in options', function() {
-      spyOn(jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
+      spyOn(Jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
       spyOn(testJasmine.env, 'addReporter');
 
       var reporterOptions = {
@@ -33,12 +33,12 @@ describe('Jasmine', function() {
 
       testJasmine.configureDefaultReporter(reporterOptions);
 
-      expect(jasmine.ConsoleReporter).toHaveBeenCalledWith(reporterOptions);
+      expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(reporterOptions);
       expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
     });
 
     it('creates a reporter with a default option if an option is not specified', function() {
-      spyOn(jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
+      spyOn(Jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
       spyOn(testJasmine.env, 'addReporter');
 
       var reporterOptions = {};
@@ -52,7 +52,7 @@ describe('Jasmine', function() {
         timer: jasmine.any(Object)
       };
 
-      expect(jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
+      expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
       expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
     });
   });
@@ -134,7 +134,7 @@ describe('Jasmine', function() {
     });
 
     it('does not add a default reporter if a reporter was already added', function() {
-      testJasmine.addReporter(new jasmine.ConsoleReporter({}));
+      testJasmine.addReporter(new Jasmine.ConsoleReporter({}));
 
       spyOn(testJasmine, 'configureDefaultReporter');
       spyOn(testJasmine, 'loadSpecs');
