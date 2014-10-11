@@ -2,10 +2,27 @@ describe('Jasmine', function() {
   var path = require('path'),
       util = require('util'),
       Jasmine = require('../lib/jasmine'),
+      bootedJasmine,
+      fakeJasmineCore,
       testJasmine;
 
   beforeEach(function() {
-    testJasmine = new Jasmine();
+    bootedJasmine = {
+      getEnv: jasmine.createSpy('getEnv').and.returnValue({
+        addReporter: jasmine.createSpy('addReporter'),
+        execute: jasmine.createSpy('execute')
+      }),
+      Timer: jasmine.createSpy('Timer'),
+      Expectation: {
+        addMatchers: jasmine.createSpy('addMatchers')
+      }
+    };
+
+    fakeJasmineCore = {
+      boot: jasmine.createSpy('boot').and.returnValue(bootedJasmine)
+    };
+
+    testJasmine = new Jasmine({ jasmineCore: fakeJasmineCore });
   });
 
   describe('constructor options', function() {
@@ -23,7 +40,6 @@ describe('Jasmine', function() {
   describe('#configureDefaultReporter', function() {
     it('creates a reporter with the passed in options', function() {
       spyOn(Jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
-      spyOn(testJasmine.env, 'addReporter');
 
       var reporterOptions = {
         print: 'printer',
@@ -39,7 +55,6 @@ describe('Jasmine', function() {
 
     it('creates a reporter with a default option if an option is not specified', function() {
       spyOn(Jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
-      spyOn(testJasmine.env, 'addReporter');
 
       var reporterOptions = {};
 
@@ -58,15 +73,17 @@ describe('Jasmine', function() {
   });
 
   it('adds matchers to the jasmine env', function() {
-    spyOn(jasmine.Expectation, 'addMatchers');
     testJasmine.addMatchers(['fake matcher 1', 'fake matcher 2']);
-    expect(jasmine.Expectation.addMatchers).toHaveBeenCalledWith(['fake matcher 1', 'fake matcher 2']);
+    expect(bootedJasmine.Expectation.addMatchers).toHaveBeenCalledWith(['fake matcher 1', 'fake matcher 2']);
   });
 
   describe('loading configurations', function() {
     var fixtureJasmine;
     beforeEach(function() {
-      fixtureJasmine = new Jasmine({projectBaseDir: 'spec/fixtures/sample_project'});
+      fixtureJasmine = new Jasmine({
+        jasmineCore: fakeJasmineCore,
+        projectBaseDir: 'spec/fixtures/sample_project'
+      });
     });
 
     describe('from an object', function() {
@@ -124,7 +141,6 @@ describe('Jasmine', function() {
     it('uses the default console reporter if no reporters were added', function() {
       spyOn(testJasmine, 'configureDefaultReporter');
       spyOn(testJasmine, 'loadSpecs');
-      spyOn(testJasmine.env, 'execute');
 
       testJasmine.execute();
 
@@ -138,7 +154,6 @@ describe('Jasmine', function() {
 
       spyOn(testJasmine, 'configureDefaultReporter');
       spyOn(testJasmine, 'loadSpecs');
-      spyOn(testJasmine.env, 'execute');
 
       testJasmine.execute();
 
@@ -150,7 +165,6 @@ describe('Jasmine', function() {
     it('can run only specified files', function() {
       spyOn(testJasmine, 'configureDefaultReporter');
       spyOn(testJasmine, 'loadSpecs');
-      spyOn(testJasmine.env, 'execute');
 
       testJasmine.loadConfigFile();
 
