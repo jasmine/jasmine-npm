@@ -6,4 +6,4 @@ var path = require('path'),
     Jasmine = require('../lib/jasmine.js'),
     jasmine = new Jasmine({ projectBaseDir: path.resolve() });
 
-command.run(jasmine, process.argv);
+command.run(jasmine, process.argv.slice(2));
