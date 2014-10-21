@@ -5,12 +5,12 @@
 The [Jasmine](https://github.com/pivotal/jasmine) module is a package of helper code for developing Jasmine projects for Node.js.
 
 ## Contents
+
 This module allows you to run Jasmine specs for your Node.js code. The output will be displayed in your terminal.
 
-You can get this using npm: `npm install -g jasmine`
+## Installation
 
-For now, to get the prerelease version:
-`npm install -g pivotal/jasmine-npm`
+`npm install -g jasmine`
 
 ## Initializing
 
@@ -24,7 +24,7 @@ To seed your project with some examples
 
 ## Usage
 
-To run your test suite, type from the root of your project
+To run your test suite
 
 `jasmine`
 
