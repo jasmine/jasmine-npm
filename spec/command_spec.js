@@ -122,7 +122,7 @@ describe('command', function() {
     });
 
     it('should be able to run only specified specs', function() {
-      command.run(fakeJasmine, ['node', 'bin/jasmine.js', 'spec/some/fileSpec.js', 'SOME_ENV=SOME_VALUE', '--some-option']);
+      command.run(fakeJasmine, ['spec/some/fileSpec.js', 'SOME_ENV=SOME_VALUE', '--some-option']);
       expect(fakeJasmine.execute).toHaveBeenCalledWith(['spec/some/fileSpec.js']);
     });
   });
