@@ -1,6 +1,7 @@
 describe('Jasmine', function() {
   var path = require('path'),
       util = require('util'),
+      Promise = require('es6-promise').Promise,
       Jasmine = require('../lib/jasmine'),
       bootedJasmine,
       fakeJasmineCore,
@@ -138,33 +139,43 @@ describe('Jasmine', function() {
   });
 
   describe('#execute', function() {
-    it('uses the default console reporter if no reporters were added', function() {
+    it('uses the default console reporter if no reporters were added', function(done) {
+      var loadingFilesPromise = Promise.resolve();
       spyOn(testJasmine, 'configureDefaultReporter');
-      spyOn(testJasmine, 'loadSpecs');
+      spyOn(testJasmine, 'loadSpecs').and.returnValue(loadingFilesPromise);
 
       testJasmine.execute();
 
       expect(testJasmine.configureDefaultReporter).toHaveBeenCalledWith({});
       expect(testJasmine.loadSpecs).toHaveBeenCalled();
-      expect(testJasmine.env.execute).toHaveBeenCalled();
+
+      loadingFilesPromise.then(function() {
+        expect(testJasmine.env.execute).toHaveBeenCalled();
+        done();
+      });
     });
 
-    it('does not add a default reporter if a reporter was already added', function() {
+    it('does not add a default reporter if a reporter was already added', function(done) {
+      var loadingFilesPromise = Promise.resolve();
       testJasmine.addReporter(new Jasmine.ConsoleReporter({}));
 
       spyOn(testJasmine, 'configureDefaultReporter');
-      spyOn(testJasmine, 'loadSpecs');
+      spyOn(testJasmine, 'loadSpecs').and.returnValue(loadingFilesPromise);
 
       testJasmine.execute();
 
       expect(testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
       expect(testJasmine.loadSpecs).toHaveBeenCalled();
-      expect(testJasmine.env.execute).toHaveBeenCalled();
+
+      loadingFilesPromise.then(function() {
+        expect(testJasmine.env.execute).toHaveBeenCalled();
+        done();
+      });
     });
 
     it('can run only specified files', function() {
       spyOn(testJasmine, 'configureDefaultReporter');
-      spyOn(testJasmine, 'loadSpecs');
+      spyOn(testJasmine, 'loadSpecs').and.returnValue(Promise.resolve());
 
       testJasmine.loadConfigFile();
 
@@ -175,6 +186,30 @@ describe('Jasmine', function() {
       });
 
       expect(relativePaths).toEqual(['/fixtures/sample_project/spec/fixture_spec.js', '/fixtures/sample_project/spec/other_fixture_spec.js']);
+    });
+  });
+
+  describe('custom loader', function() {
+    var configObject = {
+      spec_dir: "spec",
+      spec_files: [
+        "fixture_spec.js",
+        "**/*.js"
+      ],
+      helpers: [
+        "helper.js"
+      ],
+      "loader": "./spec/support/loader.js"
+    };
+
+    it('require custom loader if configured', function() {
+      var loaderModule = require("./support/loader.js");
+      expect(loaderModule.filesToLoad.length).toBe(0);
+      testJasmine.loadConfig(configObject);
+
+      testJasmine.execute();
+
+      expect(loaderModule.filesToLoad.length).toBe(7);
     });
   });
 });
