@@ -61,7 +61,7 @@ describe('Jasmine', function() {
       testJasmine.configureDefaultReporter(reporterOptions);
 
       var expectedReporterOptions = {
-        print: util.print,
+        print: jasmine.any(Function),
         showColors: true,
         onComplete: jasmine.any(Function),
         timer: jasmine.any(Object)
