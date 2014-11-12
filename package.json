@@ -14,8 +14,9 @@
     "url": "https://github.com/pivotal/jasmine-npm"
   },
   "dependencies": {
-    "jasmine-core": "~2.0.1",
-    "glob": "^3.2.11"
+    "es6-promise": "^2.0.0",
+    "glob": "^3.2.11",
+    "jasmine-core": "~2.0.1"
   },
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",

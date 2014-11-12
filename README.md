@@ -37,6 +37,15 @@ Alternatively, you may specify the path to your `jasmine.json` by setting an env
 
 `jasmine JASMINE_CONFIG_PATH=relative/path/to/your/jasmine.json`
 
+You can also specify a custom loader (for loading tests written in non ES5 languages, e.g. ES6) using
+
+```json
+"loader": "./resources/loader.js"
+```
+
+The loader will be passed a path to the file Jasmine wants loaded and the loader will return a `Promise` that resolves
+when the file and it's dependencies are loaded and compiled.
+
 ## Support
 
 Jasmine Mailing list: [jasmine-js@googlegroups.com](mailto:jasmine-js@googlegroups.com)
