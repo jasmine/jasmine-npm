@@ -44,12 +44,18 @@ describe('Jasmine', function() {
       var reporterOptions = {
         print: 'printer',
         onComplete: 'on complete method',
-        showColors: true
+        showColors: true,
+        timer: 'timer'
       };
+
+      var expectedReporterOptions = Object.keys(reporterOptions).reduce(function(options, key) {
+        options[key] = reporterOptions[key];
+        return options;
+      }, {});
 
       testJasmine.configureDefaultReporter(reporterOptions);
 
-      expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(reporterOptions);
+      expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
       expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
     });
 
