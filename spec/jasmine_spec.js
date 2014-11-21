@@ -19,7 +19,10 @@ describe('Jasmine', function() {
     };
 
     fakeJasmineCore = {
-      boot: jasmine.createSpy('boot').and.returnValue(bootedJasmine)
+      boot: jasmine.createSpy('boot').and.returnValue(bootedJasmine),
+      files: {
+        path: 'fake/jasmine/path'
+      }
     };
 
     testJasmine = new Jasmine({ jasmineCore: fakeJasmineCore });
@@ -45,6 +48,7 @@ describe('Jasmine', function() {
         print: 'printer',
         onComplete: 'on complete method',
         showColors: true,
+        jasmineCorePath: 'path',
         timer: 'timer'
       };
 
@@ -70,7 +74,8 @@ describe('Jasmine', function() {
         print: util.print,
         showColors: true,
         onComplete: jasmine.any(Function),
-        timer: jasmine.any(Object)
+        timer: jasmine.any(Object),
+        jasmineCorePath: 'fake/jasmine/path/jasmine.js'
       };
 
       expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);

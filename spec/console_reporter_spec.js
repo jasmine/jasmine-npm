@@ -2,7 +2,7 @@ describe("ConsoleReporter", function() {
   var out,
     path = require('path'),
     ConsoleReporter = require('../lib/console_reporter'),
-    jasmineCorePath = path.join(__dirname, '..', 'node_modules', 'jasmine-core', 'lib', 'jasmine-core', 'jasmine.js');
+    jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
 
   var fakeStack = ['foo' + jasmineCorePath,
     'bar ' + jasmineCorePath,
@@ -155,9 +155,10 @@ describe("ConsoleReporter", function() {
     expect(out.getOutput()).toMatch("Finished in 0.1 seconds\n");
   });
 
-  it("reports a summary when done that includes stack traces without jasmine interals for a failing suite", function() {
+  it("reports a summary when done that includes stack traces without jasmine internals for a failing suite", function() {
     var reporter = new ConsoleReporter({
-      print: out.print
+      print: out.print,
+      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
