@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jasmine/jasmine-npm.png?branch=master)](https://travis-ci.org/pivotal/jasmine-npm)
+[![Build Status](https://travis-ci.org/jasmine/jasmine-npm.png?branch=master)](https://travis-ci.org/jasmine/jasmine-npm)
 
 # The Jasmine Module
 
