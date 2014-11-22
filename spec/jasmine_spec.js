@@ -19,7 +19,10 @@ describe('Jasmine', function() {
     };
 
     fakeJasmineCore = {
-      boot: jasmine.createSpy('boot').and.returnValue(bootedJasmine)
+      boot: jasmine.createSpy('boot').and.returnValue(bootedJasmine),
+      files: {
+        path: 'fake/jasmine/path'
+      }
     };
 
     testJasmine = new Jasmine({ jasmineCore: fakeJasmineCore });
@@ -44,12 +47,19 @@ describe('Jasmine', function() {
       var reporterOptions = {
         print: 'printer',
         onComplete: 'on complete method',
-        showColors: true
+        showColors: true,
+        jasmineCorePath: 'path',
+        timer: 'timer'
       };
+
+      var expectedReporterOptions = Object.keys(reporterOptions).reduce(function(options, key) {
+        options[key] = reporterOptions[key];
+        return options;
+      }, {});
 
       testJasmine.configureDefaultReporter(reporterOptions);
 
-      expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(reporterOptions);
+      expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
       expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
     });
 
@@ -64,7 +74,8 @@ describe('Jasmine', function() {
         print: jasmine.any(Function),
         showColors: true,
         onComplete: jasmine.any(Function),
-        timer: jasmine.any(Object)
+        timer: jasmine.any(Object),
+        jasmineCorePath: 'fake/jasmine/path/jasmine.js'
       };
 
       expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);

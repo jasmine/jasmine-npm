@@ -1,6 +1,13 @@
 describe("ConsoleReporter", function() {
   var out,
-    ConsoleReporter = require('../lib/console_reporter');
+    path = require('path'),
+    ConsoleReporter = require('../lib/console_reporter'),
+    jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
+
+  var fakeStack = ['foo' + jasmineCorePath,
+    'bar ' + jasmineCorePath,
+    'line of useful stack trace',
+    'baz ' + jasmineCorePath].join('\n');
 
   beforeEach(function() {
     out = (function() {
@@ -133,7 +140,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: "foo\nbar\nbaz"
+          stack: fakeStack
         }
       ]
     });
@@ -148,9 +155,10 @@ describe("ConsoleReporter", function() {
     expect(out.getOutput()).toMatch("Finished in 0.1 seconds\n");
   });
 
-  it("reports a summary when done that includes stack traces for a failing suite", function() {
+  it("reports a summary when done that includes stack traces without jasmine internals for a failing suite", function() {
     var reporter = new ConsoleReporter({
-      print: out.print
+      print: out.print,
+      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -165,7 +173,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: "foo bar baz"
+          stack: fakeStack
         }
       ]
     });
@@ -175,7 +183,8 @@ describe("ConsoleReporter", function() {
     reporter.jasmineDone();
 
     expect(out.getOutput()).toMatch(/true to be false/);
-    expect(out.getOutput()).toMatch(/foo bar baz/);
+    expect(out.getOutput()).toMatch(/line of useful stack trace/);
+    expect(out.getOutput()).not.toMatch(jasmineCorePath);
   });
 
   describe('onComplete callback', function(){
