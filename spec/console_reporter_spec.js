@@ -155,6 +155,36 @@ describe("ConsoleReporter", function() {
     expect(out.getOutput()).toMatch("Finished in 0.1 seconds\n");
   });
 
+  it("reports a summary when done that includes the failed spec number before the full name of a failing spec", function() {
+    var reporter = new ConsoleReporter({
+      print: out.print,
+      jasmineCorePath: jasmineCorePath
+    });
+
+    reporter.jasmineStarted();
+    reporter.specDone({status: "passed"});
+    reporter.specDone({
+      status: "failed",
+      description: "with a failing spec",
+      fullName: "A suite with a failing spec",
+      failedExpectations: [
+        {
+          passed: false,
+          message: "Expected true to be false.",
+          expected: false,
+          actual: true,
+          stack: fakeStack
+        }
+      ]
+    });
+
+    out.clear();
+
+    reporter.jasmineDone();
+
+    expect(out.getOutput()).toMatch(/1\) A suite with a failing spec/);
+  });
+
   it("reports a summary when done that includes stack traces without jasmine internals for a failing suite", function() {
     var reporter = new ConsoleReporter({
       print: out.print,
