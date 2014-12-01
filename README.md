@@ -2,7 +2,7 @@
 
 # The Jasmine Module
 
-The [Jasmine](https://github.com/pivotal/jasmine) module is a package of helper code for developing Jasmine projects for Node.js.
+The [Jasmine](https://github.com/jasmine/jasmine) module is a package of helper code for developing Jasmine projects for Node.js.
 
 ## Contents
 
