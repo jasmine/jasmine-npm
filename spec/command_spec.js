@@ -4,7 +4,7 @@ var fs = require('fs'),
 var Command = require('../lib/command');
 
 var projectBaseDir = 'spec/fixtures/sample_empty_project/';
-var spec = path.join(projectBaseDir, 'spec/');
+var spec = path.join(projectBaseDir, 'spec');
 
 function deleteDirectory(dir) {
   if(fs.existsSync(dir)) {
@@ -71,18 +71,17 @@ describe('command', function() {
       command.run(fakeJasmine, ['node', 'bin/jasmine.js', 'examples']);
     });
 
-    it('should create init files if they don\'t exist', function() {
-      expect(fs.existsSync(path.join(spec, 'jasmine_examples/'))).toBe(true);
-      expect(fs.existsSync(path.join(projectBaseDir, 'jasmine_examples/'))).toBe(true);
-      expect(fs.existsSync(path.join(spec, 'helpers/'))).toBe(true);
-      expect(fs.existsSync(path.join(spec, 'helpers/jasmine_examples/'))).toBe(true);
+    it('should create init files if they do not exist', function() {
+      expect(fs.existsSync(path.join(spec, 'jasmine_examples'))).toBe(true);
+      expect(fs.existsSync(path.join(projectBaseDir, 'lib', 'jasmine_examples'))).toBe(true);
+      expect(fs.existsSync(path.join(spec, 'helpers', 'jasmine_examples'))).toBe(true);
     });
 
     it('should copy files into the appropriate folder', function() {
-      expect(fs.existsSync(path.join(projectBaseDir, 'jasmine_examples/', 'Player.js'))).toBe(true);
-      expect(fs.existsSync(path.join(projectBaseDir, 'jasmine_examples/', 'Song.js'))).toBe(true);
-      expect(fs.existsSync(path.join(spec, 'jasmine_examples/', 'PlayerSpec.js'))).toBe(true);
-      expect(fs.existsSync(path.join(spec, 'helpers/', 'jasmine_examples/', 'SpecHelper.js'))).toBe(true);
+      expect(fs.existsSync(path.join(projectBaseDir, 'lib', 'jasmine_examples', 'Player.js'))).toBe(true);
+      expect(fs.existsSync(path.join(projectBaseDir, 'lib', 'jasmine_examples', 'Song.js'))).toBe(true);
+      expect(fs.existsSync(path.join(spec, 'jasmine_examples', 'PlayerSpec.js'))).toBe(true);
+      expect(fs.existsSync(path.join(spec, 'helpers', 'jasmine_examples', 'SpecHelper.js'))).toBe(true);
     });
   });
 
