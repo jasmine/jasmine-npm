@@ -217,6 +217,29 @@ describe("ConsoleReporter", function() {
     expect(out.getOutput()).not.toMatch(jasmineCorePath);
   });
 
+  it("reports a summary when done that includes which specs are pending and their reasons", function() {
+    var reporter = new ConsoleReporter({
+      print: out.print,
+      jasmineCorePath: jasmineCorePath
+    });
+
+    reporter.jasmineStarted();
+
+    reporter.specDone({
+      status: "pending",
+      description: "with a pending spec",
+      fullName: "A suite with a pending spec",
+      pendingReason: "It's not ready yet!"
+    });
+
+    out.clear();
+
+    reporter.jasmineDone();
+
+    expect(out.getOutput()).toContain("A suite with a pending spec");
+    expect(out.getOutput()).toContain("It's not ready yet!");
+  });
+
   describe('onComplete callback', function(){
     var onComplete, reporter;
 
