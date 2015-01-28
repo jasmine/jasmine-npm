@@ -13,6 +13,9 @@
     "type": "git",
     "url": "https://github.com/jasmine/jasmine-npm"
   },
+  "scripts": {
+    "test": "./node_modules/.bin/grunt && ./bin/jasmine.js"
+  },
   "dependencies": {
     "jasmine-core": "~2.1.0",
     "glob": "^3.2.11"
