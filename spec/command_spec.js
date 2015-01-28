@@ -26,8 +26,10 @@ describe('command', function() {
   var fakeJasmine, command;
 
   beforeEach(function() {
+    var examplesDir = path.resolve(path.join(__dirname, 'fixtures', 'example'));
+
     fs.mkdirSync(projectBaseDir);
-    command = new Command(projectBaseDir);
+    command = new Command(projectBaseDir, examplesDir);
 
     fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'configureDefaultReporter', 'execute']);
   });
@@ -78,9 +80,9 @@ describe('command', function() {
     });
 
     it('should copy files into the appropriate folder', function() {
-      expect(fs.existsSync(path.join(projectBaseDir, 'lib', 'jasmine_examples', 'Player.js'))).toBe(true);
-      expect(fs.existsSync(path.join(projectBaseDir, 'lib', 'jasmine_examples', 'Song.js'))).toBe(true);
-      expect(fs.existsSync(path.join(spec, 'jasmine_examples', 'PlayerSpec.js'))).toBe(true);
+      expect(fs.existsSync(path.join(projectBaseDir, 'lib', 'jasmine_examples', 'Foo.js'))).toBe(true);
+      expect(fs.existsSync(path.join(projectBaseDir, 'lib', 'jasmine_examples', 'Bar.js'))).toBe(true);
+      expect(fs.existsSync(path.join(spec, 'jasmine_examples', 'FooSpec.js'))).toBe(true);
       expect(fs.existsSync(path.join(spec, 'helpers', 'jasmine_examples', 'SpecHelper.js'))).toBe(true);
     });
   });
