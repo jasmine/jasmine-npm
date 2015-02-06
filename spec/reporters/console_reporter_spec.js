@@ -28,12 +28,13 @@ describe("ConsoleReporter", function() {
 
   describe('when an onComplete function is passed in', function() {
     it('warns the user of deprecation', function() {
-      spyOn(console, 'warn');
+      var spiedPrintDeprecation = jasmine.createSpy('printDeprecation');
       new ConsoleReporter({
-        onComplete: function () {}
+        onComplete: function () {},
+        printDeprecation: spiedPrintDeprecation
       });
 
-      expect(console.warn).toHaveBeenCalledWith('Passing in an onComplete function to the ConsoleReporter is deprecated.');
+      expect(spiedPrintDeprecation).toHaveBeenCalledWith('Passing in an onComplete function to the ConsoleReporter is deprecated.');
     });
   });
 
@@ -255,11 +256,11 @@ describe("ConsoleReporter", function() {
     var onComplete, reporter;
 
     beforeEach(function() {
-      spyOn(console, 'warn');
       onComplete = jasmine.createSpy('onComplete');
       reporter = new ConsoleReporter({
         print: out.print,
-        onComplete: onComplete
+        onComplete: onComplete,
+        printDeprecation: function() {}
       });
       reporter.jasmineStarted();
     });

@@ -82,14 +82,14 @@ describe('Jasmine', function() {
 
     describe('passing in an onComplete function', function() {
       it('warns the user of deprecation', function() {
-        spyOn(console, 'warn');
+        testJasmine.printDeprecation = jasmine.createSpy('printDeprecation');
         var reporterOptions = {
           onComplete: function() {}
         };
 
         testJasmine.configureDefaultReporter(reporterOptions);
 
-        expect(console.warn).toHaveBeenCalledWith('Passing in an onComplete function to configureDefaultReporter is deprecated.');
+        expect(testJasmine.printDeprecation).toHaveBeenCalledWith('Passing in an onComplete function to configureDefaultReporter is deprecated.');
       });
     });
   });
