@@ -1,7 +1,7 @@
 describe("ConsoleReporter", function() {
   var out,
     path = require('path'),
-    ConsoleReporter = require('../lib/console_reporter'),
+    ConsoleReporter = require('../../lib/reporters/console_reporter'),
     jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
 
   var fakeStack = ['foo' + jasmineCorePath,

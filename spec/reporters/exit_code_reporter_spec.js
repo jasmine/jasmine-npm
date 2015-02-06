@@ -1,5 +1,5 @@
 describe('ExitCodeReporter', function() {
-  var ExitCodeReporter = require('../lib/exit_code_reporter');
+  var ExitCodeReporter = require('../../lib/reporters/exit_code_reporter');
   var reporter, onComplete;
 
   beforeEach(function() {
