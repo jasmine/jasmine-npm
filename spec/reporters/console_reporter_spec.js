@@ -1,8 +1,7 @@
 describe("ConsoleReporter", function() {
-  var out,
-    path = require('path'),
-    ConsoleReporter = require('../../lib/reporters/console_reporter'),
-    jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
+  var path = require('path'),
+      ConsoleReporter = require('../../lib/reporters/console_reporter'),
+      jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
 
   var fakeStack = ['foo' + jasmineCorePath,
     'bar ' + jasmineCorePath,
@@ -10,7 +9,7 @@ describe("ConsoleReporter", function() {
     'baz ' + jasmineCorePath].join('\n');
 
   beforeEach(function() {
-    out = (function() {
+    this.out = (function() {
       var output = "";
       return {
         print: function(str) {
@@ -40,18 +39,18 @@ describe("ConsoleReporter", function() {
 
   it("reports that the suite has started to the console", function() {
     var reporter = new ConsoleReporter({
-      print: out.print
+      print: this.out.print
     });
 
     reporter.jasmineStarted();
 
-    expect(out.getOutput()).toEqual("Started\n");
+    expect(this.out.getOutput()).toEqual("Started\n");
   });
 
   it("starts the provided timer when jasmine starts", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start']),
         reporter = new ConsoleReporter({
-          print: out.print,
+          print: this.out.print,
           timer: timerSpy
         });
 
@@ -62,60 +61,60 @@ describe("ConsoleReporter", function() {
 
   it("reports a passing spec as a dot", function() {
     var reporter = new ConsoleReporter({
-      print: out.print
+      print: this.out.print
     });
 
     reporter.specDone({status: "passed"});
 
-    expect(out.getOutput()).toEqual(".");
+    expect(this.out.getOutput()).toEqual(".");
   });
 
   it("does not report a disabled spec", function() {
     var reporter = new ConsoleReporter({
-      print: out.print
+      print: this.out.print
     });
 
     reporter.specDone({status: "disabled"});
 
-    expect(out.getOutput()).toEqual("");
+    expect(this.out.getOutput()).toEqual("");
   });
 
   it("reports a failing spec as an 'F'", function() {
     var reporter = new ConsoleReporter({
-      print: out.print
+      print: this.out.print
     });
 
     reporter.specDone({status: "failed"});
 
-    expect(out.getOutput()).toEqual("F");
+    expect(this.out.getOutput()).toEqual("F");
   });
 
   it("reports a pending spec as a '*'", function() {
     var reporter = new ConsoleReporter({
-      print: out.print
+      print: this.out.print
     });
 
     reporter.specDone({status: "pending"});
 
-    expect(out.getOutput()).toEqual("*");
+    expect(this.out.getOutput()).toEqual("*");
   });
 
   it("alerts user if there are no specs", function(){
     var reporter = new ConsoleReporter({
-          print: out.print
+          print: this.out.print
         });
 
     reporter.jasmineStarted();
-    out.clear();
+    this.out.clear();
     reporter.jasmineDone();
 
-    expect(out.getOutput()).toMatch(/No specs found/);
+    expect(this.out.getOutput()).toMatch(/No specs found/);
   });
 
   it("reports a summary when done (singular spec and time)", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
         reporter = new ConsoleReporter({
-          print: out.print,
+          print: this.out.print,
           timer: timerSpy
         });
 
@@ -124,18 +123,18 @@ describe("ConsoleReporter", function() {
 
     timerSpy.elapsed.and.returnValue(1000);
 
-    out.clear();
+    this.out.clear();
     reporter.jasmineDone();
 
-    expect(out.getOutput()).toMatch(/1 spec, 0 failures/);
-    expect(out.getOutput()).not.toMatch(/0 pending specs/);
-    expect(out.getOutput()).toMatch("Finished in 1 second\n");
+    expect(this.out.getOutput()).toMatch(/1 spec, 0 failures/);
+    expect(this.out.getOutput()).not.toMatch(/0 pending specs/);
+    expect(this.out.getOutput()).toMatch("Finished in 1 second\n");
   });
 
   it("reports a summary when done (pluralized specs and seconds)", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
         reporter = new ConsoleReporter({
-          print: out.print,
+          print: this.out.print,
           timer: timerSpy
         });
 
@@ -157,19 +156,19 @@ describe("ConsoleReporter", function() {
       ]
     });
 
-    out.clear();
+    this.out.clear();
 
     timerSpy.elapsed.and.returnValue(100);
 
     reporter.jasmineDone();
 
-    expect(out.getOutput()).toMatch(/3 specs, 1 failure, 1 pending spec/);
-    expect(out.getOutput()).toMatch("Finished in 0.1 seconds\n");
+    expect(this.out.getOutput()).toMatch(/3 specs, 1 failure, 1 pending spec/);
+    expect(this.out.getOutput()).toMatch("Finished in 0.1 seconds\n");
   });
 
   it("reports a summary when done that includes the failed spec number before the full name of a failing spec", function() {
     var reporter = new ConsoleReporter({
-      print: out.print,
+      print: this.out.print,
       jasmineCorePath: jasmineCorePath
     });
 
@@ -190,16 +189,16 @@ describe("ConsoleReporter", function() {
       ]
     });
 
-    out.clear();
+    this.out.clear();
 
     reporter.jasmineDone();
 
-    expect(out.getOutput()).toMatch(/1\) A suite with a failing spec/);
+    expect(this.out.getOutput()).toMatch(/1\) A suite with a failing spec/);
   });
 
   it("reports a summary when done that includes stack traces without jasmine internals for a failing suite", function() {
     var reporter = new ConsoleReporter({
-      print: out.print,
+      print: this.out.print,
       jasmineCorePath: jasmineCorePath
     });
 
@@ -220,18 +219,18 @@ describe("ConsoleReporter", function() {
       ]
     });
 
-    out.clear();
+    this.out.clear();
 
     reporter.jasmineDone();
 
-    expect(out.getOutput()).toMatch(/true to be false/);
-    expect(out.getOutput()).toMatch(/line of useful stack trace/);
-    expect(out.getOutput()).not.toMatch(jasmineCorePath);
+    expect(this.out.getOutput()).toMatch(/true to be false/);
+    expect(this.out.getOutput()).toMatch(/line of useful stack trace/);
+    expect(this.out.getOutput()).not.toMatch(jasmineCorePath);
   });
 
   it("reports a summary when done that includes which specs are pending and their reasons", function() {
     var reporter = new ConsoleReporter({
-      print: out.print,
+      print: this.out.print,
       jasmineCorePath: jasmineCorePath
     });
 
@@ -244,12 +243,12 @@ describe("ConsoleReporter", function() {
       pendingReason: "It's not ready yet!"
     });
 
-    out.clear();
+    this.out.clear();
 
     reporter.jasmineDone();
 
-    expect(out.getOutput()).toContain("A suite with a pending spec");
-    expect(out.getOutput()).toContain("It's not ready yet!");
+    expect(this.out.getOutput()).toContain("A suite with a pending spec");
+    expect(this.out.getOutput()).toContain("It's not ready yet!");
   });
 
   describe('onComplete callback', function(){
@@ -258,7 +257,7 @@ describe("ConsoleReporter", function() {
     beforeEach(function() {
       onComplete = jasmine.createSpy('onComplete');
       reporter = new ConsoleReporter({
-        print: out.print,
+        print: this.out.print,
         onComplete: onComplete,
         printDeprecation: function() {}
       });
@@ -287,51 +286,51 @@ describe("ConsoleReporter", function() {
   describe("with color", function() {
     it("reports that the suite has started to the console", function() {
       var reporter = new ConsoleReporter({
-        print: out.print,
+        print: this.out.print,
         showColors: true
       });
 
       reporter.jasmineStarted();
 
-      expect(out.getOutput()).toEqual("Started\n");
+      expect(this.out.getOutput()).toEqual("Started\n");
     });
 
     it("reports a passing spec as a dot", function() {
       var reporter = new ConsoleReporter({
-        print: out.print,
+        print: this.out.print,
         showColors: true
       });
 
       reporter.specDone({status: "passed"});
 
-      expect(out.getOutput()).toEqual("\x1B[32m.\x1B[0m");
+      expect(this.out.getOutput()).toEqual("\x1B[32m.\x1B[0m");
     });
 
     it("does not report a disabled spec", function() {
       var reporter = new ConsoleReporter({
-        print: out.print,
+        print: this.out.print,
         showColors: true
       });
 
       reporter.specDone({status: 'disabled'});
 
-      expect(out.getOutput()).toEqual("");
+      expect(this.out.getOutput()).toEqual("");
     });
 
     it("reports a failing spec as an 'F'", function() {
       var reporter = new ConsoleReporter({
-        print: out.print,
+        print: this.out.print,
         showColors: true
       });
 
       reporter.specDone({status: 'failed'});
 
-      expect(out.getOutput()).toEqual("\x1B[31mF\x1B[0m");
+      expect(this.out.getOutput()).toEqual("\x1B[31mF\x1B[0m");
     });
 
     it("displays all afterAll exceptions", function() {
         var reporter = new ConsoleReporter({
-          print: out.print,
+          print: this.out.print,
           showColors: true
         });
 
@@ -339,8 +338,8 @@ describe("ConsoleReporter", function() {
         reporter.suiteDone({ failedExpectations: [{ message: 'Some Other Exception' }] });
         reporter.jasmineDone();
 
-        expect(out.getOutput()).toMatch(/After All Exception/);
-        expect(out.getOutput()).toMatch(/Some Other Exception/);
+        expect(this.out.getOutput()).toMatch(/After All Exception/);
+        expect(this.out.getOutput()).toMatch(/Some Other Exception/);
     });
   });
 });

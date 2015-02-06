@@ -23,15 +23,13 @@ function deleteDirectory(dir) {
 }
 
 describe('command', function() {
-  var fakeJasmine, command;
-
   beforeEach(function() {
     var examplesDir = path.resolve(path.join(__dirname, 'fixtures', 'example'));
 
     fs.mkdirSync(projectBaseDir);
-    command = new Command(projectBaseDir, examplesDir);
+    this.command = new Command(projectBaseDir, examplesDir);
 
-    fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'configureDefaultReporter', 'execute']);
+    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'configureDefaultReporter', 'execute']);
   });
 
   afterEach(function() {
@@ -40,7 +38,7 @@ describe('command', function() {
 
   describe('passing in environment variables', function() {
     beforeEach(function () {
-      command.run(fakeJasmine, ['node', 'bin/jasmine.js', 'TESTKEY=TESTVALUE']);
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'TESTKEY=TESTVALUE']);
     });
 
     afterEach(function() {
@@ -54,7 +52,7 @@ describe('command', function() {
 
   describe('init', function() {
     beforeEach(function() {
-      command.run(fakeJasmine, ['node', 'bin/jasmine.js', 'init']);
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'init']);
     });
 
     it('creates setup folders and files for specs', function() {
@@ -70,7 +68,7 @@ describe('command', function() {
 
   describe('examples', function() {
     beforeEach(function() {
-      command.run(fakeJasmine, ['node', 'bin/jasmine.js', 'examples']);
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'examples']);
     });
 
     it('should create init files if they do not exist', function() {
@@ -88,43 +86,42 @@ describe('command', function() {
   });
 
   describe('running specs', function() {
-    var originalConfigPath;
     beforeEach(function() {
-      originalConfigPath = process.env.JASMINE_CONFIG_PATH;
+      this.originalConfigPath = process.env.JASMINE_CONFIG_PATH;
     });
 
     afterEach(function() {
-      process.env.JASMINE_CONFIG_PATH = originalConfigPath;
+      process.env.JASMINE_CONFIG_PATH = this.originalConfigPath;
     });
 
     it('should load the default config file', function() {
-      command.run(fakeJasmine, ['node', 'bin/jasmine.js']);
-      expect(fakeJasmine.loadConfigFile).toHaveBeenCalledWith(undefined);
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
+      expect(this.fakeJasmine.loadConfigFile).toHaveBeenCalledWith(undefined);
     });
 
     it('should load a custom config file', function() {
-      command.run(fakeJasmine, ['node', 'bin/jasmine.js', 'JASMINE_CONFIG_PATH=somewhere.json']);
-      expect(fakeJasmine.loadConfigFile).toHaveBeenCalledWith('somewhere.json');
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'JASMINE_CONFIG_PATH=somewhere.json']);
+      expect(this.fakeJasmine.loadConfigFile).toHaveBeenCalledWith('somewhere.json');
     });
 
     it('should show colors by default', function() {
-      command.run(fakeJasmine, ['node', 'bin/jasmine.js']);
-      expect(fakeJasmine.configureDefaultReporter).toHaveBeenCalledWith({ showColors: true });
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
+      expect(this.fakeJasmine.configureDefaultReporter).toHaveBeenCalledWith({ showColors: true });
     });
 
     it('should allow colors to be turned off', function() {
-      command.run(fakeJasmine, ['node', 'bin/jasmine.js', '--no-color']);
-      expect(fakeJasmine.configureDefaultReporter).toHaveBeenCalledWith({ showColors: false });
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--no-color']);
+      expect(this.fakeJasmine.configureDefaultReporter).toHaveBeenCalledWith({ showColors: false });
     });
 
     it('should execute the jasmine suite', function() {
-      command.run(fakeJasmine, ['node', 'bin/jasmine.js']);
-      expect(fakeJasmine.execute).toHaveBeenCalled();
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
+      expect(this.fakeJasmine.execute).toHaveBeenCalled();
     });
 
     it('should be able to run only specified specs', function() {
-      command.run(fakeJasmine, ['spec/some/fileSpec.js', 'SOME_ENV=SOME_VALUE', '--some-option']);
-      expect(fakeJasmine.execute).toHaveBeenCalledWith(['spec/some/fileSpec.js']);
+      this.command.run(this.fakeJasmine, ['spec/some/fileSpec.js', 'SOME_ENV=SOME_VALUE', '--some-option']);
+      expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['spec/some/fileSpec.js']);
     });
   });
 });

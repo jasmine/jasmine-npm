@@ -1,13 +1,10 @@
 describe('Jasmine', function() {
   var path = require('path'),
       util = require('util'),
-      Jasmine = require('../lib/jasmine'),
-      bootedJasmine,
-      fakeJasmineCore,
-      testJasmine;
+      Jasmine = require('../lib/jasmine');
 
   beforeEach(function() {
-    bootedJasmine = {
+    this.bootedJasmine = {
       getEnv: jasmine.createSpy('getEnv').and.returnValue({
         addReporter: jasmine.createSpy('addReporter'),
         execute: jasmine.createSpy('execute')
@@ -18,26 +15,26 @@ describe('Jasmine', function() {
       }
     };
 
-    fakeJasmineCore = {
-      boot: jasmine.createSpy('boot').and.returnValue(bootedJasmine),
+    this.fakeJasmineCore = {
+      boot: jasmine.createSpy('boot').and.returnValue(this.bootedJasmine),
       files: {
         path: 'fake/jasmine/path'
       }
     };
 
-    testJasmine = new Jasmine({ jasmineCore: fakeJasmineCore });
+    this.testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
   });
 
   describe('constructor options', function() {
     it('have defaults', function() {
-      expect(testJasmine.projectBaseDir).toEqual(path.resolve());
+      expect(this.testJasmine.projectBaseDir).toEqual(path.resolve());
     });
   });
 
   it('adds spec files', function() {
-    expect(testJasmine.specFiles).toEqual([]);
-    testJasmine.addSpecFile('some/file/path.js');
-    expect(testJasmine.specFiles).toEqual(['some/file/path.js']);
+    expect(this.testJasmine.specFiles).toEqual([]);
+    this.testJasmine.addSpecFile('some/file/path.js');
+    expect(this.testJasmine.specFiles).toEqual(['some/file/path.js']);
   });
 
   describe('#configureDefaultReporter', function() {
@@ -58,16 +55,16 @@ describe('Jasmine', function() {
         return options;
       }, {});
 
-      testJasmine.configureDefaultReporter(reporterOptions);
+      this.testJasmine.configureDefaultReporter(reporterOptions);
 
       expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
-      expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
+      expect(this.testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
     });
 
     it('creates a reporter with a default option if an option is not specified', function() {
       var reporterOptions = {};
 
-      testJasmine.configureDefaultReporter(reporterOptions);
+      this.testJasmine.configureDefaultReporter(reporterOptions);
 
       var expectedReporterOptions = {
         print: jasmine.any(Function),
@@ -77,33 +74,32 @@ describe('Jasmine', function() {
       };
 
       expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
-      expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
+      expect(this.testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
     });
 
     describe('passing in an onComplete function', function() {
       it('warns the user of deprecation', function() {
-        testJasmine.printDeprecation = jasmine.createSpy('printDeprecation');
+        this.testJasmine.printDeprecation = jasmine.createSpy('printDeprecation');
         var reporterOptions = {
           onComplete: function() {}
         };
 
-        testJasmine.configureDefaultReporter(reporterOptions);
+        this.testJasmine.configureDefaultReporter(reporterOptions);
 
-        expect(testJasmine.printDeprecation).toHaveBeenCalledWith('Passing in an onComplete function to configureDefaultReporter is deprecated.');
+        expect(this.testJasmine.printDeprecation).toHaveBeenCalledWith('Passing in an onComplete function to configureDefaultReporter is deprecated.');
       });
     });
   });
 
   it('adds matchers to the jasmine env', function() {
-    testJasmine.addMatchers(['fake matcher 1', 'fake matcher 2']);
-    expect(bootedJasmine.Expectation.addMatchers).toHaveBeenCalledWith(['fake matcher 1', 'fake matcher 2']);
+    this.testJasmine.addMatchers(['fake matcher 1', 'fake matcher 2']);
+    expect(this.bootedJasmine.Expectation.addMatchers).toHaveBeenCalledWith(['fake matcher 1', 'fake matcher 2']);
   });
 
   describe('loading configurations', function() {
-    var fixtureJasmine;
     beforeEach(function() {
-      fixtureJasmine = new Jasmine({
-        jasmineCore: fakeJasmineCore,
+      this.fixtureJasmine = new Jasmine({
+        jasmineCore: this.fakeJasmineCore,
         projectBaseDir: 'spec/fixtures/sample_project'
       });
     });
@@ -121,8 +117,8 @@ describe('Jasmine', function() {
       };
 
       it('adds unique specs to the jasmine runner', function() {
-        fixtureJasmine.loadConfig(configObject);
-        expect(fixtureJasmine.specFiles).toEqual([
+        this.fixtureJasmine.loadConfig(configObject);
+        expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/helper.js',
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'
@@ -132,8 +128,8 @@ describe('Jasmine', function() {
 
     describe('from a file', function() {
       it('adds unique specs to the jasmine runner', function() {
-        fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.json');
-        expect(fixtureJasmine.specFiles).toEqual([
+        this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.json');
+        expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/helper.js',
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'
@@ -142,8 +138,8 @@ describe('Jasmine', function() {
 
       it('loads the specified configuration file from an absolute path', function() {
         var absoluteConfigPath = path.join(__dirname, 'fixtures/sample_project/spec/support/jasmine_alternate.json');
-        fixtureJasmine.loadConfigFile(absoluteConfigPath);
-        expect(fixtureJasmine.specFiles).toEqual([
+        this.fixtureJasmine.loadConfigFile(absoluteConfigPath);
+        expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/helper.js',
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'
@@ -151,8 +147,8 @@ describe('Jasmine', function() {
       });
 
       it('loads the default configuration file', function() {
-        fixtureJasmine.loadConfigFile();
-        expect(fixtureJasmine.specFiles).toEqual([
+        this.fixtureJasmine.loadConfigFile();
+        expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/fixture_spec.js',
         ]);
       });
@@ -162,47 +158,47 @@ describe('Jasmine', function() {
   describe('#onComplete', function() {
     it('stores an onComplete function', function() {
       var fakeOnCompleteCallback = function() {};
-      spyOn(testJasmine.exitCodeReporter, 'onComplete');
+      spyOn(this.testJasmine.exitCodeReporter, 'onComplete');
 
-      testJasmine.onComplete(fakeOnCompleteCallback);
-      expect(testJasmine.exitCodeReporter.onComplete).toHaveBeenCalledWith(fakeOnCompleteCallback);
+      this.testJasmine.onComplete(fakeOnCompleteCallback);
+      expect(this.testJasmine.exitCodeReporter.onComplete).toHaveBeenCalledWith(fakeOnCompleteCallback);
     });
   });
 
   describe('#execute', function() {
     it('uses the default console reporter if no reporters were added', function() {
-      spyOn(testJasmine, 'configureDefaultReporter');
-      spyOn(testJasmine, 'loadSpecs');
+      spyOn(this.testJasmine, 'configureDefaultReporter');
+      spyOn(this.testJasmine, 'loadSpecs');
 
-      testJasmine.execute();
+      this.testJasmine.execute();
 
-      expect(testJasmine.configureDefaultReporter).toHaveBeenCalledWith({});
-      expect(testJasmine.loadSpecs).toHaveBeenCalled();
-      expect(testJasmine.env.execute).toHaveBeenCalled();
+      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({});
+      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
+      expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
 
     it('does not add a default reporter if a reporter was already added', function() {
-      testJasmine.addReporter(new Jasmine.ConsoleReporter({}));
+      this.testJasmine.addReporter(new Jasmine.ConsoleReporter({}));
 
-      spyOn(testJasmine, 'configureDefaultReporter');
-      spyOn(testJasmine, 'loadSpecs');
+      spyOn(this.testJasmine, 'configureDefaultReporter');
+      spyOn(this.testJasmine, 'loadSpecs');
 
-      testJasmine.execute();
+      this.testJasmine.execute();
 
-      expect(testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
-      expect(testJasmine.loadSpecs).toHaveBeenCalled();
-      expect(testJasmine.env.execute).toHaveBeenCalled();
+      expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
+      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
+      expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
 
     it('can run only specified files', function() {
-      spyOn(testJasmine, 'configureDefaultReporter');
-      spyOn(testJasmine, 'loadSpecs');
+      spyOn(this.testJasmine, 'configureDefaultReporter');
+      spyOn(this.testJasmine, 'loadSpecs');
 
-      testJasmine.loadConfigFile();
+      this.testJasmine.loadConfigFile();
 
-      testJasmine.execute(['spec/fixtures/**/*spec.js']);
+      this.testJasmine.execute(['spec/fixtures/**/*spec.js']);
 
-      var relativePaths = testJasmine.specFiles.map(function(path) {
+      var relativePaths = this.testJasmine.specFiles.map(function(path) {
         return path.replace(__dirname, '');
       });
 
@@ -211,35 +207,35 @@ describe('Jasmine', function() {
 
     it('adds an exit code reporter', function() {
       var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
-      testJasmine.exitCodeReporter = exitCodeReporterSpy;
-      spyOn(testJasmine, 'addReporter');
+      this.testJasmine.exitCodeReporter = exitCodeReporterSpy;
+      spyOn(this.testJasmine, 'addReporter');
 
-      testJasmine.execute();
+      this.testJasmine.execute();
 
-      expect(testJasmine.addReporter).toHaveBeenCalledWith(exitCodeReporterSpy);
+      expect(this.testJasmine.addReporter).toHaveBeenCalledWith(exitCodeReporterSpy);
     });
 
     describe('default completion behavior', function() {
       it('exits successfully when the whole suite is green', function() {
         var exitSpy = jasmine.createSpy('exit');
-        testJasmine.exit = exitSpy;
+        this.testJasmine.exit = exitSpy;
 
         var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
-        testJasmine.exitCodeReporter = exitCodeReporterSpy;
+        this.testJasmine.exitCodeReporter = exitCodeReporterSpy;
 
-        testJasmine.execute();
+        this.testJasmine.execute();
         exitCodeReporterSpy.onComplete.calls.mostRecent().args[0](true);
         expect(exitSpy).toHaveBeenCalledWith(0);
       });
 
       it('exits with a failure when anything in the suite is not green', function() {
         var exitSpy = jasmine.createSpy('exit');
-        testJasmine.exit = exitSpy;
+        this.testJasmine.exit = exitSpy;
 
         var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
-        testJasmine.exitCodeReporter = exitCodeReporterSpy;
+        this.testJasmine.exitCodeReporter = exitCodeReporterSpy;
 
-        testJasmine.execute();
+        this.testJasmine.execute();
         exitCodeReporterSpy.onComplete.calls.mostRecent().args[0](false);
         expect(exitSpy).toHaveBeenCalledWith(1);
       });
