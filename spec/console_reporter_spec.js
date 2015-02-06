@@ -26,6 +26,17 @@ describe("ConsoleReporter", function() {
     }());
   });
 
+  describe('when an onComplete function is passed in', function() {
+    it('warns the user of deprecation', function() {
+      spyOn(console, 'warn');
+      new ConsoleReporter({
+        onComplete: function () {}
+      });
+
+      expect(console.warn).toHaveBeenCalledWith('Passing in an onComplete function to the ConsoleReporter is deprecated.');
+    });
+  });
+
   it("reports that the suite has started to the console", function() {
     var reporter = new ConsoleReporter({
       print: out.print
@@ -244,6 +255,7 @@ describe("ConsoleReporter", function() {
     var onComplete, reporter;
 
     beforeEach(function() {
+      spyOn(console, 'warn');
       onComplete = jasmine.createSpy('onComplete');
       reporter = new ConsoleReporter({
         print: out.print,

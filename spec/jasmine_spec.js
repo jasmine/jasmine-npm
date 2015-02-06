@@ -41,12 +41,13 @@ describe('Jasmine', function() {
   });
 
   describe('#configureDefaultReporter', function() {
-    it('creates a reporter with the passed in options', function() {
+    beforeEach(function() {
       spyOn(Jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
+    });
 
+    it('creates a reporter with the passed in options', function() {
       var reporterOptions = {
         print: 'printer',
-        onComplete: 'on complete method',
         showColors: true,
         jasmineCorePath: 'path',
         timer: 'timer'
@@ -64,8 +65,6 @@ describe('Jasmine', function() {
     });
 
     it('creates a reporter with a default option if an option is not specified', function() {
-      spyOn(Jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
-
       var reporterOptions = {};
 
       testJasmine.configureDefaultReporter(reporterOptions);
@@ -73,13 +72,25 @@ describe('Jasmine', function() {
       var expectedReporterOptions = {
         print: jasmine.any(Function),
         showColors: true,
-        onComplete: jasmine.any(Function),
         timer: jasmine.any(Object),
         jasmineCorePath: 'fake/jasmine/path/jasmine.js'
       };
 
       expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
       expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
+    });
+
+    describe('passing in an onComplete function', function() {
+      it('warns the user of deprecation', function() {
+        spyOn(console, 'warn');
+        var reporterOptions = {
+          onComplete: function() {}
+        };
+
+        testJasmine.configureDefaultReporter(reporterOptions);
+
+        expect(console.warn).toHaveBeenCalledWith('Passing in an onComplete function to configureDefaultReporter is deprecated.');
+      });
     });
   });
 
@@ -148,6 +159,16 @@ describe('Jasmine', function() {
     });
   });
 
+  describe('#onComplete', function() {
+    it('stores an onComplete function', function() {
+      var fakeOnCompleteCallback = function() {};
+      spyOn(testJasmine.exitCodeReporter, 'onComplete');
+
+      testJasmine.onComplete(fakeOnCompleteCallback);
+      expect(testJasmine.exitCodeReporter.onComplete).toHaveBeenCalledWith(fakeOnCompleteCallback);
+    });
+  });
+
   describe('#execute', function() {
     it('uses the default console reporter if no reporters were added', function() {
       spyOn(testJasmine, 'configureDefaultReporter');
@@ -186,6 +207,42 @@ describe('Jasmine', function() {
       });
 
       expect(relativePaths).toEqual(['/fixtures/sample_project/spec/fixture_spec.js', '/fixtures/sample_project/spec/other_fixture_spec.js']);
+    });
+
+    it('adds an exit code reporter', function() {
+      var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
+      testJasmine.exitCodeReporter = exitCodeReporterSpy;
+      spyOn(testJasmine, 'addReporter');
+
+      testJasmine.execute();
+
+      expect(testJasmine.addReporter).toHaveBeenCalledWith(exitCodeReporterSpy);
+    });
+
+    describe('default completion behavior', function() {
+      it('exits successfully when the whole suite is green', function() {
+        var exitSpy = jasmine.createSpy('exit');
+        testJasmine.exit = exitSpy;
+
+        var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
+        testJasmine.exitCodeReporter = exitCodeReporterSpy;
+
+        testJasmine.execute();
+        exitCodeReporterSpy.onComplete.calls.mostRecent().args[0](true);
+        expect(exitSpy).toHaveBeenCalledWith(0);
+      });
+
+      it('exits with a failure when anything in the suite is not green', function() {
+        var exitSpy = jasmine.createSpy('exit');
+        testJasmine.exit = exitSpy;
+
+        var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
+        testJasmine.exitCodeReporter = exitCodeReporterSpy;
+
+        testJasmine.execute();
+        exitCodeReporterSpy.onComplete.calls.mostRecent().args[0](false);
+        expect(exitSpy).toHaveBeenCalledWith(1);
+      });
     });
   });
 });

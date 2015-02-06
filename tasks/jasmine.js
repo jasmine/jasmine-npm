@@ -8,12 +8,7 @@ module.exports = function(grunt) {
     var done = this.async();
 
     jasmine.loadConfigFile('./spec/support/jasmine.json');
-    jasmine.configureDefaultReporter({
-      onComplete: function(passed) {
-        done(passed);
-      }
-    });
-
+    jasmine.onComplete(done);
     jasmine.execute();
   });
 };
