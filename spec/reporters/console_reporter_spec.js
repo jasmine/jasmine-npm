@@ -228,6 +228,41 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).not.toMatch(jasmineCorePath);
   });
 
+  it("reports a summary when done that includes custom filtered stack traces for a failing suite", function() {
+    var stackLine = 'custom line of stack';
+    var customStackFilter = function(stack) {
+      return stackLine;
+    };
+    var reporter = new ConsoleReporter({
+      print: this.out.print,
+      stackFilter: customStackFilter
+    });
+
+    reporter.jasmineStarted();
+    reporter.specDone({status: "passed"});
+    reporter.specDone({
+      status: "failed",
+      description: "with a failing spec",
+      fullName: "A suite with a failing spec",
+      failedExpectations: [
+        {
+          passed: false,
+          message: "Expected true to be false.",
+          expected: false,
+          actual: true,
+          stack: fakeStack
+        }
+      ]
+    });
+
+    this.out.clear();
+
+    reporter.jasmineDone();
+
+    expect(this.out.getOutput()).toMatch(/true to be false/);
+    expect(this.out.getOutput()).toMatch(stackLine);
+  });
+
   it("reports a summary when done that includes which specs are pending and their reasons", function() {
     var reporter = new ConsoleReporter({
       print: this.out.print,
