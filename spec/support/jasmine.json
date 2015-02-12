@@ -3,6 +3,7 @@
   "spec_files": [
     "command_spec.js",
     "jasmine_spec.js",
+    "helpers_spec.js",
     "reporters/**/*[sS]pec.js"
   ],
   "helpers": [
