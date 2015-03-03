@@ -114,6 +114,16 @@ describe('command', function() {
       expect(this.fakeJasmine.configureDefaultReporter).toHaveBeenCalledWith({ showColors: false });
     });
 
+    it('should add a reporter by default', function() {
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
+      expect(this.fakeJasmine.configureDefaultReporter).toHaveBeenCalled();
+    });
+
+    it('should allow not to use a default reporter', function() {
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--no-default-reporter']);
+      expect(this.fakeJasmine.configureDefaultReporter).not.toHaveBeenCalled();
+    });
+
     it('should execute the jasmine suite', function() {
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
       expect(this.fakeJasmine.execute).toHaveBeenCalled();
