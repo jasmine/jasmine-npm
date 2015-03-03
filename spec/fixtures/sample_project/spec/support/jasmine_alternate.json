@@ -2,7 +2,7 @@
   "spec_dir": "spec",
   "spec_files": [
     "fixture_spec.js",
-    "**/*.js"
+    "**/*spec.js"
   ],
   "helpers": [
     "helper.js"

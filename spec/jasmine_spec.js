@@ -109,7 +109,7 @@ describe('Jasmine', function() {
         spec_dir: "spec",
         spec_files: [
           "fixture_spec.js",
-          "**/*.js"
+          "**/*spec.js"
         ],
         helpers: [
           "helper.js"
@@ -118,8 +118,8 @@ describe('Jasmine', function() {
 
       it('adds unique specs to the jasmine runner', function() {
         this.fixtureJasmine.loadConfig(configObject);
+        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
         expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/helper.js',
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'
         ]);
@@ -129,8 +129,8 @@ describe('Jasmine', function() {
     describe('from a file', function() {
       it('adds unique specs to the jasmine runner', function() {
         this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.json');
+        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
         expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/helper.js',
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'
         ]);
@@ -139,8 +139,8 @@ describe('Jasmine', function() {
       it('loads the specified configuration file from an absolute path', function() {
         var absoluteConfigPath = path.join(__dirname, 'fixtures/sample_project/spec/support/jasmine_alternate.json');
         this.fixtureJasmine.loadConfigFile(absoluteConfigPath);
+        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
         expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/helper.js',
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'
         ]);
@@ -188,6 +188,18 @@ describe('Jasmine', function() {
       expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
       expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
       expect(this.testJasmine.env.execute).toHaveBeenCalled();
+    });
+
+    it('loads helper files before checking if any reporters were added', function() {
+      var loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
+      spyOn(this.testJasmine, 'configureDefaultReporter').and.callFake(function() {
+        expect(loadHelpers).toHaveBeenCalled();
+      });
+      spyOn(this.testJasmine, 'loadSpecs');
+
+      this.testJasmine.execute();
+
+      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalled();
     });
 
     it('can run only specified files', function() {
