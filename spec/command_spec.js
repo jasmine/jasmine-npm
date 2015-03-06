@@ -29,7 +29,7 @@ describe('command', function() {
     fs.mkdirSync(projectBaseDir);
     this.command = new Command(projectBaseDir, examplesDir);
 
-    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'configureDefaultReporter', 'execute']);
+    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'showColors', 'execute']);
   });
 
   afterEach(function() {
@@ -106,12 +106,12 @@ describe('command', function() {
 
     it('should show colors by default', function() {
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
-      expect(this.fakeJasmine.configureDefaultReporter).toHaveBeenCalledWith({ showColors: true });
+      expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
     });
 
     it('should allow colors to be turned off', function() {
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--no-color']);
-      expect(this.fakeJasmine.configureDefaultReporter).toHaveBeenCalledWith({ showColors: false });
+      expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(false);
     });
 
     it('should execute the jasmine suite', function() {

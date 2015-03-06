@@ -105,19 +105,21 @@ describe('Jasmine', function() {
     });
 
     describe('from an object', function() {
-      var configObject = {
-        spec_dir: "spec",
-        spec_files: [
-          "fixture_spec.js",
-          "**/*spec.js"
-        ],
-        helpers: [
-          "helper.js"
-        ]
-      };
+      beforeEach(function() {
+        this.configObject = {
+          spec_dir: "spec",
+          spec_files: [
+            "fixture_spec.js",
+            "**/*spec.js"
+          ],
+          helpers: [
+            "helper.js"
+          ]
+        };
+      });
 
       it('adds unique specs to the jasmine runner', function() {
-        this.fixtureJasmine.loadConfig(configObject);
+        this.fixtureJasmine.loadConfig(this.configObject);
         expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
         expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/fixture_spec.js',
@@ -165,6 +167,14 @@ describe('Jasmine', function() {
     });
   });
 
+  it("showing colors can be configured", function() {
+    expect(this.testJasmine.showingColors).toBe(true);
+
+    this.testJasmine.showColors(false);
+
+    expect(this.testJasmine.showingColors).toBe(false);
+  });
+
   describe('#execute', function() {
     it('uses the default console reporter if no reporters were added', function() {
       spyOn(this.testJasmine, 'configureDefaultReporter');
@@ -172,7 +182,19 @@ describe('Jasmine', function() {
 
       this.testJasmine.execute();
 
-      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({});
+      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: true});
+      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
+      expect(this.testJasmine.env.execute).toHaveBeenCalled();
+    });
+
+    it('configures the default console reporter with the right color settings', function() {
+      spyOn(this.testJasmine, 'configureDefaultReporter');
+      spyOn(this.testJasmine, 'loadSpecs');
+      this.testJasmine.showColors(false);
+
+      this.testJasmine.execute();
+
+      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: false});
       expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
       expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
