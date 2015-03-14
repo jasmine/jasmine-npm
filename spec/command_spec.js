@@ -86,6 +86,16 @@ describe('command', function() {
   });
 
   describe('running specs', function() {
+    var withValueForIsTTY = function(value, func) {
+      var wasTTY = process.stdout.isTTY;
+      try {
+        process.stdout.isTTY = value;
+        func();
+      } finally {
+        process.stdout.isTTY = wasTTY;
+      }
+    };
+
     beforeEach(function() {
       this.originalConfigPath = process.env.JASMINE_CONFIG_PATH;
     });
@@ -104,9 +114,18 @@ describe('command', function() {
       expect(this.fakeJasmine.loadConfigFile).toHaveBeenCalledWith('somewhere.json');
     });
 
-    it('should show colors by default', function() {
-      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
-      expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
+    it('should show colors by default if stdout is a TTY', function() {
+      withValueForIsTTY(true, function () {
+        this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
+        expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
+      }.bind(this));
+    });
+
+    it('should not show colors by default if stdout is not a TTY', function() {
+      withValueForIsTTY(undefined, function () {
+        this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
+        expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(false);
+      }.bind(this));
     });
 
     it('should allow colors to be turned off', function() {
