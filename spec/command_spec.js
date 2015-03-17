@@ -27,7 +27,20 @@ describe('command', function() {
     var examplesDir = path.resolve(path.join(__dirname, 'fixtures', 'example'));
 
     fs.mkdirSync(projectBaseDir);
-    this.command = new Command(projectBaseDir, examplesDir);
+
+    this.out = (function() {
+      var output = "";
+      return {
+        print: function(str) {
+          output += str;
+        },
+        getOutput: function() {
+          return output;
+        }
+      };
+    }());
+
+    this.command = new Command(projectBaseDir, examplesDir, this.out.print);
 
     this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'showColors', 'execute']);
   });
@@ -63,6 +76,22 @@ describe('command', function() {
       var realJson = fs.readFileSync(path.join(spec, 'support/', 'jasmine.json'), 'utf-8');
       var fixtureJson = fs.readFileSync(path.join(__dirname, '../', 'lib/', 'examples/', 'jasmine.json'), 'utf-8');
       expect(realJson).toEqual(fixtureJson);
+    });
+  });
+
+  describe('version', function() {
+    beforeEach(function() {
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'version']);
+    });
+
+    it('displays the version of jasmine', function() {
+      var packageVersion = require('../package.json').version;
+      expect(this.out.getOutput()).toContain('jasmine v' + packageVersion);
+    });
+
+    it('displays the version of jasmine-core', function() {
+      var coreVersion = require('../node_modules/jasmine-core/package.json').version;
+      expect(this.out.getOutput()).toContain('jasmine-core v' + coreVersion);
     });
   });
 
