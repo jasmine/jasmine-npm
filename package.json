@@ -8,6 +8,7 @@
     "tdd",
     "bdd"
   ],
+  "license": "MIT",
   "version": "2.2.1",
   "repository": {
     "type": "git",
