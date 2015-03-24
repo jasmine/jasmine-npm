@@ -140,7 +140,12 @@ describe('command', function() {
 
     it('should be able to run only specified specs', function() {
       this.command.run(this.fakeJasmine, ['spec/some/fileSpec.js', 'SOME_ENV=SOME_VALUE', '--some-option']);
-      expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['spec/some/fileSpec.js']);
+      expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['spec/some/fileSpec.js'], undefined);
+    });
+
+    it('should be able filter by spec name', function() {
+      this.command.run(this.fakeJasmine, ['--filter=interesting spec']);
+      expect(this.fakeJasmine.execute).toHaveBeenCalledWith(jasmine.any(Array), 'interesting spec');
     });
   });
 });

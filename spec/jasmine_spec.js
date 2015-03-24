@@ -239,6 +239,13 @@ describe('Jasmine', function() {
       expect(relativePaths).toEqual(['/fixtures/sample_project/spec/fixture_spec.js', '/fixtures/sample_project/spec/other_fixture_spec.js']);
     });
 
+    it('should add spec filter if filterString is provided', function() {
+      this.testJasmine.loadConfigFile();
+
+      this.testJasmine.execute(['spec/fixtures/**/*spec.js'], 'interesting spec');
+      expect(this.testJasmine.env.specFilter).toEqual(jasmine.any(Function));
+    });
+
     it('adds an exit code reporter', function() {
       var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
       this.testJasmine.exitCodeReporter = exitCodeReporterSpy;
