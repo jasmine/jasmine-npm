@@ -95,6 +95,22 @@ describe('command', function() {
     });
   });
 
+  describe('-v', function() {
+    beforeEach(function() {
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '-v']);
+    });
+
+    it('displays the version of jasmine', function() {
+      var packageVersion = require('../package.json').version;
+      expect(this.out.getOutput()).toContain('jasmine v' + packageVersion);
+    });
+
+    it('displays the version of jasmine-core', function() {
+      var coreVersion = require('../node_modules/jasmine-core/package.json').version;
+      expect(this.out.getOutput()).toContain('jasmine-core v' + coreVersion);
+    });
+  });
+
   describe('examples', function() {
     beforeEach(function() {
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'examples']);
