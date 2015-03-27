@@ -171,6 +171,13 @@ describe('Jasmine', function() {
     });
   });
 
+  describe('#stopSpecOnExpectationFailure', function() {
+    it('sets the throwOnExpectationFailure value on the jasmine-core env', function() {
+      this.testJasmine.stopSpecOnExpectationFailure('foobar');
+      expect(this.testJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith('foobar');
+    });
+  });
+
   describe('#onComplete', function() {
     it('stores an onComplete function', function() {
       var fakeOnCompleteCallback = function() {};

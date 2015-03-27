@@ -42,7 +42,7 @@ describe('command', function() {
 
     this.command = new Command(projectBaseDir, examplesDir, this.out.print);
 
-    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'showColors', 'execute']);
+    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'showColors', 'execute', 'stopSpecOnExpectationFailure']);
   });
 
   afterEach(function() {
@@ -191,6 +191,21 @@ describe('command', function() {
     it('should be able filter by spec name', function() {
       this.command.run(this.fakeJasmine, ['--filter=interesting spec']);
       expect(this.fakeJasmine.execute).toHaveBeenCalledWith(jasmine.any(Array), 'interesting spec');
+    });
+
+    it('should not configure stopping spec on expectation failure by default', function() {
+      this.command.run(this.fakeJasmine, []);
+      expect(this.fakeJasmine.stopSpecOnExpectationFailure).not.toHaveBeenCalled();
+    });
+
+    it('should be able to turn on stopping spec on expectation failure', function() {
+      this.command.run(this.fakeJasmine, ['--stop-on-failure=true']);
+      expect(this.fakeJasmine.stopSpecOnExpectationFailure).toHaveBeenCalledWith(true);
+    });
+
+    it('should be able to turn off stopping spec on expectation failure', function() {
+      this.command.run(this.fakeJasmine, ['--stop-on-failure=false']);
+      expect(this.fakeJasmine.stopSpecOnExpectationFailure).toHaveBeenCalledWith(false);
     });
   });
 });
