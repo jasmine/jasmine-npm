@@ -7,7 +7,8 @@ describe('Jasmine', function() {
     this.bootedJasmine = {
       getEnv: jasmine.createSpy('getEnv').and.returnValue({
         addReporter: jasmine.createSpy('addReporter'),
-        execute: jasmine.createSpy('execute')
+        execute: jasmine.createSpy('execute'),
+        throwOnExpectationFailure: jasmine.createSpy('throwOnExpectationFailure')
       }),
       Timer: jasmine.createSpy('Timer'),
       Expectation: {
@@ -125,6 +126,19 @@ describe('Jasmine', function() {
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'
         ]);
+      });
+
+      it('can tell jasmine-core to stop spec on expectation failure', function() {
+        this.configObject.stopSpecOnExpectationFailure = true;
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith(true);
+      });
+
+      it('tells jasmine-core not to stop spec on expectation failure by default', function() {
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith(undefined);
       });
     });
 
