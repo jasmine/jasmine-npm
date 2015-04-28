@@ -287,7 +287,7 @@ describe('Jasmine', function() {
 
         this.testJasmine.execute();
         exitCodeReporterSpy.onComplete.calls.mostRecent().args[0](true);
-        expect(exitSpy).toHaveBeenCalledWith(0);
+        expect(exitSpy).toHaveBeenCalledWith(0, process.platform, process.version, process.exit, require('exit'));
       });
 
       it('exits with a failure when anything in the suite is not green', function() {
@@ -299,7 +299,7 @@ describe('Jasmine', function() {
 
         this.testJasmine.execute();
         exitCodeReporterSpy.onComplete.calls.mostRecent().args[0](false);
-        expect(exitSpy).toHaveBeenCalledWith(1);
+        expect(exitSpy).toHaveBeenCalledWith(1, process.platform, process.version, process.exit, require('exit'));
       });
     });
   });
