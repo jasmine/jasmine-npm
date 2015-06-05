@@ -126,6 +126,7 @@ describe("ConsoleReporter", function() {
     this.out.clear();
     reporter.jasmineDone();
 
+    expect(this.out.getOutput()).not.toMatch(/Ran 1/);
     expect(this.out.getOutput()).toMatch(/1 spec, 0 failures/);
     expect(this.out.getOutput()).not.toMatch(/0 pending specs/);
     expect(this.out.getOutput()).toMatch("Finished in 1 second\n");
@@ -164,6 +165,26 @@ describe("ConsoleReporter", function() {
 
     expect(this.out.getOutput()).toMatch(/3 specs, 1 failure, 1 pending spec/);
     expect(this.out.getOutput()).toMatch("Finished in 0.1 seconds\n");
+  });
+
+  it("reports a summary when done that indicates the number of specs run (when it's less that the full number of specs)", function() {
+    var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
+        reporter = new ConsoleReporter({
+          print: this.out.print,
+          timer: timerSpy
+        });
+
+    reporter.jasmineStarted();
+    reporter.specDone({status: "passed"});
+    reporter.specDone({status: "disabled"});
+
+    timerSpy.elapsed.and.returnValue(1000);
+
+    this.out.clear();
+    reporter.jasmineDone();
+
+    expect(this.out.getOutput()).toMatch(/Ran 1 of 2 specs/);
+    expect(this.out.getOutput()).toMatch(/1 spec, 0 failures/);
   });
 
   it("reports a summary when done that includes the failed spec number before the full name of a failing spec", function() {
