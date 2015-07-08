@@ -32,6 +32,7 @@ To run your test suite
 
 Customize `spec/support/jasmine.json` to enumerate the source and spec files you would like the Jasmine runner to include.
 You may use dir glob strings.
+More information on the format of `jasmine.json` can be found in [the documentation](http://jasmine.github.io/2.3/node.html#section-Configuration)
 
 Alternatively, you may specify the path to your `jasmine.json` by setting an environment variable:
 
