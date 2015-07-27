@@ -7,7 +7,7 @@ module.exports = function(grunt) {
     var jasmine = new Jasmine();
     var done = this.async();
 
-    jasmine.loadConfigFile('./spec/support/jasmine.json');
+    jasmine.loadConfigFile(process.env.JASMINE_CONFIG_PATH || './spec/support/jasmine.json');
     jasmine.onComplete(done);
     jasmine.execute();
   });
