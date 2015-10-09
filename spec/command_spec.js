@@ -42,7 +42,7 @@ describe('command', function() {
 
     this.command = new Command(projectBaseDir, examplesDir, this.out.print);
 
-    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'showColors', 'execute', 'stopSpecOnExpectationFailure']);
+    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'showColors', 'execute', 'stopSpecOnExpectationFailure', 'randomizeTests', 'seed']);
   });
 
   afterEach(function() {
@@ -206,6 +206,31 @@ describe('command', function() {
     it('should be able to turn off stopping spec on expectation failure', function() {
       this.command.run(this.fakeJasmine, ['--stop-on-failure=false']);
       expect(this.fakeJasmine.stopSpecOnExpectationFailure).toHaveBeenCalledWith(false);
+    });
+
+    it('should not use random tests by default', function() {
+      this.command.run(this.fakeJasmine, []);
+      expect(this.fakeJasmine.randomizeTests).toHaveBeenCalledWith(false);
+    });
+
+    it('should be able to turn on random tests', function() {
+      this.command.run(this.fakeJasmine, ['--random=true']);
+      expect(this.fakeJasmine.randomizeTests).toHaveBeenCalledWith(true);
+    });
+
+    it('should be able to turn on random tests', function() {
+      this.command.run(this.fakeJasmine, ['--random=true']);
+      expect(this.fakeJasmine.randomizeTests).toHaveBeenCalledWith(true);
+    });
+
+    it('should not configure seed by default', function() {
+      this.command.run(this.fakeJasmine, []);
+      expect(this.fakeJasmine.seed).not.toHaveBeenCalled();
+    });
+
+    it('should be able to set a seed', function() {
+      this.command.run(this.fakeJasmine, ['--seed=12345']);
+      expect(this.fakeJasmine.seed).toHaveBeenCalledWith('12345');
     });
   });
 });

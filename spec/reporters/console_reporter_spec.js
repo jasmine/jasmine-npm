@@ -111,6 +111,21 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toMatch(/No specs found/);
   });
 
+  it("reports the seed number when running in random order", function(){
+    var reporter = new ConsoleReporter({
+      print: this.out.print
+    });
+
+    reporter.jasmineDone({
+      order: {
+        random: true,
+        seed: '12345'
+      }
+    });
+
+    expect(this.out.getOutput()).toMatch(/Randomized with seed 12345/);
+  });
+
   it("reports a summary when done (singular spec and time)", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
         reporter = new ConsoleReporter({

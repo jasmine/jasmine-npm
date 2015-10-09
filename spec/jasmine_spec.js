@@ -8,7 +8,8 @@ describe('Jasmine', function() {
       getEnv: jasmine.createSpy('getEnv').and.returnValue({
         addReporter: jasmine.createSpy('addReporter'),
         execute: jasmine.createSpy('execute'),
-        throwOnExpectationFailure: jasmine.createSpy('throwOnExpectationFailure')
+        throwOnExpectationFailure: jasmine.createSpy('throwOnExpectationFailure'),
+        randomizeTests: jasmine.createSpy('randomizeTests')
       }),
       Timer: jasmine.createSpy('Timer'),
       Expectation: {
@@ -148,6 +149,19 @@ describe('Jasmine', function() {
 
         expect(this.fixtureJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith(undefined);
       });
+
+      it('can tell jasmine-core to run random specs', function() {
+        this.configObject.random = true;
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.randomizeTests).toHaveBeenCalledWith(true);
+      });
+
+      it('tells jasmine-core not to not run random specs by default', function() {
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.randomizeTests).toHaveBeenCalledWith(undefined);
+      });
     });
 
     describe('from a file', function() {
@@ -183,6 +197,13 @@ describe('Jasmine', function() {
     it('sets the throwOnExpectationFailure value on the jasmine-core env', function() {
       this.testJasmine.stopSpecOnExpectationFailure('foobar');
       expect(this.testJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith('foobar');
+    });
+  });
+
+  describe('#randomizeTests', function() {
+    it('sets the randomizeTests value on the jasmine-core env', function() {
+      this.testJasmine.randomizeTests('foobar');
+      expect(this.testJasmine.env.randomizeTests).toHaveBeenCalledWith('foobar');
     });
   });
 
