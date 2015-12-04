@@ -146,7 +146,11 @@ describe('command', function() {
     });
 
     afterEach(function() {
-      process.env.JASMINE_CONFIG_PATH = this.originalConfigPath;
+      if (this.originalConfigPath) {
+        process.env.JASMINE_CONFIG_PATH = this.originalConfigPath;
+      } else {
+        delete process.env.JASMINE_CONFIG_PATH;
+      }
     });
 
     it('should load the default config file', function() {

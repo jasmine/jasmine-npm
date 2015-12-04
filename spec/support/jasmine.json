@@ -8,5 +8,6 @@
   ],
   "helpers": [
     "helpers/**/*.js"
-  ]
+  ],
+  "random": true
 }
