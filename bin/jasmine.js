@@ -5,7 +5,7 @@ var path = require('path'),
     Jasmine = require('../lib/jasmine.js');
 
 var jasmine = new Jasmine({ projectBaseDir: path.resolve() });
-var examplesDir = path.join(__dirname, '..', 'node_modules', 'jasmine-core', 'lib', 'jasmine-core', 'example', 'node_example');
+var examplesDir = path.join(path.dirname(require.resolve('jasmine-core')), 'jasmine-core', 'example', 'node_example');
 var command = new Command(path.resolve(), examplesDir, console.log);
 
 command.run(jasmine, process.argv.slice(2));
