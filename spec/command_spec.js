@@ -214,12 +214,17 @@ describe('command', function() {
 
     it('should not use random tests by default', function() {
       this.command.run(this.fakeJasmine, []);
-      expect(this.fakeJasmine.randomizeTests).toHaveBeenCalledWith(false);
+      expect(this.fakeJasmine.randomizeTests).not.toHaveBeenCalled();
     });
 
     it('should be able to turn on random tests', function() {
       this.command.run(this.fakeJasmine, ['--random=true']);
       expect(this.fakeJasmine.randomizeTests).toHaveBeenCalledWith(true);
+    });
+
+    it('should be able to turn off random tests', function() {
+      this.command.run(this.fakeJasmine, ['--random=false']);
+      expect(this.fakeJasmine.randomizeTests).toHaveBeenCalledWith(false);
     });
 
     it('should not configure seed by default', function() {
