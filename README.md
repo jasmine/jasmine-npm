@@ -2,11 +2,17 @@
 
 # The Jasmine Module
 
-The [Jasmine](https://github.com/jasmine/jasmine) module is a package of helper code for developing Jasmine projects for Node.js.
+The `jasmine` module is a package of helper code for developing Jasmine projects for Node.js. 
+
+The core of jasmine lives at https://github.com/jasmine/jasmine and is `jasmine-core` in npm.
 
 ## Contents
 
-This module allows you to run Jasmine specs for your Node.js code. The output will be displayed in your terminal.
+This module allows you to run Jasmine specs for your Node.js code. The output will be displayed in your terminal by default.
+
+## Documentation
+
+http://jasmine.github.io/2.4/node.html
 
 ## Installation
 
@@ -32,7 +38,7 @@ To run your test suite
 
 Customize `spec/support/jasmine.json` to enumerate the source and spec files you would like the Jasmine runner to include.
 You may use dir glob strings.
-More information on the format of `jasmine.json` can be found in [the documentation](http://jasmine.github.io/2.3/node.html#section-Configuration)
+More information on the format of `jasmine.json` can be found in [the documentation](http://jasmine.github.io/2.4/node.html#section-Configuration)
 
 Alternatively, you may specify the path to your `jasmine.json` by setting an environment variable:
 
@@ -45,4 +51,4 @@ Twitter: [@jasminebdd](http://twitter.com/jasminebdd)
 
 Please file issues here at Github
 
-Copyright (c) 2008-2013 Pivotal Labs. This software is licensed under the MIT License.
+Copyright (c) 2008-2016 Pivotal Labs. This software is licensed under the MIT License.
