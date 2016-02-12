@@ -162,6 +162,26 @@ describe('Jasmine', function() {
 
         expect(this.fixtureJasmine.env.randomizeTests).toHaveBeenCalledWith(undefined);
       });
+
+      describe('with options', function() {
+        it('instantiates spec_dir with the provided value', function() {
+          this.fixtureJasmine.loadConfig(this.configObject);
+
+          expect(this.fixtureJasmine.specDir).toEqual('spec');
+        });
+      });
+
+      describe('without options', function() {
+        it('falls back to an empty string with an undefined spec_dir', function() {
+          var config = this.configObject;
+          delete config.spec_dir;
+
+          this.fixtureJasmine.loadConfig(config);
+
+          expect(this.fixtureJasmine.specDir).toEqual('');
+        });
+      });
+
     });
 
     describe('from a file', function() {
