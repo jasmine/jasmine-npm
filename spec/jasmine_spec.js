@@ -209,6 +209,21 @@ describe('Jasmine', function() {
         ]);
       });
 
+      it('throw error if specified configuration file doesn\'t exist', function() {
+        var jasmine = this.fixtureJasmine;
+        function load() { jasmine.loadConfigFile('missing.json'); }
+        expect(load).toThrow();
+      });
+
+      it('no error if default configuration file doesn\'t exist', function() {
+        var jasmine = this.fixtureJasmine;
+        function load() {
+          jasmine.projectBaseDir += '/missing';
+          jasmine.loadConfigFile();
+        }
+        expect(load).not.toThrow();
+      });
+
       it('loads the default configuration file', function() {
         this.fixtureJasmine.loadConfigFile();
         expect(this.fixtureJasmine.specFiles).toEqual([
