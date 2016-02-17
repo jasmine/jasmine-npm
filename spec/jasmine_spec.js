@@ -43,6 +43,14 @@ describe('Jasmine', function() {
   describe('file handler', function() {
     function basename(name) { return path.basename(name); }
 
+    it('add spec files with absolute glob pattern', function() {
+      if (!path.isAbsolute) { return; }
+      var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+      expect(this.testJasmine.specFiles).toEqual([]);
+      this.testJasmine.addSpecFiles([aFile]);
+      expect(this.testJasmine.specFiles).toEqual([aFile]);
+    });
+
     it('add spec files with glob pattern', function() {
       expect(this.testJasmine.specFiles).toEqual([]);
       this.testJasmine.addSpecFiles(['spec/*.js']);
