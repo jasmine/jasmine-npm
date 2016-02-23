@@ -42,7 +42,7 @@ describe('command', function() {
 
     this.command = new Command(projectBaseDir, examplesDir, this.out.print);
 
-    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'showColors', 'execute', 'stopSpecOnExpectationFailure', 'randomizeTests', 'seed']);
+    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'showColors', 'execute', 'stopSpecOnExpectationFailure', 'randomizeTests', 'seed', 'coreVersion']);
   });
 
   afterEach(function() {
@@ -81,6 +81,7 @@ describe('command', function() {
 
   describe('version', function() {
     beforeEach(function() {
+      this.fakeJasmine.coreVersion.and.returnValue('fake core version');
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'version']);
     });
 
@@ -90,13 +91,13 @@ describe('command', function() {
     });
 
     it('displays the version of jasmine-core', function() {
-      var coreVersion = require('../node_modules/jasmine-core/package.json').version;
-      expect(this.out.getOutput()).toContain('jasmine-core v' + coreVersion);
+      expect(this.out.getOutput()).toContain('jasmine-core vfake core version');
     });
   });
 
   describe('-v', function() {
     beforeEach(function() {
+      this.fakeJasmine.coreVersion.and.returnValue('fake core version');
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '-v']);
     });
 
@@ -106,8 +107,7 @@ describe('command', function() {
     });
 
     it('displays the version of jasmine-core', function() {
-      var coreVersion = require('../node_modules/jasmine-core/package.json').version;
-      expect(this.out.getOutput()).toContain('jasmine-core v' + coreVersion);
+      expect(this.out.getOutput()).toContain('jasmine-core vfake core version');
     });
   });
 

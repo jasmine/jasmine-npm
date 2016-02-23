@@ -39,6 +39,11 @@ describe('Jasmine', function() {
     expect(this.testJasmine.specFiles).toEqual(['some/file/path.js']);
   });
 
+  it('delegates #coreVersion to jasmine-core', function() {
+    this.fakeJasmineCore.version = jasmine.createSpy('coreVersion').and.returnValue('a version');
+    expect(this.testJasmine.coreVersion()).toEqual('a version');
+  });
+
   describe('#configureDefaultReporter', function() {
     beforeEach(function() {
       spyOn(Jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
