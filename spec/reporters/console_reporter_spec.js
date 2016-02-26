@@ -407,10 +407,11 @@ describe("ConsoleReporter", function() {
 
         reporter.suiteDone({ failedExpectations: [{ message: 'After All Exception' }] });
         reporter.suiteDone({ failedExpectations: [{ message: 'Some Other Exception' }] });
-        reporter.jasmineDone();
+        reporter.jasmineDone({ failedExpectations: [{ message: 'Global Exception' }] });
 
         expect(this.out.getOutput()).toMatch(/After All Exception/);
         expect(this.out.getOutput()).toMatch(/Some Other Exception/);
+        expect(this.out.getOutput()).toMatch(/Global Exception/);
     });
   });
 });

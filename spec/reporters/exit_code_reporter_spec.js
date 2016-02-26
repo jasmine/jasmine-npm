@@ -48,4 +48,20 @@ describe('ExitCodeReporter', function() {
 
     expect(this.onComplete).toHaveBeenCalledWith(false);
   });
+
+  it('should report failure with failures in jasmineDone', function() {
+    this.reporter.jasmineDone({
+      failedExpectations: ['foo']
+    });
+
+    expect(this.onComplete).toHaveBeenCalledWith(false);
+  });
+
+  it('should report success with empty failures in jasmineDone', function() {
+    this.reporter.jasmineDone({
+      failedExpectations: []
+    });
+
+    expect(this.onComplete).toHaveBeenCalledWith(true);
+  });
 });
