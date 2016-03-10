@@ -7,6 +7,7 @@ describe('Jasmine', function() {
     this.bootedJasmine = {
       getEnv: jasmine.createSpy('getEnv').and.returnValue({
         addReporter: jasmine.createSpy('addReporter'),
+        provideFallbackReporter: jasmine.createSpy('provideFallbackReporter'),
         execute: jasmine.createSpy('execute'),
         throwOnExpectationFailure: jasmine.createSpy('throwOnExpectationFailure'),
         randomizeTests: jasmine.createSpy('randomizeTests')
@@ -65,7 +66,7 @@ describe('Jasmine', function() {
       this.testJasmine.configureDefaultReporter(reporterOptions);
 
       expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
-      expect(this.testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
+      expect(this.testJasmine.env.provideFallbackReporter).toHaveBeenCalledWith({someProperty: 'some value'});
     });
 
     it('creates a reporter with a default option if an option is not specified', function() {
@@ -81,7 +82,7 @@ describe('Jasmine', function() {
       };
 
       expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
-      expect(this.testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
+      expect(this.testJasmine.env.provideFallbackReporter).toHaveBeenCalledWith({someProperty: 'some value'});
     });
 
     it('sets the defaultReporterAdded flag', function() {
@@ -289,15 +290,16 @@ describe('Jasmine', function() {
       expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
 
-    it('does not add a default reporter if a reporter was already added', function() {
+    it('adds a default reporter as a fallback reporter', function() {
       this.testJasmine.addReporter(new Jasmine.ConsoleReporter({}));
 
-      spyOn(this.testJasmine, 'configureDefaultReporter');
+      //spyOn(this.testJasmine, 'configureDefaultReporter');
       spyOn(this.testJasmine, 'loadSpecs');
 
       this.testJasmine.execute();
 
-      expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
+      expect(this.testJasmine.env.provideFallbackReporter).toHaveBeenCalled();
+      expect(this.testJasmine.env.addReporter).toHaveBeenCalled();
       expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
       expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
