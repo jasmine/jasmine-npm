@@ -15,8 +15,13 @@ This module allows you to run Jasmine specs for your Node.js code. The output wi
 http://jasmine.github.io/2.4/node.html
 
 ## Installation
+```sh
+# Local installation:
+npm install --save-dev jasmine
 
-`npm install -g jasmine`
+# Global installation
+npm install -g jasmine
+```
 
 ## Initializing
 
