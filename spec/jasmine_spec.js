@@ -85,12 +85,24 @@ describe('Jasmine', function() {
       expect(this.testJasmine.env.provideFallbackReporter).toHaveBeenCalledWith({someProperty: 'some value'});
     });
 
-    it('sets the defaultReporterAdded flag', function() {
-      var reporterOptions = {};
+    describe('sets the defaultReportedAdded flag', function() {
+      it('to true if the default reporter is used', function() {
+        var reporterOptions = {};
 
-      this.testJasmine.configureDefaultReporter(reporterOptions);
+        this.testJasmine.configureDefaultReporter(reporterOptions);
 
-      expect(this.testJasmine.defaultReporterAdded).toBe(true);
+        expect(this.testJasmine.defaultReporterAdded).toBe(true);
+      });
+
+      it('to false if the default reporter is not used', function() {
+        var reporterOptions = {};
+        var dummyReporter = {};
+
+        this.testJasmine.addReporter(dummyReporter);
+        this.testJasmine.configureDefaultReporter(reporterOptions);
+
+        expect(this.testJasmine.defaultReporterAdded).toBe(false);
+      });
     });
 
     describe('passing in an onComplete function', function() {
