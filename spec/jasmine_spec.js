@@ -10,7 +10,8 @@ describe('Jasmine', function() {
         provideFallbackReporter: jasmine.createSpy('provideFallbackReporter'),
         execute: jasmine.createSpy('execute'),
         throwOnExpectationFailure: jasmine.createSpy('throwOnExpectationFailure'),
-        randomizeTests: jasmine.createSpy('randomizeTests')
+        randomizeTests: jasmine.createSpy('randomizeTests'),
+        onComplete: jasmine.createSpy('onComplete')
       }),
       Timer: jasmine.createSpy('Timer'),
       Expectation: {
@@ -83,26 +84,6 @@ describe('Jasmine', function() {
 
       expect(Jasmine.ConsoleReporter).toHaveBeenCalledWith(expectedReporterOptions);
       expect(this.testJasmine.env.provideFallbackReporter).toHaveBeenCalledWith({someProperty: 'some value'});
-    });
-
-    describe('sets the defaultReportedAdded flag', function() {
-      it('to true if the default reporter is used', function() {
-        var reporterOptions = {};
-
-        this.testJasmine.configureDefaultReporter(reporterOptions);
-
-        expect(this.testJasmine.defaultReporterAdded).toBe(true);
-      });
-
-      it('to false if the default reporter is not used', function() {
-        var reporterOptions = {};
-        var dummyReporter = {};
-
-        this.testJasmine.addReporter(dummyReporter);
-        this.testJasmine.configureDefaultReporter(reporterOptions);
-
-        expect(this.testJasmine.defaultReporterAdded).toBe(false);
-      });
     });
 
     describe('passing in an onComplete function', function() {
@@ -260,16 +241,6 @@ describe('Jasmine', function() {
     });
   });
 
-  describe('#onComplete', function() {
-    it('stores an onComplete function', function() {
-      var fakeOnCompleteCallback = function() {};
-      spyOn(this.testJasmine.exitCodeReporter, 'onComplete');
-
-      this.testJasmine.onComplete(fakeOnCompleteCallback);
-      expect(this.testJasmine.exitCodeReporter.onComplete).toHaveBeenCalledWith(fakeOnCompleteCallback);
-    });
-  });
-
   it("showing colors can be configured", function() {
     expect(this.testJasmine.showingColors).toBe(true);
 
@@ -350,30 +321,14 @@ describe('Jasmine', function() {
       expect(this.testJasmine.env.specFilter).toEqual(jasmine.any(Function));
     });
 
-    it('adds an exit code reporter', function() {
-      var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
-      this.testJasmine.exitCodeReporter = exitCodeReporterSpy;
-      spyOn(this.testJasmine, 'addReporter');
-
-      this.testJasmine.execute();
-
-      expect(this.testJasmine.addReporter).toHaveBeenCalledWith(exitCodeReporterSpy);
-    });
-
-    describe('default completion behavior', function() {
-      describe('when the defaultReporterAdded flag is truthy', function() {
-        beforeEach(function() {
-          this.testJasmine.configureDefaultReporter({});
-        });
+    describe('completion behavior', function() {
+      describe('with default onCompleteCallback', function() {
         it('exits successfully when the whole suite is green', function() {
           var exitSpy = jasmine.createSpy('exit');
           this.testJasmine.exit = exitSpy;
 
-          var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
-          this.testJasmine.exitCodeReporter = exitCodeReporterSpy;
+          this.testJasmine.onCompleteCallback(true);
 
-          this.testJasmine.execute();
-          exitCodeReporterSpy.onComplete.calls.mostRecent().args[0](true);
           expect(exitSpy).toHaveBeenCalledWith(0, process.platform, process.version, process.exit, require('exit'));
         });
 
@@ -381,25 +336,24 @@ describe('Jasmine', function() {
           var exitSpy = jasmine.createSpy('exit');
           this.testJasmine.exit = exitSpy;
 
-          var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
-          this.testJasmine.exitCodeReporter = exitCodeReporterSpy;
+          this.testJasmine.onCompleteCallback(false);
 
-          this.testJasmine.execute();
-          exitCodeReporterSpy.onComplete.calls.mostRecent().args[0](false);
           expect(exitSpy).toHaveBeenCalledWith(1, process.platform, process.version, process.exit, require('exit'));
         });
       });
 
-      describe('when the defaultReporterAdded flag is falsy', function() {
-        it('does not exit the process', function() {
+      describe('with custom onCompleteCallback', function() {
+        it('delegates exits to custom callback', function() {
           var exitSpy = jasmine.createSpy('exit');
+          var onCompleteSpy = jasmine.createSpy('onComplete');
           this.testJasmine.exit = exitSpy;
+          var passed = false;
 
-          var exitCodeReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
-          this.testJasmine.exitCodeReporter = exitCodeReporterSpy;
+          this.testJasmine.onComplete(onCompleteSpy);
+          this.testJasmine.onCompleteCallback(passed);
 
-          this.testJasmine.execute();
           expect(exitSpy).not.toHaveBeenCalled();
+          expect(onCompleteSpy).toHaveBeenCalledWith(passed);
         });
       });
     });
