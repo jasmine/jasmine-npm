@@ -28,7 +28,9 @@ describe("ConsoleReporter", function() {
   describe('when an onComplete function is passed in', function() {
     it('warns the user of deprecation', function() {
       var spiedPrintDeprecation = jasmine.createSpy('printDeprecation');
-      new ConsoleReporter({
+          reporter = new ConsoleReporter();
+
+      reporter.setOptions({
         onComplete: function () {},
         printDeprecation: spiedPrintDeprecation
       });
@@ -38,7 +40,9 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports that the suite has started to the console", function() {
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+
+    reporter.setOptions({
       print: this.out.print
     });
 
@@ -49,10 +53,12 @@ describe("ConsoleReporter", function() {
 
   it("starts the provided timer when jasmine starts", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start']),
-        reporter = new ConsoleReporter({
-          print: this.out.print,
-          timer: timerSpy
-        });
+        reporter = new ConsoleReporter();
+
+    reporter.setOptions({
+      print: this.out.print,
+      timer: timerSpy
+    });
 
     reporter.jasmineStarted();
 
@@ -60,7 +66,8 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a passing spec as a dot", function() {
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print
     });
 
@@ -70,7 +77,8 @@ describe("ConsoleReporter", function() {
   });
 
   it("does not report a disabled spec", function() {
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print
     });
 
@@ -80,7 +88,8 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a failing spec as an 'F'", function() {
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print
     });
 
@@ -90,7 +99,8 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a pending spec as a '*'", function() {
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print
     });
 
@@ -100,9 +110,10 @@ describe("ConsoleReporter", function() {
   });
 
   it("alerts user if there are no specs", function(){
-    var reporter = new ConsoleReporter({
-          print: this.out.print
-        });
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print
+    });
 
     reporter.jasmineStarted();
     this.out.clear();
@@ -112,7 +123,8 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports the seed number when running in random order", function(){
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print
     });
 
@@ -128,10 +140,11 @@ describe("ConsoleReporter", function() {
 
   it("reports a summary when done (singular spec and time)", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
-        reporter = new ConsoleReporter({
-          print: this.out.print,
-          timer: timerSpy
-        });
+        reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+      timer: timerSpy
+    });
 
     reporter.jasmineStarted();
     reporter.specDone({status: "passed"});
@@ -149,10 +162,11 @@ describe("ConsoleReporter", function() {
 
   it("reports a summary when done (pluralized specs and seconds)", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
-        reporter = new ConsoleReporter({
-          print: this.out.print,
-          timer: timerSpy
-        });
+        reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+      timer: timerSpy
+    });
 
     reporter.jasmineStarted();
     reporter.specDone({status: "passed"});
@@ -184,10 +198,11 @@ describe("ConsoleReporter", function() {
 
   it("reports a summary when done that indicates the number of specs run (when it's less that the full number of specs)", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
-        reporter = new ConsoleReporter({
-          print: this.out.print,
-          timer: timerSpy
-        });
+        reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+      timer: timerSpy
+    });
 
     reporter.jasmineStarted();
     reporter.specDone({status: "passed"});
@@ -203,7 +218,8 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that includes the failed spec number before the full name of a failing spec", function() {
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
     });
@@ -233,7 +249,8 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that includes stack traces without jasmine internals for a failing suite", function() {
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
     });
@@ -269,7 +286,8 @@ describe("ConsoleReporter", function() {
     var customStackFilter = function(stack) {
       return stackLine;
     };
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print,
       stackFilter: customStackFilter
     });
@@ -300,7 +318,8 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that includes which specs are pending and their reasons", function() {
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
     });
@@ -327,7 +346,8 @@ describe("ConsoleReporter", function() {
 
     beforeEach(function() {
       onComplete = jasmine.createSpy('onComplete');
-      reporter = new ConsoleReporter({
+      reporter = new ConsoleReporter();
+      reporter.setOptions({
         print: this.out.print,
         onComplete: onComplete,
         printDeprecation: function() {}
@@ -354,9 +374,26 @@ describe("ConsoleReporter", function() {
     });
   });
 
+  it("displays all afterAll exceptions", function() {
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+      showColors: true
+    });
+
+    reporter.suiteDone({ failedExpectations: [{ message: 'After All Exception' }] });
+    reporter.suiteDone({ failedExpectations: [{ message: 'Some Other Exception' }] });
+    reporter.jasmineDone({ failedExpectations: [{ message: 'Global Exception' }] });
+
+    expect(this.out.getOutput()).toMatch(/After All Exception/);
+    expect(this.out.getOutput()).toMatch(/Some Other Exception/);
+    expect(this.out.getOutput()).toMatch(/Global Exception/);
+  });
+
   describe("with color", function() {
     it("reports that the suite has started to the console", function() {
-      var reporter = new ConsoleReporter({
+      var reporter = new ConsoleReporter();
+      reporter.setOptions({
         print: this.out.print,
         showColors: true
       });
@@ -367,7 +404,8 @@ describe("ConsoleReporter", function() {
     });
 
     it("reports a passing spec as a dot", function() {
-      var reporter = new ConsoleReporter({
+      var reporter = new ConsoleReporter();
+      reporter.setOptions({
         print: this.out.print,
         showColors: true
       });
@@ -378,7 +416,8 @@ describe("ConsoleReporter", function() {
     });
 
     it("does not report a disabled spec", function() {
-      var reporter = new ConsoleReporter({
+      var reporter = new ConsoleReporter();
+      reporter.setOptions({
         print: this.out.print,
         showColors: true
       });
@@ -389,7 +428,8 @@ describe("ConsoleReporter", function() {
     });
 
     it("reports a failing spec as an 'F'", function() {
-      var reporter = new ConsoleReporter({
+      var reporter = new ConsoleReporter();
+      reporter.setOptions({
         print: this.out.print,
         showColors: true
       });
@@ -397,21 +437,6 @@ describe("ConsoleReporter", function() {
       reporter.specDone({status: 'failed'});
 
       expect(this.out.getOutput()).toEqual("\x1B[31mF\x1B[0m");
-    });
-
-    it("displays all afterAll exceptions", function() {
-        var reporter = new ConsoleReporter({
-          print: this.out.print,
-          showColors: true
-        });
-
-        reporter.suiteDone({ failedExpectations: [{ message: 'After All Exception' }] });
-        reporter.suiteDone({ failedExpectations: [{ message: 'Some Other Exception' }] });
-        reporter.jasmineDone({ failedExpectations: [{ message: 'Global Exception' }] });
-
-        expect(this.out.getOutput()).toMatch(/After All Exception/);
-        expect(this.out.getOutput()).toMatch(/Some Other Exception/);
-        expect(this.out.getOutput()).toMatch(/Global Exception/);
     });
   });
 });

@@ -1,8 +1,8 @@
-describe('ExitCodeReporter', function() {
-  var ExitCodeReporter = require('../../lib/reporters/exit_code_reporter');
+describe('CompletionReporter', function() {
+  var CompletionReporter = require('../../lib/reporters/completion_reporter');
 
   beforeEach(function() {
-    this.reporter = new ExitCodeReporter();
+    this.reporter = new CompletionReporter();
     this.onComplete = jasmine.createSpy('onComplete');
     this.reporter.onComplete(this.onComplete);
   });
