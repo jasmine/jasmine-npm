@@ -40,6 +40,38 @@ describe('Jasmine', function() {
     expect(this.testJasmine.specFiles).toEqual(['some/file/path.js']);
   });
 
+  describe('file handler', function() {
+    function basename(name) { return path.basename(name); }
+
+    it('add spec files with absolute glob pattern', function() {
+      if (!path.isAbsolute) { return; }
+      var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+      expect(this.testJasmine.specFiles).toEqual([]);
+      this.testJasmine.addSpecFiles([aFile]);
+      expect(this.testJasmine.specFiles).toEqual([aFile]);
+    });
+
+    it('add spec files with glob pattern', function() {
+      expect(this.testJasmine.specFiles).toEqual([]);
+      this.testJasmine.addSpecFiles(['spec/*.js']);
+      expect(this.testJasmine.specFiles.map(basename)).toEqual(['command_spec.js', 'exit_spec.js', 'jasmine_spec.js']);
+    });
+
+    it('add spec files with glob pattern to existings files', function() {
+      var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+      this.testJasmine.specFiles = [aFile, 'b'];
+      this.testJasmine.addSpecFiles(['spec/*.js']);
+      expect(this.testJasmine.specFiles.map(basename)).toEqual(['command_spec.js', 'b', 'exit_spec.js', 'jasmine_spec.js']);
+    });
+
+    it('add helper files with glob pattern to existings files', function() {
+      var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+      this.testJasmine.helperFiles = [aFile, 'b'];
+      this.testJasmine.addHelperFiles(['spec/*.js']);
+      expect(this.testJasmine.helperFiles.map(basename)).toEqual(['command_spec.js', 'b', 'exit_spec.js', 'jasmine_spec.js']);
+    });
+  });
+
   it('delegates #coreVersion to jasmine-core', function() {
     this.fakeJasmineCore.version = jasmine.createSpy('coreVersion').and.returnValue('a version');
     expect(this.testJasmine.coreVersion()).toEqual('a version');
