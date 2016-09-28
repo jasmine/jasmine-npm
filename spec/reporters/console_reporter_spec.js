@@ -282,7 +282,8 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done in case that stack is somehow undefined", function() {
-    var reporter = new ConsoleReporter({
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
     });
