@@ -51,6 +51,34 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toEqual("Started\n");
   });
 
+  it("setOptions should not override existing options if set multiple times", function() {
+    var timerSpy = jasmine.createSpyObj('timer', ['start']),
+        reporter = new ConsoleReporter();
+
+    reporter.setOptions({
+      print: this.out.print,
+      timer: timerSpy
+    });
+
+    reporter.jasmineStarted();
+    expect(timerSpy.start).toHaveBeenCalled();
+    expect(this.out.getOutput()).toEqual("Started\n");
+
+    // clean up this.out.output
+    this.out.clear();
+    expect(this.out.getOutput()).toEqual("");
+
+    // set options that does not include print, should still print with this.out.print
+    reporter.setOptions({
+      timer: timerSpy
+    });
+
+    reporter.jasmineStarted();
+    expect(timerSpy.start).toHaveBeenCalled();
+    expect(this.out.getOutput()).toEqual("Started\n");
+  });
+
+
   it("starts the provided timer when jasmine starts", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start']),
         reporter = new ConsoleReporter();
