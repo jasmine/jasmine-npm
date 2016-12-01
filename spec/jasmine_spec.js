@@ -320,6 +320,20 @@ describe('Jasmine', function() {
       expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
 
+    it('does not configure the default reporter if this was already done', function() {
+      spyOn(this.testJasmine, 'loadSpecs');
+
+      this.testJasmine.configureDefaultReporter({showColors: false});
+
+      spyOn(this.testJasmine, 'configureDefaultReporter');
+
+      this.testJasmine.execute();
+
+      expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
+      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
+      expect(this.testJasmine.env.execute).toHaveBeenCalled();
+    });
+
     it('loads helper files before checking if any reporters were added', function() {
       var loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
       spyOn(this.testJasmine, 'configureDefaultReporter').and.callFake(function() {
