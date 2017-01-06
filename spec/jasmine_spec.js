@@ -297,85 +297,122 @@ describe('Jasmine', function() {
   });
 
   describe('#execute', function() {
-    it('uses the default console reporter if no reporters were added', function() {
+    it('uses the default console reporter if no reporters were added', function(done) {
       spyOn(this.testJasmine, 'configureDefaultReporter');
-      spyOn(this.testJasmine, 'loadSpecs');
+      spyOn(this.testJasmine, 'loadSpecs').and.callFake(function(done) {
+        done();
+      });
 
-      this.testJasmine.execute();
+      var _this = this;
+      this.testJasmine.execute().done(function() {
 
-      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: true});
-      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
-      expect(this.testJasmine.env.execute).toHaveBeenCalled();
+        expect(_this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: true});
+        expect(_this.testJasmine.loadSpecs).toHaveBeenCalled();
+        expect(_this.testJasmine.env.execute).toHaveBeenCalled();
+        done();
+      });
     });
 
-    it('configures the default console reporter with the right color settings', function() {
+    it('configures the default console reporter with the right color settings', function(done) {
       spyOn(this.testJasmine, 'configureDefaultReporter');
-      spyOn(this.testJasmine, 'loadSpecs');
+      spyOn(this.testJasmine, 'loadSpecs').and.callFake(function(done) {
+        done();
+      });
+
       this.testJasmine.showColors(false);
 
-      this.testJasmine.execute();
+      var _this = this;
+      this.testJasmine.execute().done(function() {
 
-      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: false});
-      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
-      expect(this.testJasmine.env.execute).toHaveBeenCalled();
+        expect(_this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: false});
+        expect(_this.testJasmine.loadSpecs).toHaveBeenCalled();
+        expect(_this.testJasmine.env.execute).toHaveBeenCalled();
+        done();
+      });
     });
 
-    it('does not configure the default reporter if this was already done', function() {
-      spyOn(this.testJasmine, 'loadSpecs');
+    it('does not configure the default reporter if this was already done', function(done) {
+      spyOn(this.testJasmine, 'loadSpecs').and.callFake(function(done) {
+        done();
+      });
 
       this.testJasmine.configureDefaultReporter({showColors: false});
 
       spyOn(this.testJasmine, 'configureDefaultReporter');
 
-      this.testJasmine.execute();
+      var _this = this;
+      this.testJasmine.execute().done(function() {
 
-      expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
-      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
-      expect(this.testJasmine.env.execute).toHaveBeenCalled();
+        expect(_this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
+        expect(_this.testJasmine.loadSpecs).toHaveBeenCalled();
+        expect(_this.testJasmine.env.execute).toHaveBeenCalled();
+        done();
+      });  
     });
 
-    it('loads helper files before checking if any reporters were added', function() {
-      var loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
+    it('loads helper files before checking if any reporters were added', function(done) {
+      var loadHelpers = spyOn(this.testJasmine, 'loadHelpers').and.callFake(function(done) {
+        done();
+      });
+
       spyOn(this.testJasmine, 'configureDefaultReporter').and.callFake(function() {
         expect(loadHelpers).toHaveBeenCalled();
       });
-      spyOn(this.testJasmine, 'loadSpecs');
-
-      this.testJasmine.execute();
-
-      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalled();
-    });
-
-    it('can run only specified files', function() {
-      spyOn(this.testJasmine, 'configureDefaultReporter');
-      spyOn(this.testJasmine, 'loadSpecs');
-
-      this.testJasmine.loadConfigFile();
-
-      this.testJasmine.execute(['spec/fixtures/**/*spec.js']);
-
-      var relativePaths = this.testJasmine.specFiles.map(function(path) {
-        return path.replace(__dirname, '');
+      spyOn(this.testJasmine, 'loadSpecs').and.callFake(function(done) {
+        done();
       });
 
-      expect(relativePaths).toEqual(['/fixtures/sample_project/spec/fixture_spec.js', '/fixtures/sample_project/spec/other_fixture_spec.js']);
+      var _this = this;
+      this.testJasmine.execute().done(function() {
+
+        expect(_this.testJasmine.configureDefaultReporter).toHaveBeenCalled();
+        done();
+      });
     });
 
-    it('should add spec filter if filterString is provided', function() {
+    it('can run only specified files', function(done) {
+      spyOn(this.testJasmine, 'configureDefaultReporter');
+      spyOn(this.testJasmine, 'loadSpecs').and.callFake(function(done) {
+        done();
+      });
+
       this.testJasmine.loadConfigFile();
 
-      this.testJasmine.execute(['spec/fixtures/**/*spec.js'], 'interesting spec');
-      expect(this.testJasmine.env.specFilter).toEqual(jasmine.any(Function));
+      var _this = this;
+      this.testJasmine.execute(['spec/fixtures/**/*spec.js']).done(function() {
+
+        var relativePaths = _this.testJasmine.specFiles.map(function(path) {
+          return path.replace(__dirname, '');
+        });
+
+        expect(relativePaths).toEqual(['/fixtures/sample_project/spec/fixture_spec.js', '/fixtures/sample_project/spec/other_fixture_spec.js']);
+        done();
+      });
+
     });
 
-    it('adds an exit code reporter', function() {
+    it('should add spec filter if filterString is provided', function(done) {
+      this.testJasmine.loadConfigFile();
+
+      var _this = this;
+      this.testJasmine.execute(['spec/fixtures/**/*spec.js'], 'interesting spec').done(function() {
+
+        expect(_this.testJasmine.env.specFilter).toEqual(jasmine.any(Function));
+        done();
+      });
+    });
+
+    it('adds an exit code reporter', function(done) {
       var completionReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
       this.testJasmine.completionReporter = completionReporterSpy;
       spyOn(this.testJasmine, 'addReporter');
 
-      this.testJasmine.execute();
+      var _this = this;
+      this.testJasmine.execute().done(function() {
 
-      expect(this.testJasmine.addReporter).toHaveBeenCalledWith(completionReporterSpy);
+        expect(_this.testJasmine.addReporter).toHaveBeenCalledWith(completionReporterSpy);
+        done();
+      });
     });
 
     describe('default completion behavior', function() {
