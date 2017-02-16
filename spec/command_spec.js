@@ -111,6 +111,14 @@ describe('command', function() {
     });
   });
 
+  describe('passing unknown options', function() {
+    it('display unknown options and usage', function() {
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--some-option', '--no-color', '--another-option']);
+      expect(this.out.getOutput()).toContain('Unknown options: --some-option, --another-option');
+      expect(this.out.getOutput()).toContain('Usage');
+    });
+  });
+
   describe('examples', function() {
     beforeEach(function() {
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'examples']);
@@ -188,7 +196,7 @@ describe('command', function() {
     });
 
     it('should be able to run only specified specs', function() {
-      this.command.run(this.fakeJasmine, ['spec/some/fileSpec.js', 'SOME_ENV=SOME_VALUE', '--some-option']);
+      this.command.run(this.fakeJasmine, ['spec/some/fileSpec.js', 'SOME_ENV=SOME_VALUE', '--no-color']);
       expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['spec/some/fileSpec.js'], undefined);
     });
 
