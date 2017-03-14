@@ -28,6 +28,12 @@ describe('Jasmine', function() {
     this.testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
   });
 
+  afterEach(function() {
+    if (this.testJasmine.checkExit) {
+      process.removeListener('exit', this.testJasmine.checkExit);
+    }
+  });
+
   describe('constructor options', function() {
     it('have defaults', function() {
       expect(this.testJasmine.projectBaseDir).toEqual(path.resolve());
@@ -376,6 +382,30 @@ describe('Jasmine', function() {
       this.testJasmine.execute();
 
       expect(this.testJasmine.addReporter).toHaveBeenCalledWith(completionReporterSpy);
+    });
+
+    describe('when exit is called prematurely', function() {
+      beforeEach(function() {
+        this.originalCode = process.exitCode;
+      });
+
+      afterEach(function() {
+        process.exitCode = this.originalCode;
+      });
+
+      it('sets the exit code to failure', function() {
+        this.testJasmine.checkExit();
+        expect(process.exitCode).toEqual(4);
+      });
+
+      it('leaves it if the suite has completed', function() {
+        var completionReporterSpy = jasmine.createSpyObj('reporter', ['isComplete']);
+        completionReporterSpy.isComplete.and.returnValue(true);
+        this.testJasmine.completionReporter = completionReporterSpy;
+
+        this.testJasmine.checkExit();
+        expect(process.exitCode).toBeUndefined();
+      });
     });
 
     describe('default completion behavior', function() {
