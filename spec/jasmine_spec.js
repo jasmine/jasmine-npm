@@ -7,6 +7,7 @@ describe('Jasmine', function() {
     this.bootedJasmine = {
       getEnv: jasmine.createSpy('getEnv').and.returnValue({
         addReporter: jasmine.createSpy('addReporter'),
+        clearReporters: jasmine.createSpy('clearReporters'),
         provideFallbackReporter: jasmine.createSpy('provideFallbackReporter'),
         execute: jasmine.createSpy('execute'),
         throwOnExpectationFailure: jasmine.createSpy('throwOnExpectationFailure'),
@@ -90,6 +91,17 @@ describe('Jasmine', function() {
 
     expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
   });
+
+  it('exposes #addReporter and #clearReporters', function() {
+    var testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
+    expect(testJasmine.reportersCount).toEqual(1);
+    testJasmine.clearReporters()
+    expect(testJasmine.reportersCount).toEqual(0);
+    expect(testJasmine.env.clearReporters).toHaveBeenCalled();
+    testJasmine.addReporter({someProperty: 'some value'})
+    expect(testJasmine.reportersCount).toEqual(1);
+    expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
+  })
 
   describe('#configureDefaultReporter', function() {
     beforeEach(function() {
