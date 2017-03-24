@@ -95,13 +95,13 @@ describe('Jasmine', function() {
   it('exposes #addReporter and #clearReporters', function() {
     var testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
     expect(testJasmine.reportersCount).toEqual(1);
-    testJasmine.clearReporters()
+    testJasmine.clearReporters();
     expect(testJasmine.reportersCount).toEqual(0);
     expect(testJasmine.env.clearReporters).toHaveBeenCalled();
-    testJasmine.addReporter({someProperty: 'some value'})
+    testJasmine.addReporter({someProperty: 'some value'});
     expect(testJasmine.reportersCount).toEqual(1);
     expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
-  })
+  });
 
   describe('#configureDefaultReporter', function() {
     beforeEach(function() {
