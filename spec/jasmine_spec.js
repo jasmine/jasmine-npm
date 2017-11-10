@@ -401,47 +401,5 @@ describe('Jasmine', function() {
 
       expect(this.testJasmine.addReporter).toHaveBeenCalledWith(completionReporterSpy);
     });
-
-    describe('when exit is called prematurely', function() {
-      beforeEach(function() {
-        this.originalCode = process.exitCode;
-      });
-
-      afterEach(function() {
-        process.exitCode = this.originalCode;
-      });
-
-      it('sets the exit code to failure', function() {
-        this.testJasmine.checkExit();
-        expect(process.exitCode).toEqual(4);
-      });
-
-      it('leaves it if the suite has completed', function() {
-        var completionReporterSpy = jasmine.createSpyObj('reporter', ['isComplete']);
-        completionReporterSpy.isComplete.and.returnValue(true);
-        this.testJasmine.completionReporter = completionReporterSpy;
-
-        this.testJasmine.checkExit();
-        expect(process.exitCode).toBeUndefined();
-      });
-    });
-
-    describe('default completion behavior', function() {
-      it('exits successfully when the whole suite is green', function() {
-        var exitSpy = jasmine.createSpy('exit');
-        this.testJasmine.exit = exitSpy;
-
-        this.testJasmine.exitCodeCompletion(true);
-        expect(exitSpy).toHaveBeenCalledWith(0);
-      });
-
-      it('exits with a failure when anything in the suite is not green', function() {
-        var exitSpy = jasmine.createSpy('exit');
-        this.testJasmine.exit = exitSpy;
-
-        this.testJasmine.exitCodeCompletion(false);
-        expect(exitSpy).toHaveBeenCalledWith(1);
-      });
-    });
   });
 });
