@@ -25,20 +25,6 @@ describe("ConsoleReporter", function() {
     }());
   });
 
-  describe('when an onComplete function is passed in', function() {
-    it('warns the user of deprecation', function() {
-      var spiedPrintDeprecation = jasmine.createSpy('printDeprecation');
-          reporter = new ConsoleReporter();
-
-      reporter.setOptions({
-        onComplete: function () {},
-        printDeprecation: spiedPrintDeprecation
-      });
-
-      expect(spiedPrintDeprecation).toHaveBeenCalledWith('Passing in an onComplete function to the ConsoleReporter is deprecated.');
-    });
-  });
-
   it("reports that the suite has started to the console", function() {
     var reporter = new ConsoleReporter();
 
@@ -398,39 +384,6 @@ describe("ConsoleReporter", function() {
 
     expect(this.out.getOutput()).toContain("A suite with a pending spec");
     expect(this.out.getOutput()).toContain("It's not ready yet!");
-  });
-
-  describe('onComplete callback', function(){
-    var onComplete, reporter;
-
-    beforeEach(function() {
-      onComplete = jasmine.createSpy('onComplete');
-      reporter = new ConsoleReporter();
-      reporter.setOptions({
-        print: this.out.print,
-        onComplete: onComplete,
-        printDeprecation: function() {}
-      });
-      reporter.jasmineStarted();
-    });
-
-    it("is called when the suite is done", function() {
-      reporter.jasmineDone();
-      expect(onComplete).toHaveBeenCalledWith(true);
-    });
-
-    it('calls it with false if there are spec failures', function() {
-      reporter.specDone({status: "failed", failedExpectations: []});
-      reporter.jasmineDone();
-      expect(onComplete).toHaveBeenCalledWith(false);
-    });
-
-    it('calls it with false if there are suite failures', function() {
-      reporter.specDone({status: "passed"});
-      reporter.suiteDone({failedExpectations: [{ message: 'bananas' }] });
-      reporter.jasmineDone();
-      expect(onComplete).toHaveBeenCalledWith(false);
-    });
   });
 
   it("displays all afterAll exceptions", function() {

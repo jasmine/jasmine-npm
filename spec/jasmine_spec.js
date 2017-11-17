@@ -140,19 +140,6 @@ describe('Jasmine', function() {
 
       expect(this.testJasmine.reporter.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
     });
-
-    describe('passing in an onComplete function', function() {
-      it('warns the user of deprecation', function() {
-        this.testJasmine.printDeprecation = jasmine.createSpy('printDeprecation');
-        var reporterOptions = {
-          onComplete: function() {}
-        };
-
-        this.testJasmine.configureDefaultReporter(reporterOptions);
-
-        expect(this.testJasmine.printDeprecation).toHaveBeenCalledWith('Passing in an onComplete function to configureDefaultReporter is deprecated.');
-      });
-    });
   });
 
   it('adds matchers to the jasmine env', function() {
