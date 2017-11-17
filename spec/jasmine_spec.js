@@ -61,21 +61,21 @@ describe('Jasmine', function() {
     it('add spec files with glob pattern', function() {
       expect(this.testJasmine.specFiles).toEqual([]);
       this.testJasmine.addSpecFiles(['spec/*.js']);
-      expect(this.testJasmine.specFiles.map(basename)).toEqual(['command_spec.js', 'exit_spec.js', 'jasmine_spec.js']);
+      expect(this.testJasmine.specFiles.map(basename)).toEqual(['command_spec.js', 'jasmine_spec.js']);
     });
 
     it('add spec files with glob pattern to existings files', function() {
       var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
       this.testJasmine.specFiles = [aFile, 'b'];
       this.testJasmine.addSpecFiles(['spec/*.js']);
-      expect(this.testJasmine.specFiles.map(basename)).toEqual(['command_spec.js', 'b', 'exit_spec.js', 'jasmine_spec.js']);
+      expect(this.testJasmine.specFiles.map(basename)).toEqual(['command_spec.js', 'b', 'jasmine_spec.js']);
     });
 
     it('add helper files with glob pattern to existings files', function() {
       var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
       this.testJasmine.helperFiles = [aFile, 'b'];
       this.testJasmine.addHelperFiles(['spec/*.js']);
-      expect(this.testJasmine.helperFiles.map(basename)).toEqual(['command_spec.js', 'b', 'exit_spec.js', 'jasmine_spec.js']);
+      expect(this.testJasmine.helperFiles.map(basename)).toEqual(['command_spec.js', 'b', 'jasmine_spec.js']);
     });
   });
 
@@ -426,7 +426,7 @@ describe('Jasmine', function() {
         this.testJasmine.exit = exitSpy;
 
         this.testJasmine.exitCodeCompletion(true);
-        expect(exitSpy).toHaveBeenCalledWith(0, process.platform, process.version, process.exit, require('exit'));
+        expect(exitSpy).toHaveBeenCalledWith(0);
       });
 
       it('exits with a failure when anything in the suite is not green', function() {
@@ -434,7 +434,7 @@ describe('Jasmine', function() {
         this.testJasmine.exit = exitSpy;
 
         this.testJasmine.exitCodeCompletion(false);
-        expect(exitSpy).toHaveBeenCalledWith(1, process.platform, process.version, process.exit, require('exit'));
+        expect(exitSpy).toHaveBeenCalledWith(1);
       });
     });
   });
