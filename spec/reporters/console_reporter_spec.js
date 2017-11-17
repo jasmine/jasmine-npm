@@ -386,6 +386,25 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toContain("It's not ready yet!");
   });
 
+  it("reports a summary when done that includes the reason for an incomplete suite", function() {
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+      jasmineCorePath: jasmineCorePath
+    });
+
+    reporter.jasmineStarted();
+
+    this.out.clear();
+
+    reporter.jasmineDone({
+      overallStatus: "incomplete",
+      incompleteReason: "not all bars were frobnicated"
+    });
+
+    expect(this.out.getOutput()).toContain("Incomplete: not all bars were frobnicated");
+  });
+
   it("displays all afterAll exceptions", function() {
     var reporter = new ConsoleReporter();
     reporter.setOptions({

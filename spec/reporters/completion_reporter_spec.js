@@ -7,61 +7,17 @@ describe('CompletionReporter', function() {
     this.reporter.onComplete(this.onComplete);
   });
 
-  it('should report success with no specs', function() {
-    this.reporter.jasmineDone();
-
-    expect(this.onComplete).toHaveBeenCalledWith(true);
-  });
-
-  it('should report success with all successful specs', function() {
-    this.reporter.specDone({status: 'passed'});
-    this.reporter.specDone({status: 'pending'});
-
-    this.reporter.jasmineDone();
-
-    expect(this.onComplete).toHaveBeenCalledWith(true);
-  });
-
-  it('should report failure with any failing specs', function() {
-    this.reporter.specDone({status: 'passed'});
-    this.reporter.specDone({status: 'pending'});
-    this.reporter.specDone({status: 'failed'});
-
-    this.reporter.jasmineDone();
-
-    expect(this.onComplete).toHaveBeenCalledWith(false);
-  });
-
-  it('should report success with all passing suites', function() {
-    this.reporter.suiteDone({failedExpectations: []});
-    this.reporter.suiteDone({});
-
-    this.reporter.jasmineDone();
-
-    expect(this.onComplete).toHaveBeenCalledWith(true);
-  });
-
-  it('should report failure with any failing suites', function() {
-    this.reporter.suiteDone({failedExpectations: [{"some": 'stuff'}]});
-
-    this.reporter.jasmineDone();
-
-    expect(this.onComplete).toHaveBeenCalledWith(false);
-  });
-
-  it('should report failure with failures in jasmineDone', function() {
-    this.reporter.jasmineDone({
-      failedExpectations: ['foo']
+  describe('When the overall status is "passed"', function() {
+    it('calls the completion callback with true', function() {
+      this.reporter.jasmineDone({overallStatus: 'passed'});
+      expect(this.onComplete).toHaveBeenCalledWith(true);
     });
-
-    expect(this.onComplete).toHaveBeenCalledWith(false);
   });
 
-  it('should report success with empty failures in jasmineDone', function() {
-    this.reporter.jasmineDone({
-      failedExpectations: []
+  describe('When the overall status is anything else', function() {
+    it('calls the completion callback with false', function() {
+      this.reporter.jasmineDone({overallStatus: 'incomplete'});
+      expect(this.onComplete).toHaveBeenCalledWith(false);
     });
-
-    expect(this.onComplete).toHaveBeenCalledWith(true);
   });
 });
