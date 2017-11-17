@@ -8,6 +8,7 @@ lcov.info
 *.out
 *.pid
 *.gz
+*.sw?
 
 pids
 logs
