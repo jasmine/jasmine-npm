@@ -24,9 +24,9 @@
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
   "devDependencies": {
-    "grunt": "^0.4.2",
-    "grunt-cli": "^0.1.13",
-    "grunt-contrib-jshint": "^0.11.0",
-    "shelljs": "^0.3.0"
+    "grunt": "^1.0.1",
+    "grunt-cli": "^1.2.0",
+    "grunt-contrib-jshint": "^1.1.0",
+    "shelljs": "^0.7.8"
   }
 }
