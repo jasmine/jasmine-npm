@@ -196,10 +196,10 @@ describe('Jasmine', function() {
         expect(this.fixtureJasmine.env.randomizeTests).toHaveBeenCalledWith(true);
       });
 
-      it('tells jasmine-core not to not run random specs by default', function() {
+      it('uses jasmine-core defaults if random is unspecified', function() {
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.randomizeTests).toHaveBeenCalledWith(undefined);
+        expect(this.fixtureJasmine.env.randomizeTests).not.toHaveBeenCalled();
       });
 
       describe('with options', function() {

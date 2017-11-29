@@ -240,7 +240,7 @@ describe('command', function() {
       expect(this.fakeJasmine.stopSpecOnExpectationFailure).toHaveBeenCalledWith(false);
     });
 
-    it('should not use random tests by default', function() {
+    it('uses jasmine-core defaults if random is unspecified', function() {
       this.command.run(this.fakeJasmine, []);
       expect(this.fakeJasmine.randomizeTests).not.toHaveBeenCalled();
     });
