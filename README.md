@@ -12,7 +12,7 @@ This module allows you to run Jasmine specs for your Node.js code. The output wi
 
 ## Documentation
 
-http://jasmine.github.io/2.5/node.html
+https://jasmine.github.io/2.8/node.html
 
 ## Installation
 ```sh
@@ -47,14 +47,17 @@ More information on the format of `jasmine.json` can be found in [the documentat
 
 Alternatively, you may specify the path to your `jasmine.json` by setting an environment variable or an option:
 
-`jasmine JASMINE_CONFIG_PATH=relative/path/to/your/jasmine.json`
-`jasmine --config=relative/path/to/your/jasmine.json`
+```shell
+jasmine JASMINE_CONFIG_PATH=relative/path/to/your/jasmine.json
+jasmine --config=relative/path/to/your/jasmine.json
+```
 
 ## Support
 
+Documentation: [jasmine.github.io](https://jasmine.github.io)
 Jasmine Mailing list: [jasmine-js@googlegroups.com](mailto:jasmine-js@googlegroups.com)
 Twitter: [@jasminebdd](http://twitter.com/jasminebdd)
 
 Please file issues here at Github
 
-Copyright (c) 2008-2016 Pivotal Labs. This software is licensed under the MIT License.
+Copyright (c) 2008-2017 Pivotal Labs. This software is licensed under the MIT License.

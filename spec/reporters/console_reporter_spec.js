@@ -37,6 +37,39 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toEqual("Started\n");
   });
 
+  describe("When order information is passed to jasmineStarted", function() {
+    it("reports the seed number when randomized", function() {
+      var reporter = new ConsoleReporter();
+      reporter.setOptions({
+        print: this.out.print
+      });
+
+      reporter.jasmineStarted({
+        order: {
+          random: true,
+          seed: '12345'
+        }
+      });
+
+      expect(this.out.getOutput()).toMatch(/Randomized with seed 12345/);
+    });
+
+    it("does not report order info when not randomized", function() {
+      var reporter = new ConsoleReporter();
+      reporter.setOptions({
+        print: this.out.print
+      });
+
+      reporter.jasmineStarted({
+        order: {
+          random: false
+        }
+      });
+
+      expect(this.out.getOutput()).not.toMatch(/Randomized/);
+    });
+  });
+
   it("setOptions should not override existing options if set multiple times", function() {
     var timerSpy = jasmine.createSpyObj('timer', ['start']),
         reporter = new ConsoleReporter();

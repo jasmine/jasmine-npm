@@ -8,15 +8,13 @@ describe('Jasmine', function() {
       getEnv: jasmine.createSpy('getEnv').and.returnValue({
         addReporter: jasmine.createSpy('addReporter'),
         clearReporters: jasmine.createSpy('clearReporters'),
+        addMatchers: jasmine.createSpy('addMatchers'),
         provideFallbackReporter: jasmine.createSpy('provideFallbackReporter'),
         execute: jasmine.createSpy('execute'),
         throwOnExpectationFailure: jasmine.createSpy('throwOnExpectationFailure'),
         randomizeTests: jasmine.createSpy('randomizeTests')
       }),
-      Timer: jasmine.createSpy('Timer'),
-      Expectation: {
-        addMatchers: jasmine.createSpy('addMatchers')
-      }
+      Timer: jasmine.createSpy('Timer')
     };
 
     this.fakeJasmineCore = {
@@ -144,7 +142,7 @@ describe('Jasmine', function() {
 
   it('adds matchers to the jasmine env', function() {
     this.testJasmine.addMatchers(['fake matcher 1', 'fake matcher 2']);
-    expect(this.bootedJasmine.Expectation.addMatchers).toHaveBeenCalledWith(['fake matcher 1', 'fake matcher 2']);
+    expect(this.testJasmine.env.addMatchers).toHaveBeenCalledWith(['fake matcher 1', 'fake matcher 2']);
   });
 
   describe('loading configurations', function() {
