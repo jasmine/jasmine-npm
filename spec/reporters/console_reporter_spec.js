@@ -182,7 +182,7 @@ describe("ConsoleReporter", function() {
       }
     });
 
-    expect(this.out.getOutput()).toMatch(/Randomized with seed 12345/);
+    expect(this.out.getOutput()).toMatch(/Randomized with seed 12345 \(jasmine --random=true --seed=12345\)/);
   });
 
   it("reports a summary when done (singular spec and time)", function() {
