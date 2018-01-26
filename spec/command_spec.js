@@ -42,7 +42,7 @@ describe('command', function() {
 
     this.command = new Command(projectBaseDir, examplesDir, this.out.print);
 
-    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'showColors', 'execute', 'stopSpecOnExpectationFailure', 'randomizeTests', 'seed', 'coreVersion']);
+    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'showColors', 'execute', 'stopSpecOnExpectationFailure', 'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']);
   });
 
   afterEach(function() {
@@ -223,6 +223,14 @@ describe('command', function() {
     it('should not modify helper patterns if no argument given', function() {
       this.command.run(this.fakeJasmine, []);
       expect(this.fakeJasmine.addHelperFiles).not.toHaveBeenCalled();
+    });
+
+    it('can specify a reporter', function() {
+      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'customReporter.js'));
+      var Reporter = require(reporterPath);
+      this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
+      expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
+      expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
     });
 
     it('should not configure stopping spec on expectation failure by default', function() {

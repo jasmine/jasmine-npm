@@ -12,7 +12,7 @@ This module allows you to run Jasmine specs for your Node.js code. The output wi
 
 ## Documentation
 
-https://jasmine.github.io/2.8/node.html
+https://jasmine.github.io/edge/node.html
 
 ## Installation
 ```sh
@@ -43,7 +43,7 @@ To run your test suite
 
 Customize `spec/support/jasmine.json` to enumerate the source and spec files you would like the Jasmine runner to include.
 You may use dir glob strings.
-More information on the format of `jasmine.json` can be found in [the documentation](http://jasmine.github.io/2.4/node.html#section-Configuration)
+More information on the format of `jasmine.json` can be found in [the documentation](http://jasmine.github.io/edge/node.html#section-Configuration)
 
 Alternatively, you may specify the path to your `jasmine.json` by setting an environment variable or an option:
 
