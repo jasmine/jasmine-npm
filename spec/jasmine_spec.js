@@ -12,6 +12,7 @@ describe('Jasmine', function() {
         provideFallbackReporter: jasmine.createSpy('provideFallbackReporter'),
         execute: jasmine.createSpy('execute'),
         throwOnExpectationFailure: jasmine.createSpy('throwOnExpectationFailure'),
+        stopOnSpecFailure: jasmine.createSpy('stopOnSpecFailure'),
         randomizeTests: jasmine.createSpy('randomizeTests')
       }),
       Timer: jasmine.createSpy('Timer')
@@ -183,10 +184,23 @@ describe('Jasmine', function() {
         expect(this.fixtureJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith(true);
       });
 
-      it('tells jasmine-core not to stop spec on expectation failure by default', function() {
+      it('does not configure jasmine-core for stopping spec on expectation failure by default', function() {
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith(undefined);
+        expect(this.fixtureJasmine.env.throwOnExpectationFailure).not.toHaveBeenCalled();
+      });
+
+      it('can tell jasmine-core to stop execution when a spec fails', function() {
+        this.configObject.stopOnSpecFailure = true;
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.stopOnSpecFailure).toHaveBeenCalledWith(true);
+      });
+
+      it('does not configure jasmine-core for stopping execution by default', function() {
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.stopOnSpecFailure).not.toHaveBeenCalled();
       });
 
       it('can tell jasmine-core to run random specs', function() {
@@ -271,6 +285,13 @@ describe('Jasmine', function() {
     it('sets the throwOnExpectationFailure value on the jasmine-core env', function() {
       this.testJasmine.stopSpecOnExpectationFailure('foobar');
       expect(this.testJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith('foobar');
+    });
+  });
+
+  describe('#stopOnSpecFailure', function() {
+    it('sets the stopOnSpecFailure value on the jasmine-core env', function() {
+      this.testJasmine.stopOnSpecFailure('blah');
+      expect(this.testJasmine.env.stopOnSpecFailure).toHaveBeenCalledWith('blah');
     });
   });
 
