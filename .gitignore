@@ -16,3 +16,4 @@ build
 .grunt
 
 node_modules
+package-lock.json
