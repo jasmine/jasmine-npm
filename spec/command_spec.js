@@ -234,6 +234,22 @@ describe('command', function() {
       expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
     });
 
+    it('prints an error if the file does not export a reporter', function() {
+      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'badReporter.js'));
+      this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
+      expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
+      expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
+      expect(this.out.getOutput()).toContain('failed to register reporter');
+    });
+
+    it('prints an error if the reporter file does not exist', function() {
+      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'missingReporter.js'));
+      this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
+      expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
+      expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
+      expect(this.out.getOutput()).toContain('failed to register reporter');
+    });
+
     it('should not configure stopping spec on expectation failure by default', function() {
       this.command.run(this.fakeJasmine, []);
       expect(this.fakeJasmine.stopSpecOnExpectationFailure).not.toHaveBeenCalled();
