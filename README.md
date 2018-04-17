@@ -52,6 +52,28 @@ jasmine JASMINE_CONFIG_PATH=relative/path/to/your/jasmine.json
 jasmine --config=relative/path/to/your/jasmine.json
 ```
 
+# Filtering specs
+
+Execute only those specs which filename match given glob:
+
+```shell
+jasmine "spec/**/critical/*Spec.js"
+```
+
+Or a single file:
+
+```shell
+jasmine spec/currentSpec.js
+```
+
+Or execute only those specs which name matches a particular regex:
+
+```shell
+jasmine "adapter21*"
+```
+(where the *name* of a spec is the first parameter passed to `describe()`)
+
+
 ## Support
 
 Documentation: [jasmine.github.io](https://jasmine.github.io)
