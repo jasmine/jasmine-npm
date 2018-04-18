@@ -69,8 +69,9 @@ jasmine spec/currentSpec.js
 Or execute only those specs which name matches a particular regex:
 
 ```shell
-jasmine "adapter21*"
+jasmine --filter "adapter21*"
 ```
+
 (where the *name* of a spec is the first parameter passed to `describe()`)
 
 
