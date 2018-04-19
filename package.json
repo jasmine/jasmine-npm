@@ -27,6 +27,6 @@
     "grunt": "^1.0.1",
     "grunt-cli": "^1.2.0",
     "grunt-contrib-jshint": "^1.1.0",
-    "shelljs": "^0.7.8"
+    "shelljs": "^0.8.1"
   }
 }
