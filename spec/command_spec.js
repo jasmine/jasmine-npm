@@ -198,7 +198,7 @@ describe('command', function() {
 
     it('should be able to force colors to be turned on', function() {
       withValueForIsTTY(undefined, function () {
-        this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--force-color']);
+        this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--color']);
         expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
       }.bind(this));
     });
