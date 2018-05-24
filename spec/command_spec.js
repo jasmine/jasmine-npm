@@ -196,6 +196,13 @@ describe('command', function() {
       expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(false);
     });
 
+    it('should be able to force colors to be turned on', function() {
+      withValueForIsTTY(undefined, function () {
+        this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--color']);
+        expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
+      }.bind(this));
+    });
+
     it('should execute the jasmine suite', function() {
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
       expect(this.fakeJasmine.execute).toHaveBeenCalled();
