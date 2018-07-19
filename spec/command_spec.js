@@ -42,7 +42,7 @@ describe('command', function() {
 
     this.command = new Command(projectBaseDir, examplesDir, this.out.print);
 
-    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
+    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
       'stopOnSpecFailure', 'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']);
   });
 
@@ -231,6 +231,16 @@ describe('command', function() {
     it('should not modify helper patterns if no argument given', function() {
       this.command.run(this.fakeJasmine, []);
       expect(this.fakeJasmine.addHelperFiles).not.toHaveBeenCalled();
+    });
+
+    it('should be able to add one require', function() {
+      this.command.run(this.fakeJasmine, ['--require=ts-node/require']);
+      expect(this.fakeJasmine.addRequires).toHaveBeenCalledWith(['ts-node/require']);
+    });
+
+    it('should be able to add multiple requires', function() {
+      this.command.run(this.fakeJasmine, ['--require=ts-node/require', '--require=@babel/register']);
+      expect(this.fakeJasmine.addRequires).toHaveBeenCalledWith(['ts-node/require', '@babel/register']);
     });
 
     it('can specify a reporter', function() {
