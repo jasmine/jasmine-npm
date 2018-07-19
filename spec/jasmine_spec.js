@@ -164,6 +164,9 @@ describe('Jasmine', function() {
           ],
           helpers: [
             "helper.js"
+          ],
+          requires: [
+            "ts-node/register"
           ]
         };
       });
@@ -171,6 +174,7 @@ describe('Jasmine', function() {
       it('adds unique specs to the jasmine runner', function() {
         this.fixtureJasmine.loadConfig(this.configObject);
         expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
         expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'
@@ -241,6 +245,7 @@ describe('Jasmine', function() {
       it('adds unique specs to the jasmine runner', function() {
         this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.json');
         expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
         expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'
@@ -251,6 +256,7 @@ describe('Jasmine', function() {
         var absoluteConfigPath = path.join(__dirname, 'fixtures/sample_project/spec/support/jasmine_alternate.json');
         this.fixtureJasmine.loadConfigFile(absoluteConfigPath);
         expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
         expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/fixture_spec.js',
           'spec/fixtures/sample_project/spec/other_fixture_spec.js'

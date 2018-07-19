@@ -6,5 +6,8 @@
   ],
   "helpers": [
     "helper.js"
+  ],
+  "requires": [
+    "ts-node/register"
   ]
 }
