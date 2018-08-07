@@ -113,10 +113,19 @@ describe('command', function() {
   });
 
   describe('passing unknown options', function() {
-    it('display unknown options and usage', function() {
+    beforeEach(function() {
+      this.exitCode = process.exitCode;
+    });
+
+    afterEach(function() {
+      process.exitCode = this.exitCode;
+    });
+
+    it('displays unknown options and usage', function() {
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--some-option', '--no-color', '--another-option']);
       expect(this.out.getOutput()).toContain('Unknown options: --some-option, --another-option');
       expect(this.out.getOutput()).toContain('Usage');
+      expect(process.exitCode).toBe(1);
     });
   });
 
