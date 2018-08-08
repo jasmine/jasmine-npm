@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/jasmine/jasmine-npm.png?branch=master)](https://travis-ci.org/jasmine/jasmine-npm)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm?ref=badge_shield)
 
 # The Jasmine Module
 
@@ -84,3 +85,7 @@ Twitter: [@jasminebdd](http://twitter.com/jasminebdd)
 Please file issues here at Github
 
 Copyright (c) 2008-2017 Pivotal Labs. This software is licensed under the MIT License.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm?ref=badge_large)
