@@ -63,6 +63,12 @@ describe('Jasmine', function() {
       expect(this.testJasmine.specFiles.map(basename)).toEqual(['command_spec.js', 'jasmine_spec.js']);
     });
 
+    it('add spec files with excluded files', function() {
+      expect(this.testJasmine.specFiles).toEqual([]);
+      this.testJasmine.addSpecFiles(['spec/*.js', '!spec/command*']);
+      expect(this.testJasmine.specFiles.map(basename)).toEqual(['jasmine_spec.js']);
+    });
+
     it('add spec files with glob pattern to existings files', function() {
       var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
       this.testJasmine.specFiles = [aFile, 'b'];
