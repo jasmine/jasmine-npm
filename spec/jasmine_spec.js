@@ -444,7 +444,9 @@ describe('Jasmine', function() {
         this.testJasmine.exit = exitSpy;
 
         this.testJasmine.exitCodeCompletion(true);
-        expect(exitSpy).toHaveBeenCalledWith(0);
+        sleep(10).then(function() {
+          expect(exitSpy).toHaveBeenCalledWith(0);
+        });
       });
 
       it('exits with a failure when anything in the suite is not green', function() {
@@ -452,8 +454,16 @@ describe('Jasmine', function() {
         this.testJasmine.exit = exitSpy;
 
         this.testJasmine.exitCodeCompletion(false);
-        expect(exitSpy).toHaveBeenCalledWith(1);
+        sleep(10).then(function() {
+          expect(exitSpy).toHaveBeenCalledWith(1);
+        });
       });
+
+      function sleep(ms) {
+        return new Promise(function(resolve) {
+          setTimeout(resolve, ms);
+        });
+      }
     });
   });
 });
