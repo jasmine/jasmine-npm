@@ -30,6 +30,10 @@ To initialize a project for Jasmine
 
 `jasmine init`
 
+To initialize a project for Jasmine when being installed locally
+
+`node_modules/.bin/jasmine init`
+
 To seed your project with some examples
 
 `jasmine examples`
