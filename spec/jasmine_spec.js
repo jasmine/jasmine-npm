@@ -11,9 +11,7 @@ describe('Jasmine', function() {
         addMatchers: jasmine.createSpy('addMatchers'),
         provideFallbackReporter: jasmine.createSpy('provideFallbackReporter'),
         execute: jasmine.createSpy('execute'),
-        throwOnExpectationFailure: jasmine.createSpy('throwOnExpectationFailure'),
-        stopOnSpecFailure: jasmine.createSpy('stopOnSpecFailure'),
-        randomizeTests: jasmine.createSpy('randomizeTests')
+        configure: jasmine.createSpy('configure')
       }),
       Timer: jasmine.createSpy('Timer')
     };
@@ -191,39 +189,39 @@ describe('Jasmine', function() {
         this.configObject.stopSpecOnExpectationFailure = true;
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith(true);
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({oneFailurePerSpec: true});
       });
 
       it('does not configure jasmine-core for stopping spec on expectation failure by default', function() {
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.throwOnExpectationFailure).not.toHaveBeenCalled();
+        expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
       });
 
       it('can tell jasmine-core to stop execution when a spec fails', function() {
         this.configObject.stopOnSpecFailure = true;
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.stopOnSpecFailure).toHaveBeenCalledWith(true);
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({failFast: true});
       });
 
       it('does not configure jasmine-core for stopping execution by default', function() {
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.stopOnSpecFailure).not.toHaveBeenCalled();
+        expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
       });
 
       it('can tell jasmine-core to run random specs', function() {
         this.configObject.random = true;
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.randomizeTests).toHaveBeenCalledWith(true);
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({random: true});
       });
 
       it('uses jasmine-core defaults if random is unspecified', function() {
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.randomizeTests).not.toHaveBeenCalled();
+        expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
       });
 
       describe('with options', function() {
@@ -296,21 +294,21 @@ describe('Jasmine', function() {
   describe('#stopSpecOnExpectationFailure', function() {
     it('sets the throwOnExpectationFailure value on the jasmine-core env', function() {
       this.testJasmine.stopSpecOnExpectationFailure('foobar');
-      expect(this.testJasmine.env.throwOnExpectationFailure).toHaveBeenCalledWith('foobar');
+      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({oneFailurePerSpec: 'foobar'});
     });
   });
 
   describe('#stopOnSpecFailure', function() {
     it('sets the stopOnSpecFailure value on the jasmine-core env', function() {
       this.testJasmine.stopOnSpecFailure('blah');
-      expect(this.testJasmine.env.stopOnSpecFailure).toHaveBeenCalledWith('blah');
+      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({failFast: 'blah'});
     });
   });
 
   describe('#randomizeTests', function() {
     it('sets the randomizeTests value on the jasmine-core env', function() {
       this.testJasmine.randomizeTests('foobar');
-      expect(this.testJasmine.env.randomizeTests).toHaveBeenCalledWith('foobar');
+      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({random: 'foobar'});
     });
   });
 
@@ -401,7 +399,7 @@ describe('Jasmine', function() {
       this.testJasmine.loadConfigFile();
 
       this.testJasmine.execute(['spec/fixtures/**/*spec.js'], 'interesting spec');
-      expect(this.testJasmine.env.specFilter).toEqual(jasmine.any(Function));
+      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({specFilter: jasmine.any(Function)});
     });
 
     it('adds an exit code reporter', function() {
