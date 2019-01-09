@@ -18,15 +18,15 @@
     "test": "./node_modules/.bin/grunt && ./bin/jasmine.js"
   },
   "dependencies": {
-    "glob": "^7.0.6",
+    "glob": "^7.1.3",
     "jasmine-core": "~3.3.0"
   },
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
   "devDependencies": {
-    "grunt": "^1.0.1",
-    "grunt-cli": "^1.2.0",
-    "grunt-contrib-jshint": "^1.1.0",
-    "shelljs": "^0.8.1"
+    "grunt": "^1.0.3",
+    "grunt-cli": "^1.3.2",
+    "grunt-contrib-jshint": "^2.0.0",
+    "shelljs": "^0.8.3"
   }
 }
