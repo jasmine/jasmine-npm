@@ -26,12 +26,6 @@ describe('Jasmine', function() {
     this.testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
   });
 
-  afterEach(function() {
-    if (this.testJasmine.checkExit) {
-      process.removeListener('exit', this.testJasmine.checkExit);
-    }
-  });
-
   describe('constructor options', function() {
     it('have defaults', function() {
       expect(this.testJasmine.projectBaseDir).toEqual(path.resolve());
@@ -410,6 +404,7 @@ describe('Jasmine', function() {
       this.testJasmine.execute();
 
       expect(this.testJasmine.addReporter).toHaveBeenCalledWith(completionReporterSpy);
+      expect(this.testJasmine.completionReporter.exitHandler).toBe(this.testJasmine.checkExit);
     });
 
     describe('when exit is called prematurely', function() {
