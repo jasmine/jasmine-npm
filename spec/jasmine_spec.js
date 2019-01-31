@@ -1,6 +1,6 @@
 describe('Jasmine', function() {
   var path = require('path'),
-      util = require('util'),
+      slash = require('slash'),
       Jasmine = require('../lib/jasmine');
 
   beforeEach(function() {
@@ -26,12 +26,6 @@ describe('Jasmine', function() {
     this.testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
   });
 
-  afterEach(function() {
-    if (this.testJasmine.checkExit) {
-      process.removeListener('exit', this.testJasmine.checkExit);
-    }
-  });
-
   describe('constructor options', function() {
     it('have defaults', function() {
       expect(this.testJasmine.projectBaseDir).toEqual(path.resolve());
@@ -52,7 +46,7 @@ describe('Jasmine', function() {
       var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
       expect(this.testJasmine.specFiles).toEqual([]);
       this.testJasmine.addSpecFiles([aFile]);
-      expect(this.testJasmine.specFiles).toEqual([aFile]);
+      expect(this.testJasmine.specFiles).toEqual([slash(aFile)]);
     });
 
     it('add spec files with glob pattern', function() {
@@ -138,7 +132,7 @@ describe('Jasmine', function() {
         print: jasmine.any(Function),
         showColors: true,
         timer: jasmine.any(Object),
-        jasmineCorePath: 'fake/jasmine/path/jasmine.js'
+        jasmineCorePath: path.normalize('fake/jasmine/path/jasmine.js')
       };
 
       expect(this.testJasmine.reporter.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
@@ -285,7 +279,7 @@ describe('Jasmine', function() {
       it('loads the default configuration file', function() {
         this.fixtureJasmine.loadConfigFile();
         expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/fixture_spec.js',
+          'spec/fixtures/sample_project/spec/fixture_spec.js'
         ]);
       });
     });
@@ -388,11 +382,11 @@ describe('Jasmine', function() {
 
       this.testJasmine.execute(['spec/fixtures/**/*spec.js']);
 
-      var relativePaths = this.testJasmine.specFiles.map(function(path) {
-        return path.replace(__dirname, '');
+      var relativePaths = this.testJasmine.specFiles.map(function(filePath) {
+        return slash(path.relative(__dirname, filePath));
       });
 
-      expect(relativePaths).toEqual(['/fixtures/sample_project/spec/fixture_spec.js', '/fixtures/sample_project/spec/other_fixture_spec.js']);
+      expect(relativePaths).toEqual(['fixtures/sample_project/spec/fixture_spec.js', 'fixtures/sample_project/spec/other_fixture_spec.js']);
     });
 
     it('should add spec filter if filterString is provided', function() {
@@ -410,6 +404,7 @@ describe('Jasmine', function() {
       this.testJasmine.execute();
 
       expect(this.testJasmine.addReporter).toHaveBeenCalledWith(completionReporterSpy);
+      expect(this.testJasmine.completionReporter.exitHandler).toBe(this.testJasmine.checkExit);
     });
 
     describe('when exit is called prematurely', function() {
