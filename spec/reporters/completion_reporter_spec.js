@@ -6,7 +6,7 @@ describe('CompletionReporter', function() {
     this.onComplete = jasmine.createSpy('onComplete');
     this.reporter.onComplete(this.onComplete);
     this.processOn = spyOn(process, 'on').and.callThrough();
-    this.processOff = spyOn(process, 'off').and.callThrough();
+    this.processOff = spyOn(process, 'removeListener').and.callThrough();
   });
 
   describe('When the overall status is "passed"', function() {
