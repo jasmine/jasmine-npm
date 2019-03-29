@@ -18,7 +18,7 @@
     "test": "./node_modules/.bin/grunt && ./bin/jasmine.js"
   },
   "dependencies": {
-    "glob": "^7.1.3",
+    "fast-glob": "^2.2.6",
     "jasmine-core": "~3.3.0"
   },
   "bin": "./bin/jasmine.js",
