@@ -1,30 +1,16 @@
-var noop = require("../lib/noop");
-
 describe("worker", function() {
   it("should handle message correctly", function() {
-    var fakeJasmine = jasmine.createSpyObj("fakeJasmine", ["onComplete"]),
-        fakeNewJasmine = jasmine.createSpy("fakeNewJasmine").and.returnValue(fakeJasmine),
-        fakeRunJasmine = jasmine.createSpy("fakeRunJasmine"),
-        fakeRequire = {
-          "./new": fakeNewJasmine,
-          "./run": fakeRunJasmine
-        },
+    var fakeRunJasmine = jasmine.createSpy("fakeRunJasmine"),
+        fakeJasmine = jasmine.createSpyObj('jasmine', ["execute", "onComplete"]),
         env = {};
-    
-    spyOn(require("module"), "_load").and.callFake(function() {
-      if (fakeRequire[arguments[0]]) {
-        return fakeRequire[arguments[0]];
-      } else {
-        return this._load.and.originalFn.apply(this, arguments);
-      }
-    });
 
     process.removeAllListeners("message");
-    require("../lib/worker.js")();
+    require("../lib/worker.js")(fakeJasmine, fakeRunJasmine);
     process.emit("message", env);
 
-    expect(fakeNewJasmine).toHaveBeenCalled();
-    expect(fakeJasmine.onComplete).toHaveBeenCalledWith(noop);
+    expect(fakeJasmine.execute).toHaveBeenCalled();
+    expect(fakeJasmine.onComplete).toHaveBeenCalled();
+    expect(fakeJasmine.onComplete.calls.allArgs()[0][0].toString()).toBe(function(){}.toString());
     expect(fakeRunJasmine).toHaveBeenCalledWith(fakeJasmine, env, console.log);
   });
 });

@@ -6,6 +6,10 @@ describe("WorkerReporter", function() {
     process.send = this.fakeSend = jasmine.createSpy("fakeSend");
   });
 
+  afterEach(function() {
+    delete process.send;
+  });
+
   it("should register all callback ''jasmineStarted', 'jasmineDone', 'specStarted', 'specDone', 'suiteStarted', 'suiteDone'", function() {
     ['jasmineStarted', 'jasmineDone', 'specStarted', 'specDone', 'suiteStarted', 'suiteDone'].forEach(function(kind) {
       expect(this.reporter[kind]).toBeDefined();

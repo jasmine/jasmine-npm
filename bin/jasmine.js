@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 
-var cluster = require('cluster');
+var cluster = require('cluster'),
+    path = require('path'),
+    Jasmine = require("../lib/jasmine");
+
+var jasmine = new Jasmine({ projectBaseDir: path.resolve() });
 
 if (cluster.isMaster) {
-  var path = require('path'),
-      Command = require('../lib/command.js'),
-      newJasmine = require('../lib/new.js');
-
-  var jasmine = newJasmine();
+  var Command = require('../lib/command.js');
+  
   var examplesDir = path.join(path.dirname(require.resolve('jasmine-core')), 'jasmine-core', 'example', 'node_example');
   var command = new Command(path.resolve(), examplesDir, console.log);
 
   command.run(jasmine, process.argv.slice(2));
 } else if (cluster.isWorker) {
-  var runWorkerJasmine = require('../lib/worker.js');
-  runWorkerJasmine();
+  var loadConfig = require('../lib/loadConfig');
+  var runWorkerJasmine = require('../lib/worker');
+  runWorkerJasmine(jasmine, loadConfig);
 }

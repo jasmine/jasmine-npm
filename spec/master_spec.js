@@ -1,17 +1,10 @@
-var noop = require("../lib/noop"),
-    cluster = require("cluster"),
-    runMasterJasmine = require("../lib/master");
+var cluster = require("cluster"),
+    runMasterJasmine = require("../lib/master"),
+    noop = function(){};
 
 describe("master", function() {
   beforeEach(function() {
-    var fakeRunJasmine = this.fakeRunJasmine = jasmine.createSpy("fakeRunJasmine");
-    spyOn(require("module"), "_load").and.callFake(function() {
-      if (arguments[0] === "./run") {
-        return fakeRunJasmine;
-      } else {
-        return this._load.and.originalFn.apply(this, arguments);
-      }
-    });
+    this.fakeRunJasmine = jasmine.createSpy("fakeRunJasmine");
 
     var fakeSend = this.fakeSend = jasmine.createSpy("fakeSend");
     spyOn(cluster, "fork").and.returnValue({
@@ -19,7 +12,7 @@ describe("master", function() {
     });
   });
 
-  it("massege callback 'jasmineDone' should send for this first jasmineDone callback and kill for the second jasmineDone callback", function() {
+  it("messege callback 'jasmineDone' should send for this first jasmineDone callback and kill for the second jasmineDone callback", function() {
     var fakeJasmine = jasmine.createSpyObj('jasmine', ["execute", "configureDefaultReporter", "addSpecFiles"]);
 
     fakeJasmine.specFiles = [
@@ -35,7 +28,7 @@ describe("master", function() {
         },
         allArgs = null;
     cluster.removeAllListeners("message");
-    runMasterJasmine(fakeJasmine, env, console.log);
+    runMasterJasmine(fakeJasmine, env, noop, this.fakeRunJasmine);
 
     cluster.emit("message", { send: fakeSend, kill: fakeKill }, { kind: "jasmineDone" });
     expect(fakeJasmine.reporter.jasmineDone).not.toHaveBeenCalled();
@@ -62,7 +55,7 @@ describe("master", function() {
 
       fakeJasmine.specFiles = [];
       fakeJasmine.reporter = jasmine.createSpyObj('reporter', ['specStarted']);
-      runMasterJasmine(fakeJasmine, env, console.log);
+      runMasterJasmine(fakeJasmine, env, noop, this.fakeRunJasmine);
 
       var result = "jasmine";
       cluster.emit("message", { send: noop, kill: noop }, { kind: "specStarted", result: result });
@@ -75,7 +68,7 @@ describe("master", function() {
 
       fakeJasmine.specFiles = [];
       fakeJasmine.reporter = jasmine.createSpyObj('reporter', ['specDone']);
-      runMasterJasmine(fakeJasmine, env, console.log);
+      runMasterJasmine(fakeJasmine, env, noop, this.fakeRunJasmine);
 
       var result = "jasmine";
       cluster.emit("message", { send: noop, kill: noop }, { kind: "specDone", result: result });
@@ -88,7 +81,7 @@ describe("master", function() {
 
       fakeJasmine.specFiles = [];
       fakeJasmine.reporter = jasmine.createSpyObj('reporter', ['suiteStarted']);
-      runMasterJasmine(fakeJasmine, env, console.log);
+      runMasterJasmine(fakeJasmine, env, noop, this.fakeRunJasmine);
 
       var result = "jasmine";
       cluster.emit("message", { send: noop, kill: noop }, { kind: "suiteStarted", result: result });
@@ -101,7 +94,7 @@ describe("master", function() {
 
       fakeJasmine.specFiles = [];
       fakeJasmine.reporter = jasmine.createSpyObj('reporter', ['suiteDone']);
-      runMasterJasmine(fakeJasmine, env, console.log);
+      runMasterJasmine(fakeJasmine, env, noop, this.fakeRunJasmine);
 
       var result = "jasmine";
       cluster.emit("message", { send: noop, kill: noop }, { kind: "suiteDone", result: result });
@@ -114,10 +107,10 @@ describe("master", function() {
 
       fakeJasmine.specFiles = [];
       fakeJasmine.reporter = jasmine.createSpyObj('reporter', ['jasmineStarted']);
-      runMasterJasmine(fakeJasmine, {}, console.log);
+      runMasterJasmine(fakeJasmine, {}, noop, this.fakeRunJasmine);
 
       cluster.emit("message", { send: noop, kill: noop }, { kind: "jasmineStarted", result: result });
-      expect(fakeJasmine.reporter.jasmineStarted).not.toBeDefined();
+      expect(fakeJasmine.reporter.jasmineStarted.toString()).toBe(noop.toString());
 
       expect(function () {
         cluster.emit("message", { send: noop, kill: noop }, { kind: "jasmineStarted", result: result });
@@ -129,7 +122,7 @@ describe("master", function() {
       
       fakeJasmine.specFiles = [];
       fakeJasmine.reporter = jasmine.createSpyObj('reporter', ['jasmineDone']);
-      runMasterJasmine(fakeJasmine, {}, console.log);
+      runMasterJasmine(fakeJasmine, {}, noop, this.fakeRunJasmine);
   
       cluster.emit("message", { send: noop, kill: noop }, { kind: "jasmineDone", result: 1 });
       expect(fakeJasmine.reporter.jasmineDone).not.toHaveBeenCalled();
@@ -150,9 +143,8 @@ describe("master", function() {
         };
     
     fakeJasmine.specFiles = [];
-    runMasterJasmine(fakeJasmine, env, console.log);
+    runMasterJasmine(fakeJasmine, env, noop, this.fakeRunJasmine);
 
-    expect(fakeJasmine.execute).toBe(noop);
     expect(this.fakeRunJasmine).toHaveBeenCalled();
     expect(fakeJasmine.configureDefaultReporter).toHaveBeenCalled();
     expect(this.fakeSend).toHaveBeenCalledTimes(env.workerCount);
