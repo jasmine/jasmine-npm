@@ -71,16 +71,14 @@ describe("ConsoleReporter", function() {
   });
 
   it("setOptions should not override existing options if set multiple times", function() {
-    var timerSpy = jasmine.createSpyObj('timer', ['start']),
-        reporter = new ConsoleReporter();
+    var reporter = new ConsoleReporter();
 
     reporter.setOptions({
       print: this.out.print,
-      timer: timerSpy
+      showColors: false
     });
 
     reporter.jasmineStarted();
-    expect(timerSpy.start).toHaveBeenCalled();
     expect(this.out.getOutput()).toEqual("Started\n");
 
     // clean up this.out.output
@@ -89,27 +87,11 @@ describe("ConsoleReporter", function() {
 
     // set options that does not include print, should still print with this.out.print
     reporter.setOptions({
-      timer: timerSpy
+      showColors: true
     });
 
     reporter.jasmineStarted();
-    expect(timerSpy.start).toHaveBeenCalled();
     expect(this.out.getOutput()).toEqual("Started\n");
-  });
-
-
-  it("starts the provided timer when jasmine starts", function() {
-    var timerSpy = jasmine.createSpyObj('timer', ['start']),
-        reporter = new ConsoleReporter();
-
-    reporter.setOptions({
-      print: this.out.print,
-      timer: timerSpy
-    });
-
-    reporter.jasmineStarted();
-
-    expect(timerSpy.start).toHaveBeenCalled();
   });
 
   it("reports a passing spec as a dot", function() {
@@ -186,20 +168,16 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done (singular spec and time)", function() {
-    var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
-        reporter = new ConsoleReporter();
+    var reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      timer: timerSpy
     });
 
     reporter.jasmineStarted();
     reporter.specDone({status: "passed"});
 
-    timerSpy.elapsed.and.returnValue(1000);
-
     this.out.clear();
-    reporter.jasmineDone();
+    reporter.jasmineDone({ totalTime: 1000 });
 
     expect(this.out.getOutput()).not.toMatch(/Ran 1/);
     expect(this.out.getOutput()).toMatch(/1 spec, 0 failures/);
@@ -208,11 +186,9 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done (pluralized specs and seconds)", function() {
-    var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
-        reporter = new ConsoleReporter();
+    var reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      timer: timerSpy
     });
 
     reporter.jasmineStarted();
@@ -235,30 +211,24 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    timerSpy.elapsed.and.returnValue(100);
-
-    reporter.jasmineDone();
+    reporter.jasmineDone({ totalTime: 100 });
 
     expect(this.out.getOutput()).toMatch(/3 specs, 1 failure, 1 pending spec/);
     expect(this.out.getOutput()).toMatch("Finished in 0.1 seconds\n");
   });
 
   it("reports a summary when done that indicates the number of specs run (when it's less that the full number of specs)", function() {
-    var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
-        reporter = new ConsoleReporter();
+    var reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      timer: timerSpy
     });
 
     reporter.jasmineStarted();
     reporter.specDone({status: "passed"});
     reporter.specDone({status: "disabled"});
 
-    timerSpy.elapsed.and.returnValue(1000);
-
     this.out.clear();
-    reporter.jasmineDone();
+    reporter.jasmineDone({ totalTime: 1000 });
 
     expect(this.out.getOutput()).toMatch(/Ran 1 of 2 specs/);
     expect(this.out.getOutput()).toMatch(/1 spec, 0 failures/);
