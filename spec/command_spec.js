@@ -129,6 +129,14 @@ describe('command', function() {
     });
   });
 
+  describe('--', function() {
+    it('skips anything after it', function() {
+      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--', '--no-color']);
+      expect(this.out.getOutput()).toBe('');
+      expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
+    });
+  });
+
   describe('examples', function() {
     beforeEach(function() {
       this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'examples']);
