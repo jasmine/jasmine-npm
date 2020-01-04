@@ -408,6 +408,102 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toContain("Incomplete: not all bars were frobnicated");
   });
 
+  it("reports a summary when done that shows info for a failed spec with no expectations", function() {
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+      jasmineCorePath: jasmineCorePath
+    });
+
+    reporter.jasmineStarted();
+    reporter.specDone({status: "passed"});
+    reporter.specDone({
+      status: "failed",
+      description: "with a failing spec",
+      fullName: "A suite with a failing spec that has no expectations",
+      failedExpectations: []
+    });
+
+    this.out.clear();
+
+    reporter.jasmineDone();
+
+    expect(this.out.getOutput()).toContain("Spec has no expectations");
+  });
+
+  it('reports a summary without "no expectations" message for a spec having failed expectations', function () {
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+      jasmineCorePath: jasmineCorePath
+    });
+
+    reporter.jasmineStarted();
+    reporter.specDone({
+      status: "failed",
+      description: "with a failing spec",
+      fullName: "A suite with a failing spec that has a failing expectation",
+      failedExpectations: [{
+        passed: false,
+        message: "Expected true to be false.",
+        expected: false,
+        actual: true,
+        stack: undefined
+      }]
+    });
+
+    this.out.clear();
+
+    reporter.jasmineDone();
+
+    expect(this.out.getOutput()).not.toContain("Spec has no expectations");
+  });
+
+  it('reports a summary without a "no expectations" message for a spec having passed expectations', function () {
+    var reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+      jasmineCorePath: jasmineCorePath
+    });
+
+    reporter.jasmineStarted();
+    reporter.specDone({
+      status: "passed",
+      description: "with a passed spec",
+      fullName: "A suite with a passed spec",
+      passedExpectations: [{
+        passed: true,
+        message: "Expected true to be true.",
+        expected: true,
+        actual: true
+      }]
+    });
+    reporter.specDone({
+      status: "failed",
+      description: "with a failing spec",
+      fullName: "A suite with a failing spec that has both passed and failing expectations",
+      failedExpectations: [{
+        passed: false,
+        message: "Expected true to be false.",
+        expected: false,
+        actual: true,
+        stack: undefined
+      }],
+      passedExpectations: [{
+        passed: true,
+        message: "Expected true to be true.",
+        expected: true,
+        actual: true
+      }]
+    });
+
+    this.out.clear();
+
+    reporter.jasmineDone();
+
+    expect(this.out.getOutput()).not.toContain("Spec has no expectations");
+  });  
+
   it("displays all afterAll exceptions", function() {
     var reporter = new ConsoleReporter();
     reporter.setOptions({
