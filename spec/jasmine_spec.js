@@ -275,6 +275,23 @@ describe('Jasmine', function() {
         });
       });
 
+      it('passes verboseDeprecations to jasmine-core when specified', function() {
+        this.configObject.verboseDeprecations = true;
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith(
+          jasmine.objectContaining({verboseDeprecations: true})
+        );
+      });
+
+      it('does not pass verboseDeprecations to jasmine-core when not specified', function() {
+        this.configObject.random = true; // or set any other property
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalled();
+        expect(this.fixtureJasmine.env.configure.calls.argsFor(0)[0].verboseDeprecations)
+          .toBeUndefined();
+      });
       describe('with jsLoader: "require"', function () {
         it('tells the loader not to always import', async function() {
           this.configObject.jsLoader = 'require';
@@ -309,7 +326,7 @@ describe('Jasmine', function() {
       describe('with jsLoader undefined', function () {
         it('tells the loader not to always import', async function() {
           this.configObject.jsLoader = undefined;
-          
+
           this.fixtureJasmine.loadConfig(this.configObject);
           await this.fixtureJasmine.loadSpecs();
 
