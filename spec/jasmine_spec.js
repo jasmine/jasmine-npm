@@ -179,6 +179,13 @@ describe('Jasmine', function() {
         ]);
       });
 
+      it('can tell jasmine-core to stop spec on no expectations', function() {
+        this.configObject.failSpecWithNoExpectations = true;
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({failSpecWithNoExpectations: true});
+      });
+
       it('can tell jasmine-core to stop spec on expectation failure', function() {
         this.configObject.stopSpecOnExpectationFailure = true;
         this.fixtureJasmine.loadConfig(this.configObject);
@@ -212,7 +219,7 @@ describe('Jasmine', function() {
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({random: true});
       });
 
-      it('uses jasmine-core defaults if random is unspecified', function() {
+      it('uses jasmine-core defaults if no config options specified', function() {
         this.fixtureJasmine.loadConfig(this.configObject);
 
         expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
