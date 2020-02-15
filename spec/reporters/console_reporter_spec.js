@@ -206,7 +206,8 @@ describe("ConsoleReporter", function() {
           actual: true,
           stack: fakeStack
         }
-      ]
+      ],
+      passedExpectations: []
     });
 
     this.out.clear();
@@ -255,7 +256,8 @@ describe("ConsoleReporter", function() {
           actual: true,
           stack: fakeStack
         }
-      ]
+      ],
+      passedExpectations: []
     });
 
     this.out.clear();
@@ -286,7 +288,8 @@ describe("ConsoleReporter", function() {
           actual: true,
           stack: fakeStack
         }
-      ]
+      ],
+      passedExpectations: []
     });
 
     this.out.clear();
@@ -319,7 +322,8 @@ describe("ConsoleReporter", function() {
           actual: true,
           stack: undefined
         }
-      ]
+      ],
+      passedExpectations: []
     });
 
     this.out.clear();
@@ -354,7 +358,8 @@ describe("ConsoleReporter", function() {
           actual: true,
           stack: fakeStack
         }
-      ]
+      ],
+      passedExpectations: []
     });
 
     this.out.clear();
@@ -421,7 +426,8 @@ describe("ConsoleReporter", function() {
       status: "failed",
       description: "with a failing spec",
       fullName: "A suite with a failing spec that has no expectations",
-      failedExpectations: []
+      failedExpectations: [],
+      passedExpectations: []
     });
 
     this.out.clear();
@@ -449,7 +455,8 @@ describe("ConsoleReporter", function() {
         expected: false,
         actual: true,
         stack: undefined
-      }]
+      }],
+      passedExpectations: []
     });
 
     this.out.clear();
