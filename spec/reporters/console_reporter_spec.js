@@ -482,13 +482,7 @@ describe("ConsoleReporter", function() {
       status: "failed",
       description: "with a failing spec",
       fullName: "A suite with a failing spec that has both passed and failing expectations",
-      failedExpectations: [{
-        passed: false,
-        message: "Expected true to be false.",
-        expected: false,
-        actual: true,
-        stack: undefined
-      }],
+      failedExpectations: [],
       passedExpectations: [{
         passed: true,
         message: "Expected true to be true.",
@@ -502,7 +496,7 @@ describe("ConsoleReporter", function() {
     reporter.jasmineDone();
 
     expect(this.out.getOutput()).not.toContain("Spec has no expectations");
-  });  
+  });
 
   it("displays all afterAll exceptions", function() {
     var reporter = new ConsoleReporter();
