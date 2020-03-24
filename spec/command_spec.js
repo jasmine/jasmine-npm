@@ -284,6 +284,43 @@ describe('command', function() {
       expect(this.out.getOutput()).toContain('failed to register reporter');
     });
 
+    it('can specify a reporter constructor export', function() {
+      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'namedExportReporter.js'));
+      var Reporter = require(reporterPath).reporter;
+      this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath, '--reporter-constructor=reporter']);
+      expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
+      expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
+    });
+
+    it('prints an error if the reporter constructor export does not exist', function() {
+      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'namedExportReporter.js'));
+      this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath, '--reporter-constructor=unknown']);
+      expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
+      expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
+      expect(this.out.getOutput()).toContain('failed to register reporter');
+    });
+
+    it('can specify a reporter configuration', function() {
+      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'configurableReporter.js'));
+      var configurationPath = path.resolve(path.join(__dirname, 'fixtures', 'reporterConfiguration.json'));
+      var reporterModule = require(reporterPath);
+      var Reporter = reporterModule.reporter;
+      expect(reporterModule.configurations).toEqual([]);
+      this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath, '--reporter-constructor=reporter', '--reporter-configuration=' + configurationPath]);
+      expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
+      expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
+      expect(reporterModule.configurations).toContain({foo: 'bar'});
+    });
+
+    it('prints an error if the reporter configuration file does not exist', function() {
+      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'configurableReporter.js'));
+      var configurationPath = path.resolve(path.join(__dirname, 'fixtures', 'missingConfiguration.json'));
+      this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath, '--reporter-constructor=reporter', '--reporter-configuration=' + configurationPath]);
+      expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
+      expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
+      expect(this.out.getOutput()).toContain('failed to register reporter');
+    });
+
     it('should not configure stopping spec on expectation failure by default', function() {
       this.command.run(this.fakeJasmine, []);
       expect(this.fakeJasmine.stopSpecOnExpectationFailure).not.toHaveBeenCalled();
