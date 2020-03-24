@@ -1,0 +1,1 @@
+exports.reporter = function Report() {};
