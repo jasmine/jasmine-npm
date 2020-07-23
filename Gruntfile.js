@@ -31,7 +31,7 @@ module.exports = function(grunt) {
                      'Create tag ' + versionString + ' and push jasmine-' + pkg.version + ' to NPM',
                      function() {
     var done = this.async(),
-        commands = ['git tag ' + versionString, 'git push origin master --tags', 'npm publish'];
+        commands = ['git tag ' + versionString, 'git push origin main --tags', 'npm publish'];
 
     runCommands(commands, done);
   });
