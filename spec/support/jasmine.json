@@ -3,7 +3,7 @@
   "spec_files": [
     "command_spec.js",
     "jasmine_spec.js",
-    "master_spec.js",
+    "manager_spec.js",
     "new_spec.js",
     "run_spec.js",
     "worker_spec.js",

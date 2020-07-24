@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jasmine/jasmine-npm.png?branch=master)](https://travis-ci.org/jasmine/jasmine-npm)
+[![Build Status](https://travis-ci.org/jasmine/jasmine-npm.png?branch=main)](https://travis-ci.org/jasmine/jasmine-npm)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm?ref=badge_shield)
 
 # The Jasmine Module
