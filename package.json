@@ -33,7 +33,7 @@
   },
   "eslintConfig": {
     "parserOptions": {
-      "ecmaVersion": 6
+      "ecmaVersion": 11
     },
     "rules": {
       "no-unused-vars": [

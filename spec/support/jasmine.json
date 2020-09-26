@@ -2,7 +2,9 @@
   "spec_dir": "spec",
   "spec_files": [
     "command_spec.js",
+    "esm_integration_spec.js",
     "jasmine_spec.js",
+    "loader_spec.js",
     "manager_spec.js",
     "run_spec.js",
     "reporters/**/*[sS]pec.js",
