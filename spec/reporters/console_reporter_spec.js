@@ -1,6 +1,5 @@
 describe("ConsoleReporter", function() {
-  var path = require('path'),
-      ConsoleReporter = require('../../lib/reporters/console_reporter'),
+  var ConsoleReporter = require('../../lib/reporters/console_reporter'),
       jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
 
   var fakeStack = ['foo' + jasmineCorePath,
@@ -138,7 +137,7 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toEqual("*");
   });
 
-  it("alerts user if there are no specs", function(){
+  it("alerts user if there are no specs", function() {
     var reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print
@@ -151,7 +150,7 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toMatch(/No specs found/);
   });
 
-  it("reports the seed number when running in random order", function(){
+  it("reports the seed number when running in random order", function() {
     var reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print

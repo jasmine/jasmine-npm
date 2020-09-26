@@ -4,13 +4,7 @@ module.exports = function(grunt) {
   var versionString = 'v' + pkg.version;
 
   grunt.initConfig({
-    pkg: pkg,
-    jshint: {
-      options: {
-        esversion: 6
-      },
-      all: ['lib/**/*.js', 'spec/**/*.js']
-    }
+    pkg: pkg
   });
 
   var shell = require('shelljs');
@@ -31,7 +25,6 @@ module.exports = function(grunt) {
     }
   }
 
-  // depend on jshint:all, specs?
   grunt.registerTask('release',
                      'Create tag ' + versionString + ' and push jasmine-' + pkg.version + ' to NPM',
                      function() {
@@ -41,9 +34,5 @@ module.exports = function(grunt) {
     runCommands(commands, done);
   });
 
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-
   grunt.loadTasks('tasks');
-
-  grunt.registerTask('default', ['jshint:all', 'specs']);
 };

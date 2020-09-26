@@ -7,14 +7,14 @@ var projectBaseDir = 'spec/fixtures/sample_empty_project/';
 var spec = path.join(projectBaseDir, 'spec');
 
 function deleteDirectory(dir) {
-  if(fs.existsSync(dir)) {
+  if (fs.existsSync(dir)) {
     var dirFiles = fs.readdirSync(dir);
     dirFiles.forEach(function(file) {
       var fullPath = path.join(dir, file);
-      if(fs.statSync(fullPath).isDirectory()) {
+      if (fs.statSync(fullPath).isDirectory()) {
         deleteDirectory(fullPath);
       }
-      else if(fs.statSync(fullPath).isFile()){
+      else if (fs.statSync(fullPath).isFile()) {
         fs.unlinkSync(fullPath);
       }
     });
