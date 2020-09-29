@@ -4,9 +4,7 @@
     "command_spec.js",
     "jasmine_spec.js",
     "manager_spec.js",
-    "new_spec.js",
     "run_spec.js",
-    "worker_spec.js",
     "reporters/**/*[sS]pec.js",
     "filters/**/*[sS]pec.js"
   ],
