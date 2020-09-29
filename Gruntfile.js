@@ -5,7 +5,12 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: pkg,
-    jshint: {all: ['lib/**/*.js', 'spec/**/*.js']}
+    jshint: {
+      options: {
+        esversion: 6
+      },
+      all: ['lib/**/*.js', 'spec/**/*.js']
+    }
   });
 
   var shell = require('shelljs');
