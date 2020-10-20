@@ -1,8 +1,9 @@
 sudo: false
 language: node_js
+# NOTE: When changing the list of Node versions, be sure to update `engines`
+# in package.json as well as setup/nodejs.md in the docs repo.
 node_js:
   - '14'
-  - '13'
   - '12'
   - '10'
 before_script:
