@@ -44,6 +44,7 @@ describe('command', function() {
 
     this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
       'stopOnSpecFailure', 'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']);
+    this.fakeJasmine.execute.and.returnValue(Promise.resolve());
   });
 
   afterEach(function() {
