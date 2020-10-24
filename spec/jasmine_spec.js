@@ -54,52 +54,53 @@ describe('Jasmine', function() {
 
     it('add spec files with glob pattern', function() {
       expect(this.testJasmine.specFiles).toEqual([]);
-      this.testJasmine.addSpecFiles(['spec/*.js']);
+      this.testJasmine.addSpecFiles(['spec/fixtures/jasmine_spec/*.js']);
       expect(this.testJasmine.specFiles.map(basename)).toEqual([
-        'command_spec.js',
-        'esm_integration_spec.js',
-        'jasmine_spec.js',
-        'load_config_spec.js',
-        'loader_spec.js',
+        'c.js',
+        'd.js',
+        'e.js',
+        'f.js',
       ]);
     });
 
     it('add spec files with excluded files', function() {
       expect(this.testJasmine.specFiles).toEqual([]);
-      this.testJasmine.addSpecFiles(['spec/*.js', '!spec/command*']);
+      this.testJasmine.addSpecFiles([
+        'spec/fixtures/jasmine_spec/*.js',
+        '!spec/fixtures/jasmine_spec/c*'
+      ]);
       expect(this.testJasmine.specFiles.map(basename)).toEqual([
-        'esm_integration_spec.js',
-        'jasmine_spec.js',
-        'load_config_spec.js',
-        'loader_spec.js',
+        'd.js',
+        'e.js',
+        'f.js',
       ]);
     });
 
     it('add spec files with glob pattern to existings files', function() {
       var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
       this.testJasmine.specFiles = [aFile, 'b'];
-      this.testJasmine.addSpecFiles(['spec/*.js']);
+      this.testJasmine.addSpecFiles(['spec/fixtures/jasmine_spec/*.js']);
       expect(this.testJasmine.specFiles.map(basename)).toEqual([
         'command_spec.js',
         'b',
-        'esm_integration_spec.js',
-        'jasmine_spec.js',
-        'load_config_spec.js',
-        'loader_spec.js',
+        'c.js',
+        'd.js',
+        'e.js',
+        'f.js',
       ]);
     });
 
     it('add helper files with glob pattern to existings files', function() {
       var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
       this.testJasmine.helperFiles = [aFile, 'b'];
-      this.testJasmine.addHelperFiles(['spec/*.js']);
+      this.testJasmine.addHelperFiles(['spec/fixtures/jasmine_spec/*.js']);
       expect(this.testJasmine.helperFiles.map(basename)).toEqual([
         'command_spec.js',
         'b',
-        'esm_integration_spec.js',
-        'jasmine_spec.js',
-        'load_config_spec.js',
-        'loader_spec.js',
+        'c.js',
+        'd.js',
+        'e.js',
+        'f.js',
       ]);
     });
   });
