@@ -28,9 +28,20 @@ describe('loader', function() {
         await expectAsync(loaderPromise).toBeResolved();
       });
 
-      it('propagates the error when import fails', async function () {
+      it("adds the filename to errors that don't include it", async function() {
+        const underlyingError = new SyntaxError('some details but no filename, not even in the stack trace');
+        const importShim = () => Promise.reject(underlyingError);
+        const loader = new Loader({importShim});
+
+        await expectAsync(loader.load('foo.mjs')).toBeRejectedWithError(
+          "While loading foo.mjs: SyntaxError: some details but no filename, not even in the stack trace"
+        );
+      });
+
+      it('propagates errors that already contain the filename without modifying them', async function () {
         const requireShim = jasmine.createSpy('requireShim');
         const underlyingError = new Error('nope');
+        underlyingError.stack = underlyingError.stack.replace('loader_spec.js', 'foo.mjs');
         const importShim = jasmine.createSpy('importShim')
           .and.callFake(() => Promise.reject(underlyingError));
         const loader = new Loader({requireShim, importShim});

@@ -27,11 +27,25 @@ describe('Integration', function () {
     expect(output).toMatch(/at .*throws_on_load.js/);
   });
 
+  it('handles load-time exceptions from ESM specs properly', async function () {
+    const {exitCode, output} = await runJasmine('spec/fixtures/esm-load-exception');
+    expect(exitCode).toEqual(1);
+    expect(output).toContain('Error: nope');
+    expect(output).toMatch(/at .*throws_on_load.mjs/);
+  });
+
   it('handles syntax errors in CommonJS specs properly', async function () {
     const {exitCode, output} = await runJasmine('spec/fixtures/cjs-syntax-error');
     expect(exitCode).toEqual(1);
     expect(output).toContain('SyntaxError');
     expect(output).toContain('syntax_error.js');
+  });
+
+  it('handles syntax errors in ESM specs properly', async function () {
+    const {exitCode, output} = await runJasmine('spec/fixtures/esm-syntax-error');
+    expect(exitCode).toEqual(1);
+    expect(output).toContain('SyntaxError');
+    expect(output).toContain('syntax_error.mjs');
   });
 });
 

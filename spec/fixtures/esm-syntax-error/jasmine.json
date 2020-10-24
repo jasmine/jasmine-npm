@@ -1,0 +1,7 @@
+{
+  "spec_dir": ".",
+  "spec_files": [
+    "syntax_error.mjs"
+  ],
+  "helpers": []
+}
