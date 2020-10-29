@@ -15,7 +15,7 @@
     "url": "https://github.com/jasmine/jasmine-npm"
   },
   "scripts": {
-    "test": "./bin/jasmine.js",
+    "test": "node ./bin/jasmine.js",
     "posttest": "eslint \"bin/**/*.js\" \"lib/**/*.js\" \"spec/**/*.js\""
   },
   "dependencies": {

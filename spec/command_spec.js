@@ -22,6 +22,17 @@ function deleteDirectory(dir) {
   }
 }
 
+function withValueForIsTTY(value, func) {
+  var wasTTY = process.stdout.isTTY;
+  try {
+    process.stdout.isTTY = value;
+    func();
+  } finally {
+    process.stdout.isTTY = wasTTY;
+  }
+}
+
+
 describe('command', function() {
   beforeEach(function() {
     var examplesDir = path.resolve(path.join(__dirname, 'fixtures', 'example'));
@@ -132,9 +143,11 @@ describe('command', function() {
 
   describe('--', function() {
     it('skips anything after it', function() {
-      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--', '--no-color']);
-      expect(this.out.getOutput()).toBe('');
-      expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
+      withValueForIsTTY(true, function () {
+        this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--', '--no-color']);
+        expect(this.out.getOutput()).toBe('');
+        expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
+      }.bind(this));
     });
   });
 
@@ -158,16 +171,6 @@ describe('command', function() {
   });
 
   describe('running specs', function() {
-    var withValueForIsTTY = function(value, func) {
-      var wasTTY = process.stdout.isTTY;
-      try {
-        process.stdout.isTTY = value;
-        func();
-      } finally {
-        process.stdout.isTTY = wasTTY;
-      }
-    };
-
     beforeEach(function() {
       this.originalConfigPath = process.env.JASMINE_CONFIG_PATH;
     });
