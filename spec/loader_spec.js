@@ -20,7 +20,7 @@ describe('loader', function() {
         const loaderPromise = loader.load('./foo/bar/baz.mjs');
 
         expect(requireShim).not.toHaveBeenCalled();
-        expect(importShim).toHaveBeenCalledWith('./foo/bar/baz.mjs');
+        expect(importShim).toHaveBeenCalledWith('file://./foo/bar/baz.mjs');
         await expectAsync(loaderPromise).toBePending();
 
         resolve();
