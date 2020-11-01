@@ -8,30 +8,24 @@ describe('loader', function() {
   describe('#load', function() {
     describe('When the path ends in .mjs', function () {
       it('loads the file as an es module', async function () {
-        const requireShim = jasmine.createSpy('requireShim');
-        let resolve;
-        const importPromise = new Promise(function (res) {
-          resolve = res;
-        });
+        const requireShim = jasmine.createSpy('requireShim')
+          .and.callFake(requireESM);
         const importShim = jasmine.createSpy('importShim')
-          .and.returnValue(importPromise);
+          .and.returnValue(Promise.resolve());
         const loader = new Loader({requireShim, importShim});
 
-        const loaderPromise = loader.load('./foo/bar/baz.mjs');
+        await expectAsync(loader.load('./foo/bar/baz.mjs')).toBeResolved();
 
-        expect(requireShim).not.toHaveBeenCalled();
+        expect(requireShim).toHaveBeenCalledWith('./foo/bar/baz.mjs');
         expect(importShim).toHaveBeenCalledWith('file://./foo/bar/baz.mjs');
-        await expectAsync(loaderPromise).toBePending();
-
-        resolve();
-
-        await expectAsync(loaderPromise).toBeResolved();
       });
 
       it("adds the filename to errors that don't include it", async function() {
+        const requireShim = jasmine.createSpy('requireShim')
+          .and.callFake(requireESM);
         const underlyingError = new SyntaxError('some details but no filename, not even in the stack trace');
         const importShim = () => Promise.reject(underlyingError);
-        const loader = new Loader({importShim});
+        const loader = new Loader({requireShim, importShim});
 
         await expectAsync(loader.load('foo.mjs')).toBeRejectedWithError(
           "While loading foo.mjs: SyntaxError: some details but no filename, not even in the stack trace"
@@ -39,7 +33,8 @@ describe('loader', function() {
       });
 
       it('propagates errors that already contain the filename without modifying them', async function () {
-        const requireShim = jasmine.createSpy('requireShim');
+        const requireShim = jasmine.createSpy('requireShim')
+          .and.callFake(requireESM);
         const underlyingError = new Error('nope');
         underlyingError.stack = underlyingError.stack.replace('loader_spec.js', 'foo.mjs');
         const importShim = jasmine.createSpy('importShim')
@@ -48,6 +43,12 @@ describe('loader', function() {
 
         await expectAsync(loader.load('foo.mjs')).toBeRejectedWith(underlyingError);
       });
+
+      function requireESM() {
+        const e = new Error('[ERR_REQUIRE_ESM]: Must use import to load ES Module');
+        e.code = 'ERR_REQUIRE_ESM';
+        throw e;
+      }
     });
 
     describe('When the path does not end in .mjs', function () {
