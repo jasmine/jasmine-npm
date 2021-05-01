@@ -1,4 +1,4 @@
 {
   "spec_dir": ".",
-  "spec_files": ["aSpec.js"]
+  "spec_files": ["anEsModuleSpec.js"]
 }

@@ -324,13 +324,13 @@ describe('Jasmine', function() {
       });
 
       describe('with jsLoader undefined', function () {
-        it('tells the loader not to always import', async function() {
+        it('tells the loader to always import', async function() {
           this.configObject.jsLoader = undefined;
 
           this.fixtureJasmine.loadConfig(this.configObject);
           await this.fixtureJasmine.loadSpecs();
 
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String), false);
+          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String), true);
         });
       });
     });

@@ -61,18 +61,13 @@ jasmine JASMINE_CONFIG_PATH=relative/path/to/your/jasmine.json
 jasmine --config=relative/path/to/your/jasmine.json
 ```
 
-## Using ES modules
+## ES and CommonJS module compatibility
 
-If the name of a spec file or helper file ends in `.mjs`, Jasmine will load it
-as an [ES module](https://nodejs.org/docs/latest-v13.x/api/esm.html) rather 
-than a CommonJS module. This allows the spec file or helper to import other 
-ES modules. No extra configuration is required.
-
-You can also use ES modules with names ending in `.js` by adding 
-`"jsLoader": "import"` to `jasmine.json`. This should work for CommonJS modules
-as well as ES modules. We expect to make it the default in a future release.
-Please [log an issue](https://github.com/jasmine/jasmine-npm/issues) if you have
-code that doesn't load correctly with `"jsLoader": "import"`.
+By default, Jasmine uses `import` to load spec files and helper files. This
+should work for both ES modules and CommonJS modules. No additional 
+configuration is required. If you need some files to be loaded via `require`,
+add `"jsLoader": "require"` to `jasmine.json`. With that set, Jasmine will use 
+`require` to load all files with names that don't end in `.mjs`.
 
 
 # Filtering specs
