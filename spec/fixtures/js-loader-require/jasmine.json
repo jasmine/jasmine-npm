@@ -1,5 +1,6 @@
 {
   "spec_dir": ".",
   "spec_files": ["aSpec.js"],
+  "requires": ["../spec/fixtures/js-loader-require/aRequire.js"],
   "jsLoader": "require"
 }
