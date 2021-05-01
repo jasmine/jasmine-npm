@@ -4,7 +4,6 @@ version: 2.1
 
 orbs:
   node: circleci/node@3.0.0
-  win: circleci/windows@2.2.0
 
 executors:
   node14:
@@ -51,11 +50,6 @@ workflows:
       - build_and_test:
           executor: node10
           name: node_10
-      - build_and_test:
-          executor:
-            name: win/default
-            shell: powershell.exe
-          name: node_12_windows
   cron:
     <<: *push_workflow
     triggers:
