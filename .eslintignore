@@ -1,1 +1,2 @@
 spec/fixtures/cjs-syntax-error/syntax_error.js
+spec/fixtures/js-loader-import/*.js

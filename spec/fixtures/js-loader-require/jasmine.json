@@ -1,0 +1,5 @@
+{
+  "spec_dir": ".",
+  "spec_files": ["aSpec.js"],
+  "jsLoader": "require"
+}
