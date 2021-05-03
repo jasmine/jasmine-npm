@@ -10,9 +10,21 @@ executors:
     docker:
       - image: circleci/node:14
     working_directory: ~/workspace
-  node12:
+  node12_latest:
     docker:
-      - image: circleci/node:12
+    - image: circleci/node:12
+    working_directory: ~/workspace
+  node12_0:
+    docker:
+    - image: circleci/node:12.0
+    working_directory: ~/workspace
+  node12_17:
+    docker:
+    - image: circleci/node:12.17
+    working_directory: ~/workspace
+  node12_16:
+    docker:
+    - image: circleci/node:12.16
     working_directory: ~/workspace
   node10:
     docker:
@@ -45,8 +57,19 @@ workflows:
           executor: node14
           name: node_14
       - build_and_test:
-          executor: node12
-          name: node_12
+          executor: node12_latest
+          name: node_12_latest
+      - build_and_test:
+          executor: node12_0
+          name: node_12_0
+      # 12.16 is the last version without good-enough ES module support
+      - build_and_test:
+          executor: node12_16
+          name: node_12_16
+      # 12.16 is the first version with good-enough ES module support
+      - build_and_test:
+          executor: node12_17
+          name: node_12_17
       - build_and_test:
           executor: node10
           name: node_10
