@@ -1,27 +1,6 @@
 const child_process = require('child_process');
 
 describe('Integration', function () {
-  beforeEach(function() {
-    jasmine.addMatchers({
-      toBeSuccess: function(matchersUtil) {
-        return {
-          compare: function(actual, expected) {
-            const result = { pass: actual.exitCode === 0 };
-
-            if (result.pass) {
-              result.message = 'Expected process not to succeed but it did.';
-            } else {
-              result.message = `Expected process to succeed but it exited ${actual.exitCode}.`;
-            }
-
-            result.message += '\n\nOutput:\n' + actual.output;
-            return result;
-          }
-        };
-      }
-    });
-  });
-
   it('supports ES modules', async function () {
     let {exitCode, output} = await runJasmine('spec/fixtures/esm');
     expect(exitCode).toEqual(0);
@@ -39,18 +18,6 @@ describe('Integration', function () {
       'Spec: A spec file ending in .js is required as a commonjs module\n' +
       '.Spec: A spec file ending in .mjs is imported as an es module\n'
     );
-  });
-
-  it('loads .js files using import when jsLoader is "import"', async function() {
-    expect(await runJasmine('spec/fixtures/js-loader-import')).toBeSuccess();
-  });
-
-  it('loads .js files using require when jsLoader is "require"', async function() {
-    expect(await runJasmine('spec/fixtures/js-loader-require')).toBeSuccess();
-  });
-
-  it('loads .js files using require when jsLoader is undefined', async function() {
-    expect(await runJasmine('spec/fixtures/js-loader-default')).toBeSuccess();
   });
 
   it('handles load-time exceptions from CommonJS specs properly', async function () {

@@ -175,10 +175,8 @@ describe('Jasmine', function() {
 
   describe('loading configurations', function() {
     beforeEach(function() {
-      this.loader = jasmine.createSpyObj('loader', ['load']);
       this.fixtureJasmine = new Jasmine({
         jasmineCore: this.fakeJasmineCore,
-        loader: this.loader,
         projectBaseDir: 'spec/fixtures/sample_project'
       });
     });
@@ -275,47 +273,6 @@ describe('Jasmine', function() {
         });
       });
 
-      describe('with jsLoader: "require"', function () {
-        it('tells the loader not to always import', async function() {
-          this.configObject.jsLoader = 'require';
-
-          this.fixtureJasmine.loadConfig(this.configObject);
-          await this.fixtureJasmine.loadSpecs();
-
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String), false);
-        });
-      });
-
-      describe('with jsLoader: "import"', function () {
-        it('tells the loader to always import', async function() {
-          this.configObject.jsLoader = 'import';
-
-          this.fixtureJasmine.loadConfig(this.configObject);
-          await this.fixtureJasmine.loadSpecs();
-
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String), true);
-        });
-      });
-
-      describe('with jsLoader set to an invalid value', function () {
-        it('throws an error', function() {
-          this.configObject.jsLoader = 'bogus';
-          expect(() => {
-            this.fixtureJasmine.loadConfig(this.configObject);
-          }).toThrowError(/"bogus" is not a valid value/);
-        });
-      });
-
-      describe('with jsLoader undefined', function () {
-        it('tells the loader not to always import', async function() {
-          this.configObject.jsLoader = undefined;
-          
-          this.fixtureJasmine.loadConfig(this.configObject);
-          await this.fixtureJasmine.loadSpecs();
-
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String), false);
-        });
-      });
     });
 
     describe('from a file', function() {
