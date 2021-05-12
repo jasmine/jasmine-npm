@@ -6,6 +6,10 @@ orbs:
   node: circleci/node@3.0.0
 
 executors:
+  node16:
+    docker:
+      - image: cimg/node:16.1.0
+    working_directory: ~/workspace
   node14:
     docker:
       - image: circleci/node:14
@@ -53,6 +57,9 @@ workflows:
   version: 2
   push: &push_workflow
     jobs:
+      - build_and_test:
+          executor: node16
+          name: node_16
       - build_and_test:
           executor: node14
           name: node_14
