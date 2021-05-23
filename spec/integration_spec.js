@@ -23,7 +23,7 @@ describe('Integration', function () {
   });
 
   it('supports ES modules', async function () {
-    let {exitCode, output} = await runJasmine('spec/fixtures/esm', true);
+    let {exitCode, output} = await runJasmine('spec/fixtures/esm');
     expect(exitCode).toEqual(0);
     // Node < 14 outputs a warning when ES modules are used, e.g.:
     // (node:5258) ExperimentalWarning: The ESM module loader is experimental.
@@ -42,34 +42,26 @@ describe('Integration', function () {
   });
 
   it('loads .js files using import when jsLoader is "import"', async function() {
-    await requireFunctioningJsImport();
-    expect(await runJasmine('spec/fixtures/js-loader-import', false)).toBeSuccess();
-  });
-
-  it('warns that jsLoader: "import" is not supported', async function() {
-    await requireBrokenJsImport();
-    const {output} = await runJasmine('spec/fixtures/js-loader-import', false);
-    expect(output).toContain('Warning: jsLoader: "import" may not work ' +
-      'reliably on Node versions before 12.17.');
+    expect(await runJasmine('spec/fixtures/js-loader-import')).toBeSuccess();
   });
 
   it('loads .js files using require when jsLoader is "require"', async function() {
-    expect(await runJasmine('spec/fixtures/js-loader-require', false)).toBeSuccess();
+    expect(await runJasmine('spec/fixtures/js-loader-require')).toBeSuccess();
   });
 
   it('loads .js files using import when jsLoader is undefined', async function() {
-    expect(await runJasmine('spec/fixtures/js-loader-default', false)).toBeSuccess();
+    expect(await runJasmine('spec/fixtures/js-loader-default')).toBeSuccess();
   });
 
   it('handles load-time exceptions from CommonJS specs properly', async function () {
-    const {exitCode, output} = await runJasmine('spec/fixtures/cjs-load-exception', false);
+    const {exitCode, output} = await runJasmine('spec/fixtures/cjs-load-exception');
     expect(exitCode).toEqual(1);
     expect(output).toContain('Error: nope');
     expect(output).toMatch(/at .*throws_on_load.js/);
   });
 
   it('handles load-time exceptions from ESM specs properly', async function () {
-    const {exitCode, output} = await runJasmine('spec/fixtures/esm-load-exception', true);
+    const {exitCode, output} = await runJasmine('spec/fixtures/esm-load-exception');
     expect(exitCode).toEqual(1);
     expect(output).toContain('Error: nope');
     expect(output).toMatch(/at .*throws_on_load.mjs/);
@@ -83,20 +75,16 @@ describe('Integration', function () {
   });
 
   it('handles syntax errors in ESM specs properly', async function () {
-    const {exitCode, output} = await runJasmine('spec/fixtures/esm-syntax-error', true);
+    const {exitCode, output} = await runJasmine('spec/fixtures/esm-syntax-error');
     expect(exitCode).toEqual(1);
     expect(output).toContain('SyntaxError');
     expect(output).toContain('syntax_error.mjs');
   });
 });
 
-async function runJasmine(cwd, useExperimentalModulesFlag) {
+async function runJasmine(cwd) {
   return new Promise(function(resolve) {
     const args = ['../../../bin/jasmine.js', '--config=jasmine.json'];
-
-    if (useExperimentalModulesFlag) {
-      args.unshift('--experimental-modules');
-    }
 
     const child = child_process.spawn(
       'node',
@@ -117,29 +105,4 @@ async function runJasmine(cwd, useExperimentalModulesFlag) {
       resolve({exitCode, output});
     });
   });
-}
-
-async function requireFunctioningJsImport() {
-  if (!(await hasFunctioningJsImport())) {
-    pending("This Node version can't import .js files");
-  }
-}
-
-async function requireBrokenJsImport() {
-  if (await hasFunctioningJsImport()) {
-    pending("This Node version can import .js files");
-  }
-}
-
-async function hasFunctioningJsImport() {
-  try {
-    await import('./fixtures/js-loader-import/anEsModule.js');
-    return true;
-  } catch (e) {
-    if (e.code === 'ERR_MODULE_NOT_FOUND') {
-      throw e;
-    }
-
-    return false;
-  }
 }
