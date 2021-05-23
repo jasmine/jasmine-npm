@@ -57,12 +57,15 @@ function esModuleSharedExamples(extension, alwaysImport) {
     });
     const importShim = jasmine.createSpy('importShim')
       .and.returnValue(importPromise);
-    const loader = new Loader({requireShim, importShim});
+    const resolvePath = jasmine.createSpy('resolvePath')
+      .and.returnValue('/the/path/to/the/module');
+    const loader = new Loader({requireShim, importShim, resolvePath});
 
     const loaderPromise = loader.load(`./foo/bar/baz.${extension}`, alwaysImport);
 
     expect(requireShim).not.toHaveBeenCalled();
-    expect(importShim).toHaveBeenCalledWith(`file://./foo/bar/baz.${extension}`);
+    expect(resolvePath).toHaveBeenCalledWith(`./foo/bar/baz.${extension}`);
+    expect(importShim).toHaveBeenCalledWith('file:///the/path/to/the/module');
     await expectAsync(loaderPromise).toBePending();
 
     resolve();

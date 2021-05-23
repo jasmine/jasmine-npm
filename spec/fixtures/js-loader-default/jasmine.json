@@ -1,5 +1,5 @@
 {
   "spec_dir": ".",
   "spec_files": ["anEsModuleSpec.js"],
-  "requires": ["../spec/fixtures/js-loader-default/anEsRequire.js"]
+  "requires": ["../js-loader-default/anEsRequire.js"]
 }
