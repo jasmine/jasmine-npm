@@ -1,13 +1,7 @@
 {
   "spec_dir": "spec",
   "spec_files": [
-    "command_spec.js",
-    "integration_spec.js",
-    "jasmine_spec.js",
-    "loader_spec.js",
-    "manager_spec.js",
-    "run_spec.js",
-    "npm_package_spec.js",
+    "*[sS]pec.js",
     "reporters/**/*[sS]pec.js",
     "filters/**/*[sS]pec.js"
   ],
