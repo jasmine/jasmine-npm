@@ -92,6 +92,10 @@ jasmine --filter "adapter21*"
 
 (where the *name* of a spec is the first parameter passed to `describe()`)
 
+## Node version compatibility
+
+Jasmine supports Node 12.x where x >=17, Node 14, and Node 16.
+
 
 ## Support
 
