@@ -333,6 +333,34 @@ describe('Jasmine', function() {
           expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String), false);
         });
       });
+
+      it('logs a deprecation when a require has a path beginning with ../', function() {
+        this.configObject.requires = ['../somefile.js'];
+        spyOn(console, 'warn');
+
+        this.fixtureJasmine.loadConfig(this.configObject);
+        expect(() => this.fixtureJasmine.loadRequires())
+          .toThrowError(/^Cannot find module '\.\.\/somefile.js'/);
+
+        expect(console.warn).toHaveBeenCalledWith('DEPRECATION: requires ' +
+          'with relative paths (in this case ../somefile.js) are currently ' +
+          'resolved relative to the jasmine/lib/jasmine module but will be ' +
+          'relative to the current working directory in Jasmine 4.0.');
+      });
+
+      it('logs a deprecation when a require has a path beginning with ./', function() {
+        this.configObject.requires = ['./somefile.js'];
+        spyOn(console, 'warn');
+
+        this.fixtureJasmine.loadConfig(this.configObject);
+        expect(() => this.fixtureJasmine.loadRequires())
+          .toThrowError(/^Cannot find module '\.\/somefile.js'/);
+
+        expect(console.warn).toHaveBeenCalledWith('DEPRECATION: requires ' +
+          'with relative paths (in this case ./somefile.js) are currently ' +
+          'resolved relative to the jasmine/lib/jasmine module but will be ' +
+          'relative to the current working directory in Jasmine 4.0.');
+      });
     });
 
     describe('from a file', function() {
