@@ -1,9 +1,10 @@
 {
   "name": "jasmine",
-  "description": "Command line jasmine",
+  "description": "CLI for Jasmine, a simple JavaScript testing framework for browsers and Node",
   "homepage": "http://jasmine.github.io/",
   "keywords": [
     "test",
+    "testing",
     "jasmine",
     "tdd",
     "bdd"
