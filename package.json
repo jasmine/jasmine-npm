@@ -22,6 +22,9 @@
     "glob": "^7.1.6",
     "jasmine-core": "~3.7.0"
   },
+  "engines": {
+    "node": ">=12.17"
+  },
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
   "devDependencies": {
