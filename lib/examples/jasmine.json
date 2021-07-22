@@ -6,7 +6,6 @@
   "helpers": [
     "helpers/**/*.?(m)js"
   ],
-  "jsLoader": "import",
   "stopSpecOnExpectationFailure": false,
   "random": true
 }
