@@ -139,7 +139,6 @@ describe('Jasmine', function() {
         print: 'printer',
         showColors: true,
         jasmineCorePath: 'path',
-        timer: 'timer'
       };
 
       var expectedReporterOptions = Object.keys(reporterOptions).reduce(function(options, key) {
@@ -160,7 +159,6 @@ describe('Jasmine', function() {
       var expectedReporterOptions = {
         print: jasmine.any(Function),
         showColors: true,
-        timer: jasmine.any(Object),
         jasmineCorePath: path.normalize('fake/jasmine/path/jasmine.js')
       };
 
