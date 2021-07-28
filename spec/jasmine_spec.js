@@ -254,6 +254,13 @@ describe('Jasmine', function() {
         expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
       });
 
+      it('can configure the env with arbitrary properties', function() {
+        this.configObject.env = {someProp: 'someVal'};
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({someProp: 'someVal'});
+      });
+
       describe('with options', function() {
         it('instantiates spec_dir with the provided value', function() {
           this.fixtureJasmine.loadConfig(this.configObject);

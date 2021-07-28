@@ -88,6 +88,12 @@ describe('Integration', function () {
     expect(output).toContain('SyntaxError');
     expect(output).toContain('syntax_error.mjs');
   });
+
+  it('can configure the env via the `env` config property', async function() {
+    const {exitCode, output} = await runJasmine('spec/fixtures/env-config');
+    expect(exitCode).toEqual(0);
+    expect(output).toContain('in spec 1\n.in spec 2\n.in spec 3\n.in spec 4\n.in spec 5');
+  });
 });
 
 async function runJasmine(cwd, useExperimentalModulesFlag) {
