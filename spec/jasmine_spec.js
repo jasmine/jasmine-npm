@@ -516,24 +516,22 @@ describe('Jasmine', function() {
     });
 
     describe('default completion behavior', function() {
-      it('exits successfully when the whole suite is green', function() {
+      it('exits successfully when the whole suite is green', async function() {
         var exitSpy = jasmine.createSpy('exit');
         this.testJasmine.exit = exitSpy;
 
         this.testJasmine.exitCodeCompletion(true);
-        sleep(10).then(function() {
-          expect(exitSpy).toHaveBeenCalledWith(0);
-        });
+        await sleep(10);
+        expect(exitSpy).toHaveBeenCalledWith(0);
       });
 
-      it('exits with a failure when anything in the suite is not green', function() {
+      it('exits with a failure when anything in the suite is not green', async function() {
         var exitSpy = jasmine.createSpy('exit');
         this.testJasmine.exit = exitSpy;
 
         this.testJasmine.exitCodeCompletion(false);
-        sleep(10).then(function() {
-          expect(exitSpy).toHaveBeenCalledWith(1);
-        });
+        await sleep(10);
+        expect(exitSpy).toHaveBeenCalledWith(1);
       });
 
       function sleep(ms) {
