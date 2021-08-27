@@ -515,7 +515,7 @@ describe('Jasmine', function() {
       });
     });
 
-    describe('default completion behavior', function() {
+    describe('completion behavior', function() {
       beforeEach(function() {
         this.runWithOverallStatus = async function(overallStatus) {
           const reporters = [];
@@ -546,14 +546,38 @@ describe('Jasmine', function() {
         }
       });
 
-      it('exits successfully when the whole suite is green', async function () {
-        await this.runWithOverallStatus('passed');
-        expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
+      describe('default', function() {
+        it('exits successfully when the whole suite is green', async function () {
+          await this.runWithOverallStatus('passed');
+          expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
+        });
+
+        it('exits with a failure when anything in the suite is not green', async function () {
+          await this.runWithOverallStatus('failed');
+          expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+        });
       });
 
-      it('exits with a failure when anything in the suite is not green', async function () {
-        await this.runWithOverallStatus('failed');
-        expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+      describe('When #onComplete has been called', function() {
+        it('does not exit', async function() {
+          this.testJasmine.onComplete(function() {});
+          await this.runWithOverallStatus('anything');
+          expect(this.testJasmine.exit).not.toHaveBeenCalled();
+        });
+
+        it('calls the supplied completion handler with true when the whole suite is green', async function() {
+          const completionHandler = jasmine.createSpy('completionHandler');
+          this.testJasmine.onComplete(completionHandler);
+          await this.runWithOverallStatus('passed');
+          expect(completionHandler).toHaveBeenCalledWith(true);
+        });
+
+        it('calls the supplied completion handler with false when anything in the suite is not green', async function() {
+          const completionHandler = jasmine.createSpy('completionHandler');
+          this.testJasmine.onComplete(completionHandler);
+          await this.runWithOverallStatus('failed');
+          expect(completionHandler).toHaveBeenCalledWith(false);
+        });
       });
     });
   });
