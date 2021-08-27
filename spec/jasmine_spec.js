@@ -516,29 +516,45 @@ describe('Jasmine', function() {
     });
 
     describe('default completion behavior', function() {
-      it('exits successfully when the whole suite is green', async function() {
-        var exitSpy = jasmine.createSpy('exit');
-        this.testJasmine.exit = exitSpy;
+      beforeEach(function() {
+        this.runWithOverallStatus = async function(overallStatus) {
+          const reporters = [];
+          this.testJasmine.env = {
+            execute: jasmine.createSpy('env.execute'),
+            addReporter: reporter => {
+              reporters.push(reporter);
+            }
+          };
+          spyOn(this.testJasmine, 'exit');
 
-        this.testJasmine.exitCodeCompletion(true);
-        await sleep(10);
-        expect(exitSpy).toHaveBeenCalledWith(0);
+          await new Promise(resolve => {
+            this.testJasmine.env.execute.and.callFake(resolve);
+            this.testJasmine.execute();
+          });
+
+          for (const reporter of reporters) {
+            reporter.jasmineDone({overallStatus});
+          }
+
+          await sleep(10);
+        };
+
+        function sleep(ms) {
+          return new Promise(function (resolve) {
+            setTimeout(resolve, ms);
+          });
+        }
       });
 
-      it('exits with a failure when anything in the suite is not green', async function() {
-        var exitSpy = jasmine.createSpy('exit');
-        this.testJasmine.exit = exitSpy;
-
-        this.testJasmine.exitCodeCompletion(false);
-        await sleep(10);
-        expect(exitSpy).toHaveBeenCalledWith(1);
+      it('exits successfully when the whole suite is green', async function () {
+        await this.runWithOverallStatus('passed');
+        expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
       });
 
-      function sleep(ms) {
-        return new Promise(function(resolve) {
-          setTimeout(resolve, ms);
-        });
-      }
+      it('exits with a failure when anything in the suite is not green', async function () {
+        await this.runWithOverallStatus('failed');
+        expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+      });
     });
   });
 });
