@@ -27,6 +27,9 @@ describe('Jasmine', function() {
     };
 
     this.testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
+    this.testJasmine.exit = function() {
+      // Don't actually exit the node process
+    };
   });
 
   describe('constructor options', function() {
@@ -572,13 +575,15 @@ describe('Jasmine', function() {
         });
       });
 
-      describe('When #onComplete has been called', function() {
+      describe('When exitOnCompletion is set to false', function() {
         it('does not exit', async function() {
-          this.testJasmine.onComplete(function() {});
+          this.testJasmine.exitOnCompletion = false;
           await this.runWithOverallStatus('anything');
           expect(this.testJasmine.exit).not.toHaveBeenCalled();
         });
+      });
 
+      describe('When #onComplete has been called', function() {
         it('calls the supplied completion handler with true when the whole suite is green', async function() {
           const completionHandler = jasmine.createSpy('completionHandler');
           this.testJasmine.onComplete(completionHandler);
@@ -592,6 +597,56 @@ describe('Jasmine', function() {
           await this.runWithOverallStatus('failed');
           expect(completionHandler).toHaveBeenCalledWith(false);
         });
+
+        it('does not exit', async function() {
+          this.testJasmine.onComplete(function() {});
+          await this.runWithOverallStatus('anything');
+          expect(this.testJasmine.exit).not.toHaveBeenCalled();
+        });
+
+        it('ignores exitOnCompletion', async function() {
+          this.testJasmine.onComplete(function() {});
+          this.testJasmine.exitOnCompletion = true;
+          await this.runWithOverallStatus('anything');
+          expect(this.testJasmine.exit).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('The returned promise', function() {
+      beforeEach(function() {
+        this.autocompletingFakeEnv = function(overallStatus) {
+          let reporters = [];
+          return {
+            execute: function(ignored, callback) {
+              for (const reporter of reporters) {
+                reporter.jasmineDone({overallStatus});
+              }
+              callback();
+            },
+            addReporter: reporter => {
+              reporters.push(reporter);
+            },
+            clearReporters: function() {
+              reporters = [];
+            }
+          };
+        };
+      });
+
+      it('is resolved with the overall suite status', async function() {
+        this.testJasmine.env = this.autocompletingFakeEnv('failed');
+
+        await expectAsync(this.testJasmine.execute())
+          .toBeResolvedTo(jasmine.objectContaining({overallStatus: 'failed'}));
+      });
+
+      it('is resolved with the overall suite status even if clearReporters was called', async function() {
+        this.testJasmine.env = this.autocompletingFakeEnv('incomplete');
+        this.testJasmine.clearReporters();
+
+        await expectAsync(this.testJasmine.execute())
+          .toBeResolvedTo(jasmine.objectContaining({overallStatus: 'incomplete'}));
       });
     });
   });
