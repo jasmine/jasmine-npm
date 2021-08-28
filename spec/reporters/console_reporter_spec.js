@@ -166,6 +166,25 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toMatch(/Randomized with seed 12345 \(jasmine --random=true --seed=12345\)/);
   });
 
+  it("allows the seed reproduction command to be overridden", function() {
+    var reporter = new ConsoleReporter("jasmine-some-other-tool");
+    reporter.setOptions({
+      print: this.out.print,
+      randomSeedReproductionCmd: function(seed) {
+        return `jasmine-some-other-tool --randomSeed=${seed}`;
+      }
+    });
+
+    reporter.jasmineDone({
+      order: {
+        random: true,
+        seed: '12345'
+      }
+    });
+
+    expect(this.out.getOutput()).toMatch(/Randomized with seed 12345 \(jasmine-some-other-tool --randomSeed=12345\)/);
+  });
+
   it("reports a summary when done (singular spec and time)", function() {
     var reporter = new ConsoleReporter();
     reporter.setOptions({

@@ -27,6 +27,9 @@ describe('Jasmine', function() {
     };
 
     this.testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
+    this.testJasmine.exit = function() {
+      // Don't actually exit the node process
+    };
   });
 
   describe('constructor options', function() {
@@ -35,74 +38,88 @@ describe('Jasmine', function() {
     });
   });
 
-  it('adds spec files', function() {
-    expect(this.testJasmine.specFiles).toEqual([]);
-    this.testJasmine.addSpecFile('some/file/path.js');
-    expect(this.testJasmine.specFiles).toEqual(['some/file/path.js']);
+  describe('#addSpecFile', function() {
+    it('adds the provided path to the list of spec files', function () {
+      expect(this.testJasmine.specFiles).toEqual([]);
+      this.testJasmine.addSpecFile('some/file/path.js');
+      expect(this.testJasmine.specFiles).toEqual(['some/file/path.js']);
+    });
   });
 
-  describe('file handler', function() {
+  describe('#addHelperFile', function() {
+    it('adds the provided path to the list of helper files', function () {
+      expect(this.testJasmine.helperFiles).toEqual([]);
+      this.testJasmine.addHelperFile('some/file/path.js');
+      expect(this.testJasmine.helperFiles).toEqual(['some/file/path.js']);
+    });
+  });
+
+  describe('Methods that specify files via globs', function() {
+    describe('#addSpecFiles', function() {
+      hasCommonFileGlobBehavior('addSpecFiles', 'specFiles');
+    });
+
+    describe('#addMatchingSpecFiles', function() {
+      hasCommonFileGlobBehavior('addMatchingSpecFiles', 'specFiles');
+    });
+
+    describe('#addHelperFiles', function() {
+      hasCommonFileGlobBehavior('addHelperFiles', 'helperFiles');
+    });
+
+    describe('#addMatchingHelperFiles', function() {
+      hasCommonFileGlobBehavior('addMatchingHelperFiles', 'helperFiles');
+    });
+
+
+    function hasCommonFileGlobBehavior(method, destProp) {
+      it('adds a file with an absolute path', function() {
+        var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+        expect(this.testJasmine[destProp]).toEqual([]);
+        this.testJasmine[method]([aFile]);
+        expect(this.testJasmine[destProp]).toEqual([slash(aFile)]);
+      });
+
+      it('adds files that match a glob pattern', function() {
+        expect(this.testJasmine[destProp]).toEqual([]);
+        this.testJasmine[method](['spec/fixtures/jasmine_spec/*.js']);
+        expect(this.testJasmine[destProp].map(basename)).toEqual([
+          'c.js',
+          'd.js',
+          'e.js',
+          'f.js',
+        ]);
+      });
+
+      it('can exclude files that match another glob', function() {
+        expect(this.testJasmine[destProp]).toEqual([]);
+        this.testJasmine[method]([
+          'spec/fixtures/jasmine_spec/*.js',
+          '!spec/fixtures/jasmine_spec/c*'
+        ]);
+        expect(this.testJasmine[destProp].map(basename)).toEqual([
+          'd.js',
+          'e.js',
+          'f.js',
+        ]);
+      });
+
+      it('adds new files to existing files', function() {
+        var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+        this.testJasmine[destProp] = [aFile, 'b'];
+        this.testJasmine[method](['spec/fixtures/jasmine_spec/*.js']);
+        expect(this.testJasmine[destProp].map(basename)).toEqual([
+          'command_spec.js',
+          'b',
+          'c.js',
+          'd.js',
+          'e.js',
+          'f.js',
+        ]);
+      });
+    }
+
     function basename(name) { return path.basename(name); }
-
-    it('add spec files with absolute glob pattern', function() {
-      if (!path.isAbsolute) { return; }
-      var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
-      expect(this.testJasmine.specFiles).toEqual([]);
-      this.testJasmine.addSpecFiles([aFile]);
-      expect(this.testJasmine.specFiles).toEqual([slash(aFile)]);
-    });
-
-    it('add spec files with glob pattern', function() {
-      expect(this.testJasmine.specFiles).toEqual([]);
-      this.testJasmine.addSpecFiles(['spec/fixtures/jasmine_spec/*.js']);
-      expect(this.testJasmine.specFiles.map(basename)).toEqual([
-        'c.js',
-        'd.js',
-        'e.js',
-        'f.js',
-      ]);
-    });
-
-    it('add spec files with excluded files', function() {
-      expect(this.testJasmine.specFiles).toEqual([]);
-      this.testJasmine.addSpecFiles([
-        'spec/fixtures/jasmine_spec/*.js',
-        '!spec/fixtures/jasmine_spec/c*'
-      ]);
-      expect(this.testJasmine.specFiles.map(basename)).toEqual([
-        'd.js',
-        'e.js',
-        'f.js',
-      ]);
-    });
-
-    it('add spec files with glob pattern to existings files', function() {
-      var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
-      this.testJasmine.specFiles = [aFile, 'b'];
-      this.testJasmine.addSpecFiles(['spec/fixtures/jasmine_spec/*.js']);
-      expect(this.testJasmine.specFiles.map(basename)).toEqual([
-        'command_spec.js',
-        'b',
-        'c.js',
-        'd.js',
-        'e.js',
-        'f.js',
-      ]);
-    });
-
-    it('add helper files with glob pattern to existings files', function() {
-      var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
-      this.testJasmine.helperFiles = [aFile, 'b'];
-      this.testJasmine.addHelperFiles(['spec/fixtures/jasmine_spec/*.js']);
-      expect(this.testJasmine.helperFiles.map(basename)).toEqual([
-        'command_spec.js',
-        'b',
-        'c.js',
-        'd.js',
-        'e.js',
-        'f.js',
-      ]);
-    });
   });
 
   it('delegates #coreVersion to jasmine-core', function() {
@@ -139,7 +156,6 @@ describe('Jasmine', function() {
         print: 'printer',
         showColors: true,
         jasmineCorePath: 'path',
-        timer: 'timer'
       };
 
       var expectedReporterOptions = Object.keys(reporterOptions).reduce(function(options, key) {
@@ -160,7 +176,6 @@ describe('Jasmine', function() {
       var expectedReporterOptions = {
         print: jasmine.any(Function),
         showColors: true,
-        timer: jasmine.any(Object),
         jasmineCorePath: path.normalize('fake/jasmine/path/jasmine.js')
       };
 
@@ -254,6 +269,13 @@ describe('Jasmine', function() {
         this.fixtureJasmine.loadConfig(this.configObject);
 
         expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
+      });
+
+      it('can configure the env with arbitrary properties', function() {
+        this.configObject.env = {someProp: 'someVal'};
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({someProp: 'someVal'});
       });
 
       describe('with options', function() {
@@ -555,32 +577,122 @@ describe('Jasmine', function() {
       });
     });
 
-    describe('default completion behavior', function() {
-      it('exits successfully when the whole suite is green', function() {
-        var exitSpy = jasmine.createSpy('exit');
-        this.testJasmine.exit = exitSpy;
+    describe('completion behavior', function() {
+      beforeEach(function() {
+        this.runWithOverallStatus = async function(overallStatus) {
+          const reporters = [];
+          this.testJasmine.env = {
+            execute: jasmine.createSpy('env.execute'),
+            addReporter: reporter => {
+              reporters.push(reporter);
+            }
+          };
+          spyOn(this.testJasmine, 'exit');
 
-        this.testJasmine.exitCodeCompletion(true);
-        sleep(10).then(function() {
-          expect(exitSpy).toHaveBeenCalledWith(0);
+          await new Promise(resolve => {
+            this.testJasmine.env.execute.and.callFake(resolve);
+            this.testJasmine.execute();
+          });
+
+          for (const reporter of reporters) {
+            reporter.jasmineDone({overallStatus});
+          }
+
+          await sleep(10);
+        };
+
+        function sleep(ms) {
+          return new Promise(function (resolve) {
+            setTimeout(resolve, ms);
+          });
+        }
+      });
+
+      describe('default', function() {
+        it('exits successfully when the whole suite is green', async function () {
+          await this.runWithOverallStatus('passed');
+          expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
+        });
+
+        it('exits with a failure when anything in the suite is not green', async function () {
+          await this.runWithOverallStatus('failed');
+          expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
         });
       });
 
-      it('exits with a failure when anything in the suite is not green', function() {
-        var exitSpy = jasmine.createSpy('exit');
-        this.testJasmine.exit = exitSpy;
-
-        this.testJasmine.exitCodeCompletion(false);
-        sleep(10).then(function() {
-          expect(exitSpy).toHaveBeenCalledWith(1);
+      describe('When exitOnCompletion is set to false', function() {
+        it('does not exit', async function() {
+          this.testJasmine.exitOnCompletion = false;
+          await this.runWithOverallStatus('anything');
+          expect(this.testJasmine.exit).not.toHaveBeenCalled();
         });
       });
 
-      function sleep(ms) {
-        return new Promise(function(resolve) {
-          setTimeout(resolve, ms);
+      describe('When #onComplete has been called', function() {
+        it('calls the supplied completion handler with true when the whole suite is green', async function() {
+          const completionHandler = jasmine.createSpy('completionHandler');
+          this.testJasmine.onComplete(completionHandler);
+          await this.runWithOverallStatus('passed');
+          expect(completionHandler).toHaveBeenCalledWith(true);
         });
-      }
+
+        it('calls the supplied completion handler with false when anything in the suite is not green', async function() {
+          const completionHandler = jasmine.createSpy('completionHandler');
+          this.testJasmine.onComplete(completionHandler);
+          await this.runWithOverallStatus('failed');
+          expect(completionHandler).toHaveBeenCalledWith(false);
+        });
+
+        it('does not exit', async function() {
+          this.testJasmine.onComplete(function() {});
+          await this.runWithOverallStatus('anything');
+          expect(this.testJasmine.exit).not.toHaveBeenCalled();
+        });
+
+        it('ignores exitOnCompletion', async function() {
+          this.testJasmine.onComplete(function() {});
+          this.testJasmine.exitOnCompletion = true;
+          await this.runWithOverallStatus('anything');
+          expect(this.testJasmine.exit).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('The returned promise', function() {
+      beforeEach(function() {
+        this.autocompletingFakeEnv = function(overallStatus) {
+          let reporters = [];
+          return {
+            execute: function(ignored, callback) {
+              for (const reporter of reporters) {
+                reporter.jasmineDone({overallStatus});
+              }
+              callback();
+            },
+            addReporter: reporter => {
+              reporters.push(reporter);
+            },
+            clearReporters: function() {
+              reporters = [];
+            }
+          };
+        };
+      });
+
+      it('is resolved with the overall suite status', async function() {
+        this.testJasmine.env = this.autocompletingFakeEnv('failed');
+
+        await expectAsync(this.testJasmine.execute())
+          .toBeResolvedTo(jasmine.objectContaining({overallStatus: 'failed'}));
+      });
+
+      it('is resolved with the overall suite status even if clearReporters was called', async function() {
+        this.testJasmine.env = this.autocompletingFakeEnv('incomplete');
+        this.testJasmine.clearReporters();
+
+        await expectAsync(this.testJasmine.execute())
+          .toBeResolvedTo(jasmine.objectContaining({overallStatus: 'incomplete'}));
+      });
     });
   });
 });

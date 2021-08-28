@@ -1,15 +1,16 @@
 {
   "name": "jasmine",
-  "description": "Command line jasmine",
+  "description": "CLI for Jasmine, a simple JavaScript testing framework for browsers and Node",
   "homepage": "http://jasmine.github.io/",
   "keywords": [
     "test",
+    "testing",
     "jasmine",
     "tdd",
     "bdd"
   ],
   "license": "MIT",
-  "version": "3.7.0",
+  "version": "3.9.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/jasmine/jasmine-npm"
@@ -18,9 +19,16 @@
     "test": "node ./bin/jasmine.js",
     "posttest": "eslint \"bin/**/*.js\" \"lib/**/*.js\" \"spec/**/*.js\""
   },
+  "files": [
+    "bin",
+    "lib",
+    "MIT.LICENSE",
+    "package.json",
+    "README.md"
+  ],
   "dependencies": {
     "glob": "^7.1.6",
-    "jasmine-core": "~3.7.0"
+    "jasmine-core": "~3.9.0"
   },
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
@@ -29,7 +37,8 @@
     "grunt": "^1.0.4",
     "grunt-cli": "^1.3.2",
     "shelljs": "^0.8.3",
-    "slash": "^3.0.0"
+    "slash": "^3.0.0",
+    "temp": "^0.9.4"
   },
   "eslintConfig": {
     "parserOptions": {
