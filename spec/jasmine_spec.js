@@ -424,20 +424,6 @@ describe('Jasmine', function() {
     });
   });
 
-  describe('#onComplete', function() {
-    it('stores an onComplete function', function() {
-      var fakeOnCompleteCallback = function() {};
-      spyOn(this.testJasmine.completionReporter, 'onComplete');
-      this.testJasmine.env.deprecated = jasmine.createSpy('env.deprecated');
-
-      this.testJasmine.onComplete(fakeOnCompleteCallback);
-      expect(this.testJasmine.completionReporter.onComplete).toHaveBeenCalledWith(fakeOnCompleteCallback);
-      expect(this.testJasmine.env.deprecated).toHaveBeenCalledWith(
-        "Jasmine#onComplete is deprecated. Instead of calling onComplete, set the Jasmine instance's exitOnCompletion property to false and use the promise returned from the execute method."
-      );
-    });
-  });
-
   it("showing colors can be configured", function() {
     expect(this.testJasmine.showingColors).toBe(true);
 
@@ -599,39 +585,6 @@ describe('Jasmine', function() {
       describe('When exitOnCompletion is set to false', function() {
         it('does not exit', async function() {
           this.testJasmine.exitOnCompletion = false;
-          await this.runWithOverallStatus('anything');
-          expect(this.testJasmine.exit).not.toHaveBeenCalled();
-        });
-      });
-
-      describe('When #onComplete has been called', function() {
-        beforeEach(function() {
-          this.testJasmine.env.deprecated = function() {};
-        });
-
-        it('calls the supplied completion handler with true when the whole suite is green', async function() {
-          const completionHandler = jasmine.createSpy('completionHandler');
-          this.testJasmine.onComplete(completionHandler);
-          await this.runWithOverallStatus('passed');
-          expect(completionHandler).toHaveBeenCalledWith(true);
-        });
-
-        it('calls the supplied completion handler with false when anything in the suite is not green', async function() {
-          const completionHandler = jasmine.createSpy('completionHandler');
-          this.testJasmine.onComplete(completionHandler);
-          await this.runWithOverallStatus('failed');
-          expect(completionHandler).toHaveBeenCalledWith(false);
-        });
-
-        it('does not exit', async function() {
-          this.testJasmine.onComplete(function() {});
-          await this.runWithOverallStatus('anything');
-          expect(this.testJasmine.exit).not.toHaveBeenCalled();
-        });
-
-        it('ignores exitOnCompletion', async function() {
-          this.testJasmine.onComplete(function() {});
-          this.testJasmine.exitOnCompletion = true;
           await this.runWithOverallStatus('anything');
           expect(this.testJasmine.exit).not.toHaveBeenCalled();
         });
