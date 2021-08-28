@@ -33,6 +33,4 @@ module.exports = function(grunt) {
 
     runCommands(commands, done);
   });
-
-  grunt.loadTasks('tasks');
 };

@@ -80,14 +80,55 @@ describe('Integration', function () {
     expect(output).toContain('SyntaxError');
     expect(output).toContain('syntax_error.mjs');
   });
+
+  it('can configure the env via the `env` config property', async function() {
+    const {exitCode, output} = await runJasmine('spec/fixtures/env-config');
+    expect(exitCode).toEqual(0);
+    expect(output).toContain('in spec 1\n.in spec 2\n.in spec 3\n.in spec 4\n.in spec 5');
+  });
+
+  describe('Programmatic usage', function() {
+    it('exits on completion by default', async function() {
+      const {exitCode, output} = await runCommand('node', ['spec/fixtures/defaultProgrammaticFail.js']);
+      expect(exitCode).toEqual(1);
+      expect(output).toContain('1 spec, 1 failure');
+    });
+
+    it('does not exit on completion when exitOnCompletion is set to false', async function() {
+      const {exitCode, output} = await runCommand('node', ['spec/fixtures/dontExitOnCompletion.js']);
+      expect(exitCode).toEqual(0);
+      expect(output).toContain('in setTimeout cb');
+    });
+
+    it('resolves the returned promise when the suite passes', async function() {
+      const {exitCode, output} = await runCommand('node', ['spec/fixtures/promiseSuccess.js']);
+      expect(exitCode).toEqual(0);
+      expect(output).toContain('Promise success!');
+    });
+
+    it('resolves the returned promise when the suite fails', async function() {
+      const {exitCode, output} = await runCommand('node', ['spec/fixtures/promiseFailure.js']);
+      expect(exitCode).toEqual(0);
+      expect(output).toContain('Promise failure!');
+    });
+
+    it('resolves the returned promise when the suite is incomplete', async function() {
+      const {exitCode, output} = await runCommand('node', ['spec/fixtures/promiseIncomplete.js']);
+      expect(exitCode).toEqual(0);
+      expect(output).toContain('Promise incomplete!');
+    });
+  });
 });
 
 async function runJasmine(cwd) {
-  return new Promise(function(resolve) {
-    const args = ['../../../bin/jasmine.js', '--config=jasmine.json'];
+  const args = ['../../../bin/jasmine.js', '--config=jasmine.json'];
+  return runCommand('node', args, cwd);
+}
 
+async function runCommand(cmd, args, cwd = '.') {
+  return new Promise(function(resolve) {
     const child = child_process.spawn(
-      'node',
+      cmd,
       args,
       {
         cwd,

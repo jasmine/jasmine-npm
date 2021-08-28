@@ -3,7 +3,8 @@
 
 # The Jasmine Module
 
-The `jasmine` module is a package of helper code for developing Jasmine projects for Node.js. 
+The `jasmine` module is a command line interface and supporting code for running
+[Jasmine](https://github.com/jasmine/jasmine) specs under Node.
 
 The core of jasmine lives at https://github.com/jasmine/jasmine and is `jasmine-core` in npm.
 

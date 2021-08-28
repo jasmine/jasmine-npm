@@ -30,7 +30,6 @@ describe('loadConfig', function() {
     expect(fakeJasmine.clearReporters).toHaveBeenCalled();
     expect(fakeJasmine.addReporter).toHaveBeenCalled();
     expect(fakeJasmine.showColors).toHaveBeenCalledWith(env.color);
-    expect(fakeJasmine.execute).toHaveBeenCalledWith(env.files, env.filter);
   });
 
   it('should not configure the jasmine object when env is an empty object and call execute', function() {
@@ -49,6 +48,5 @@ describe('loadConfig', function() {
     expect(fakeJasmine.clearReporters).not.toHaveBeenCalled();
     expect(fakeJasmine.addReporter).not.toHaveBeenCalled();
     expect(fakeJasmine.showColors).toHaveBeenCalled();
-    expect(fakeJasmine.execute).toHaveBeenCalled();
   });
 });
