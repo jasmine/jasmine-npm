@@ -35,10 +35,20 @@ describe('Jasmine', function() {
     });
   });
 
-  it('adds spec files', function() {
-    expect(this.testJasmine.specFiles).toEqual([]);
-    this.testJasmine.addSpecFile('some/file/path.js');
-    expect(this.testJasmine.specFiles).toEqual(['some/file/path.js']);
+  describe('#addSpecFile', function() {
+    it('adds the provided path to the list of spec files', function () {
+      expect(this.testJasmine.specFiles).toEqual([]);
+      this.testJasmine.addSpecFile('some/file/path.js');
+      expect(this.testJasmine.specFiles).toEqual(['some/file/path.js']);
+    });
+  });
+
+  describe('#addHelperFile', function() {
+    it('adds the provided path to the list of helper files', function () {
+      expect(this.testJasmine.helperFiles).toEqual([]);
+      this.testJasmine.addHelperFile('some/file/path.js');
+      expect(this.testJasmine.helperFiles).toEqual(['some/file/path.js']);
+    });
   });
 
   describe('Methods that specify files via globs', function() {
@@ -46,9 +56,18 @@ describe('Jasmine', function() {
       hasCommonFileGlobBehavior('addSpecFiles', 'specFiles');
     });
 
+    describe('#addMatchingSpecFiles', function() {
+      hasCommonFileGlobBehavior('addMatchingSpecFiles', 'specFiles');
+    });
+
     describe('#addHelperFiles', function() {
       hasCommonFileGlobBehavior('addHelperFiles', 'helperFiles');
     });
+
+    describe('#addMatchingHelperFiles', function() {
+      hasCommonFileGlobBehavior('addMatchingHelperFiles', 'helperFiles');
+    });
+
 
     function hasCommonFileGlobBehavior(method, destProp) {
       it('adds a file with an absolute path', function() {
