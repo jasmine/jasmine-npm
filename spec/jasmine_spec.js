@@ -456,9 +456,13 @@ describe('Jasmine', function() {
     it('stores an onComplete function', function() {
       var fakeOnCompleteCallback = function() {};
       spyOn(this.testJasmine.completionReporter, 'onComplete');
+      this.testJasmine.env.deprecated = jasmine.createSpy('env.deprecated');
 
       this.testJasmine.onComplete(fakeOnCompleteCallback);
       expect(this.testJasmine.completionReporter.onComplete).toHaveBeenCalledWith(fakeOnCompleteCallback);
+      expect(this.testJasmine.env.deprecated).toHaveBeenCalledWith(
+        "Jasmine#onComplete is deprecated. Instead of calling onComplete, set the Jasmine instance's exitOnCompletion property to false and use the promise returned from the execute method."
+      );
     });
   });
 
@@ -629,6 +633,10 @@ describe('Jasmine', function() {
       });
 
       describe('When #onComplete has been called', function() {
+        beforeEach(function() {
+          this.testJasmine.env.deprecated = function() {};
+        });
+
         it('calls the supplied completion handler with true when the whole suite is green', async function() {
           const completionHandler = jasmine.createSpy('completionHandler');
           this.testJasmine.onComplete(completionHandler);
