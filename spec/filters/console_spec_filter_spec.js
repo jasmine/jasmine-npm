@@ -1,16 +1,16 @@
-var ConsoleSpecFilter = require('../../lib/filters/console_spec_filter');
+const ConsoleSpecFilter = require('../../lib/filters/console_spec_filter');
 
 describe("ConsoleSpecFilter", function() {
 
   it("should match when no string is provided", function() {
-    var specFilter = new ConsoleSpecFilter();
+    const specFilter = new ConsoleSpecFilter();
 
     expect(specFilter.matches("foo")).toBe(true);
     expect(specFilter.matches("*bar")).toBe(true);
   });
 
   it("should match the provided string", function() {
-    var specFilter = new ConsoleSpecFilter({
+    const specFilter = new ConsoleSpecFilter({
       filterString: "foo"
     });
 
@@ -19,7 +19,7 @@ describe("ConsoleSpecFilter", function() {
   });
 
   it("should match by part of spec name", function() {
-    var specFilter = new ConsoleSpecFilter({
+    const specFilter = new ConsoleSpecFilter({
       filterString: "ba"
     });
 

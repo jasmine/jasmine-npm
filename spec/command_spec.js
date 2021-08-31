@@ -1,16 +1,15 @@
-var fs = require('fs'),
-  path = require('path');
+const fs = require('fs');
+const path = require('path');
+const Command = require('../lib/command');
 
-var Command = require('../lib/command');
-
-var projectBaseDir = 'spec/fixtures/sample_empty_project/';
-var spec = path.join(projectBaseDir, 'spec');
+const projectBaseDir = 'spec/fixtures/sample_empty_project/';
+const spec = path.join(projectBaseDir, 'spec');
 
 function deleteDirectory(dir) {
   if (fs.existsSync(dir)) {
-    var dirFiles = fs.readdirSync(dir);
+    const dirFiles = fs.readdirSync(dir);
     dirFiles.forEach(function(file) {
-      var fullPath = path.join(dir, file);
+      const fullPath = path.join(dir, file);
       if (fs.statSync(fullPath).isDirectory()) {
         deleteDirectory(fullPath);
       }
@@ -23,7 +22,7 @@ function deleteDirectory(dir) {
 }
 
 function withValueForIsTTY(value, func) {
-  var wasTTY = process.stdout.isTTY;
+  const wasTTY = process.stdout.isTTY;
   try {
     process.stdout.isTTY = value;
     func();
@@ -35,12 +34,12 @@ function withValueForIsTTY(value, func) {
 
 describe('command', function() {
   beforeEach(function() {
-    var examplesDir = path.resolve(path.join(__dirname, 'fixtures', 'example'));
+    const examplesDir = path.resolve(path.join(__dirname, 'fixtures', 'example'));
 
     fs.mkdirSync(projectBaseDir);
 
     this.out = (function() {
-      var output = "";
+      let output = "";
       return {
         print: function(str) {
           output += str;
@@ -86,8 +85,8 @@ describe('command', function() {
     });
 
     it('writes default settings to jasmine.json', function() {
-      var realJson = fs.readFileSync(path.join(spec, 'support/', 'jasmine.json'), 'utf-8');
-      var fixtureJson = fs.readFileSync(path.join(__dirname, '../', 'lib/', 'examples/', 'jasmine.json'), 'utf-8');
+      const realJson = fs.readFileSync(path.join(spec, 'support/', 'jasmine.json'), 'utf-8');
+      const fixtureJson = fs.readFileSync(path.join(__dirname, '../', 'lib/', 'examples/', 'jasmine.json'), 'utf-8');
       expect(realJson).toEqual(fixtureJson);
     });
   });
@@ -99,7 +98,7 @@ describe('command', function() {
     });
 
     it('displays the version of jasmine', function() {
-      var packageVersion = require('../package.json').version;
+      const packageVersion = require('../package.json').version;
       expect(this.out.getOutput()).toContain('jasmine v' + packageVersion);
     });
 
@@ -115,7 +114,7 @@ describe('command', function() {
     });
 
     it('displays the version of jasmine', function() {
-      var packageVersion = require('../package.json').version;
+      const packageVersion = require('../package.json').version;
       expect(this.out.getOutput()).toContain('jasmine v' + packageVersion);
     });
 
@@ -265,15 +264,15 @@ describe('command', function() {
     });
 
     it('can specify a reporter', function() {
-      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'customReporter.js'));
-      var Reporter = require(reporterPath);
+      const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'customReporter.js'));
+      const Reporter = require(reporterPath);
       this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
       expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
       expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
     });
 
     it('prints an error if the file does not export a reporter', function() {
-      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'badReporter.js'));
+      const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'badReporter.js'));
       this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
       expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
       expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
@@ -281,7 +280,7 @@ describe('command', function() {
     });
 
     it('prints an error if the reporter file does not exist', function() {
-      var reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'missingReporter.js'));
+      const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'missingReporter.js'));
       this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
       expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
       expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
