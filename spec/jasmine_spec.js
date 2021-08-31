@@ -38,11 +38,14 @@ describe('Jasmine', function() {
       this.testJasmine.env.addReporter.and.callFake(r => reporters.push(r));
 
       let executePromise;
-      let envExecuteCallback;
+      let resolveEnvExecutePromise;
+      const envExecutePromise = new Promise(resolve => {
+        resolveEnvExecutePromise = resolve;
+      });
       await new Promise(resolve => {
-        this.testJasmine.env.execute.and.callFake(function(ignored, cb) {
-          envExecuteCallback = cb;
+        this.testJasmine.env.execute.and.callFake(function() {
           resolve();
+          return envExecutePromise;
         });
         executePromise = this.testJasmine.execute.apply(this.testJasmine, executeArgs);
       });
@@ -51,8 +54,8 @@ describe('Jasmine', function() {
         reporter.jasmineDone({overallStatus});
       }
 
-      envExecuteCallback();
-      await executePromise;
+      resolveEnvExecutePromise();
+      return executePromise;
     };
   });
 
@@ -553,38 +556,15 @@ describe('Jasmine', function() {
     });
 
     describe('The returned promise', function() {
-      beforeEach(function() {
-        this.autocompletingFakeEnv = function(overallStatus) {
-          let reporters = [];
-          return {
-            execute: function(ignored, callback) {
-              for (const reporter of reporters) {
-                reporter.jasmineDone({overallStatus});
-              }
-              callback();
-            },
-            addReporter: reporter => {
-              reporters.push(reporter);
-            },
-            clearReporters: function() {
-              reporters = [];
-            }
-          };
-        };
-      });
-
       it('is resolved with the overall suite status', async function() {
-        this.testJasmine.env = this.autocompletingFakeEnv('failed');
-
-        await expectAsync(this.testJasmine.execute())
+        await expectAsync(this.execute({overallStatus: 'failed'}))
           .toBeResolvedTo(jasmine.objectContaining({overallStatus: 'failed'}));
       });
 
       it('is resolved with the overall suite status even if clearReporters was called', async function() {
-        this.testJasmine.env = this.autocompletingFakeEnv('incomplete');
         this.testJasmine.clearReporters();
 
-        await expectAsync(this.testJasmine.execute())
+        await expectAsync(this.execute({overallStatus: 'incomplete'}))
           .toBeResolvedTo(jasmine.objectContaining({overallStatus: 'incomplete'}));
       });
     });
