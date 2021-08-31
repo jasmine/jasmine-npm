@@ -30,6 +30,30 @@ describe('Jasmine', function() {
     this.testJasmine.exit = function() {
       // Don't actually exit the node process
     };
+
+    this.execute = async function(options = {}) {
+      const overallStatus = options.overallStatus || 'passed';
+      const executeArgs = options.executeArgs || [];
+      const reporters = [];
+      this.testJasmine.env.addReporter.and.callFake(r => reporters.push(r));
+
+      let executePromise;
+      let envExecuteCallback;
+      await new Promise(resolve => {
+        this.testJasmine.env.execute.and.callFake(function(ignored, cb) {
+          envExecuteCallback = cb;
+          resolve();
+        });
+        executePromise = this.testJasmine.execute.apply(this.testJasmine, executeArgs);
+      });
+
+      for (const reporter of reporters) {
+        reporter.jasmineDone({overallStatus});
+      }
+
+      envExecuteCallback();
+      await executePromise;
+    };
   });
 
   describe('constructor options', function() {
@@ -437,7 +461,7 @@ describe('Jasmine', function() {
       spyOn(this.testJasmine, 'configureDefaultReporter');
       spyOn(this.testJasmine, 'loadSpecs');
 
-      await this.testJasmine.execute();
+      await this.execute();
 
       expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: true});
       expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
@@ -449,7 +473,7 @@ describe('Jasmine', function() {
       spyOn(this.testJasmine, 'loadSpecs');
       this.testJasmine.showColors(false);
 
-      await this.testJasmine.execute();
+      await this.execute();
 
       expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: false});
       expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
@@ -463,7 +487,7 @@ describe('Jasmine', function() {
 
       spyOn(this.testJasmine, 'configureDefaultReporter');
 
-      await this.testJasmine.execute();
+      await this.execute();
 
       expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
       expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
@@ -477,18 +501,15 @@ describe('Jasmine', function() {
       });
       spyOn(this.testJasmine, 'loadSpecs');
 
-      await this.testJasmine.execute();
+      await this.execute();
 
       expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalled();
     });
 
     it('can run only specified files', async function() {
-      spyOn(this.testJasmine, 'configureDefaultReporter');
-      spyOn(this.testJasmine, 'loadSpecs');
-
-      this.testJasmine.loadConfigFile();
-
-      await this.testJasmine.execute(['spec/fixtures/sample_project/**/*spec.js']);
+      await this.execute({
+        executeArgs: [['spec/fixtures/sample_project/**/*spec.js']]
+      });
 
       var relativePaths = this.testJasmine.specFiles.map(function(filePath) {
         return slash(path.relative(__dirname, filePath));
@@ -498,86 +519,26 @@ describe('Jasmine', function() {
     });
 
     it('should add spec filter if filterString is provided', async function() {
-      this.testJasmine.loadConfigFile();
+      await this.execute({
+        executeArgs: [['spec/fixtures/example/*spec.js'], 'interesting spec']
+      });
 
-      await this.testJasmine.execute(['spec/fixtures/example/*spec.js'], 'interesting spec');
       expect(this.testJasmine.env.configure).toHaveBeenCalledWith({specFilter: jasmine.any(Function)});
-    });
-
-    it('adds an exit code reporter', async function() {
-      var completionReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
-      this.testJasmine.completionReporter = completionReporterSpy;
-      spyOn(this.testJasmine, 'addReporter');
-
-      await this.testJasmine.execute();
-
-      expect(this.testJasmine.addReporter).toHaveBeenCalledWith(completionReporterSpy);
-      expect(this.testJasmine.completionReporter.exitHandler).toBe(this.testJasmine.checkExit);
-    });
-
-    describe('when exit is called prematurely', function() {
-      beforeEach(function() {
-        this.originalCode = process.exitCode;
-      });
-
-      afterEach(function() {
-        process.exitCode = this.originalCode;
-      });
-
-      it('sets the exit code to failure', function() {
-        this.testJasmine.checkExit();
-        expect(process.exitCode).toEqual(4);
-      });
-
-      it('leaves it if the suite has completed', function() {
-        var completionReporterSpy = jasmine.createSpyObj('reporter', ['isComplete']);
-        completionReporterSpy.isComplete.and.returnValue(true);
-        this.testJasmine.completionReporter = completionReporterSpy;
-
-        this.testJasmine.checkExit();
-        expect(process.exitCode).toBeUndefined();
-      });
     });
 
     describe('completion behavior', function() {
       beforeEach(function() {
-        this.runWithOverallStatus = async function(overallStatus) {
-          const reporters = [];
-          this.testJasmine.env = {
-            execute: jasmine.createSpy('env.execute'),
-            addReporter: reporter => {
-              reporters.push(reporter);
-            }
-          };
-          spyOn(this.testJasmine, 'exit');
-
-          await new Promise(resolve => {
-            this.testJasmine.env.execute.and.callFake(resolve);
-            this.testJasmine.execute();
-          });
-
-          for (const reporter of reporters) {
-            reporter.jasmineDone({overallStatus});
-          }
-
-          await sleep(10);
-        };
-
-        function sleep(ms) {
-          return new Promise(function (resolve) {
-            setTimeout(resolve, ms);
-          });
-        }
+        spyOn(this.testJasmine, 'exit');
       });
 
       describe('default', function() {
         it('exits successfully when the whole suite is green', async function () {
-          await this.runWithOverallStatus('passed');
+          await this.execute({overallStatus: 'passed'});
           expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
         });
 
         it('exits with a failure when anything in the suite is not green', async function () {
-          await this.runWithOverallStatus('failed');
+          await this.execute({overallStatus: 'failed'});
           expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
         });
       });
@@ -585,7 +546,7 @@ describe('Jasmine', function() {
       describe('When exitOnCompletion is set to false', function() {
         it('does not exit', async function() {
           this.testJasmine.exitOnCompletion = false;
-          await this.runWithOverallStatus('anything');
+          await this.execute();
           expect(this.testJasmine.exit).not.toHaveBeenCalled();
         });
       });

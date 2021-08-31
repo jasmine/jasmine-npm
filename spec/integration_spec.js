@@ -118,6 +118,11 @@ describe('Integration', function () {
       expect(output).toContain('Promise incomplete!');
     });
   });
+
+  it('exits with status 4 when exit() is called before the suite finishes', async function() {
+    const {exitCode} = await runCommand('node', ['spec/fixtures/prematureExit.js']);
+    expect(exitCode).toEqual(4);
+  });
 });
 
 async function runJasmine(cwd) {
