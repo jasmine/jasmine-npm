@@ -236,7 +236,7 @@ describe('Jasmine', function() {
         this.configObject.stopSpecOnExpectationFailure = true;
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({oneFailurePerSpec: true});
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopSpecOnExpectationFailure: true});
       });
 
       it('does not configure jasmine-core for stopping spec on expectation failure by default', function() {
@@ -249,7 +249,7 @@ describe('Jasmine', function() {
         this.configObject.stopOnSpecFailure = true;
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({failFast: true});
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopOnSpecFailure: true});
       });
 
       it('does not configure jasmine-core for stopping execution by default', function() {
@@ -387,16 +387,16 @@ describe('Jasmine', function() {
   });
 
   describe('#stopSpecOnExpectationFailure', function() {
-    it('sets the throwOnExpectationFailure value on the jasmine-core env', function() {
+    it('sets the stopSpecOnExpectationFailure value on the jasmine-core env', function() {
       this.testJasmine.stopSpecOnExpectationFailure('foobar');
-      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({oneFailurePerSpec: 'foobar'});
+      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({stopSpecOnExpectationFailure: 'foobar'});
     });
   });
 
   describe('#stopOnSpecFailure', function() {
     it('sets the stopOnSpecFailure value on the jasmine-core env', function() {
       this.testJasmine.stopOnSpecFailure('blah');
-      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({failFast: 'blah'});
+      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({stopOnSpecFailure: 'blah'});
     });
   });
 
