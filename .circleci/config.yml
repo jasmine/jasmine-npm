@@ -10,9 +10,19 @@ executors:
     docker:
       - image: cimg/node:16.1.0
     working_directory: ~/workspace
-  node14:
+  node14_latest:
     docker:
       - image: circleci/node:14
+    working_directory: ~/workspace
+  # 14.8 is the first version with top level await in ES modules.
+  node14_8:
+    docker:
+      - image: circleci/node:14.8
+    working_directory: ~/workspace
+  # 14.7 is the last version without top level await in ES modules.
+  node14_7:
+    docker:
+      - image: circleci/node:14.7
     working_directory: ~/workspace
   node12_latest:
     docker:
@@ -22,10 +32,12 @@ executors:
     docker:
     - image: circleci/node:12.0
     working_directory: ~/workspace
+  # 12.17 is the first version with dynamic import() of commonjs modules
   node12_17:
     docker:
     - image: circleci/node:12.17
     working_directory: ~/workspace
+  # 12.17 is the last version without dynamic import() of commonjs modules
   node12_16:
     docker:
     - image: circleci/node:12.16
@@ -61,8 +73,14 @@ workflows:
           executor: node16
           name: node_16
       - build_and_test:
-          executor: node14
-          name: node_14
+          executor: node14_latest
+          name: node_14_latest
+      - build_and_test:
+          executor: node14_8
+          name: node_14_8
+      - build_and_test:
+          executor: node14_7
+          name: node_14_7
       - build_and_test:
           executor: node12_latest
           name: node_12_latest
