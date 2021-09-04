@@ -1,9 +1,9 @@
-describe('loadConfig', function() {
-  var path = require('path'),
-      loadConfig = require('../lib/loadConfig');
+const path = require('path');
+const loadConfig = require('../lib/loadConfig');
 
+describe('loadConfig', function() {
   it('should configure the jasmine object based on env and call execute', function() {
-    var fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
+    const fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
       'stopOnSpecFailure', 'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']),
         env = {
           configPath: 'somewhere.json',
@@ -33,7 +33,7 @@ describe('loadConfig', function() {
   });
 
   it('should not configure the jasmine object when env is an empty object and call execute', function() {
-    var fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
+    const fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
       'stopOnSpecFailure', 'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']),
         env = {};
     loadConfig(fakeJasmine, env, console.log);

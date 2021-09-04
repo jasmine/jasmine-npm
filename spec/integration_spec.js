@@ -81,6 +81,32 @@ describe('Integration', function () {
     expect(output).toContain('syntax_error.mjs');
   });
 
+  it('handles syntax errors from a CommonJS module loaded from an ESM spec properly', async function() {
+    try {
+      await import('./fixtures/topLevelAwaitSentinel.mjs');
+    } catch (e) {
+      if (e instanceof SyntaxError && e.message === 'Unexpected reserved word') {
+        pending('This Node version does not support top-level await');
+      } else if (e.message === 'Not supported') {
+        pending('This Node version does not support dynamic import');
+      } else {
+        throw e;
+      }
+    }
+
+    const {exitCode, output} = await runJasmine('spec/fixtures/esm-importing-commonjs-syntax-error', true);
+    expect(exitCode).toEqual(1);
+    expect(output).toContain('SyntaxError');
+    expect(output).toContain('syntax_error.js');
+  });
+
+  it('handles exceptions thrown from a module loaded from an ESM spec properly', async function() {
+    const {exitCode, output} = await runJasmine('spec/fixtures/esm-indirect-error', true);
+    expect(exitCode).toEqual(1);
+    expect(output).toContain('nope');
+    expect(output).toContain('throws.mjs');
+  });
+
   it('can configure the env via the `env` config property', async function() {
     const {exitCode, output} = await runJasmine('spec/fixtures/env-config');
     expect(exitCode).toEqual(0);

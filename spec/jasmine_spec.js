@@ -1,8 +1,8 @@
-describe('Jasmine', function() {
-  var path = require('path'),
-      slash = require('slash'),
-      Jasmine = require('../lib/jasmine');
+const path = require('path');
+const slash = require('slash');
+const Jasmine = require('../lib/jasmine');
 
+describe('Jasmine', function() {
   beforeEach(function() {
     this.bootedJasmine = {
       getEnv: jasmine.createSpy('getEnv').and.returnValue({
@@ -101,7 +101,7 @@ describe('Jasmine', function() {
 
     function hasCommonFileGlobBehavior(method, destProp) {
       it('adds a file with an absolute path', function() {
-        var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+        const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
         expect(this.testJasmine[destProp]).toEqual([]);
         this.testJasmine[method]([aFile]);
         expect(this.testJasmine[destProp]).toEqual([slash(aFile)]);
@@ -132,7 +132,7 @@ describe('Jasmine', function() {
       });
 
       it('adds new files to existing files', function() {
-        var aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+        const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
         this.testJasmine[destProp] = [aFile, 'b'];
         this.testJasmine[method](['spec/fixtures/jasmine_spec/*.js']);
         expect(this.testJasmine[destProp].map(basename)).toEqual([
@@ -157,13 +157,13 @@ describe('Jasmine', function() {
   it('registers a console reporter upon construction', function() {
     spyOn(Jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
 
-    var testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
+    const testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
 
     expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
   });
 
   it('exposes #addReporter and #clearReporters', function() {
-    var testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
+    const testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
     expect(testJasmine.reportersCount).toEqual(1);
     testJasmine.clearReporters();
     expect(testJasmine.reportersCount).toEqual(0);
@@ -179,13 +179,13 @@ describe('Jasmine', function() {
     });
 
     it('sets the options on the console reporter', function() {
-      var reporterOptions = {
+      const reporterOptions = {
         print: 'printer',
         showColors: true,
         jasmineCorePath: 'path',
       };
 
-      var expectedReporterOptions = Object.keys(reporterOptions).reduce(function(options, key) {
+      const expectedReporterOptions = Object.keys(reporterOptions).reduce(function(options, key) {
         options[key] = reporterOptions[key];
         return options;
       }, {});
@@ -196,11 +196,11 @@ describe('Jasmine', function() {
     });
 
     it('creates a reporter with a default option if an option is not specified', function() {
-      var reporterOptions = {};
+      const reporterOptions = {};
 
       this.testJasmine.configureDefaultReporter(reporterOptions);
 
-      var expectedReporterOptions = {
+      const expectedReporterOptions = {
         print: jasmine.any(Function),
         showColors: true,
         jasmineCorePath: path.normalize('fake/jasmine/path/jasmine.js')
@@ -263,7 +263,7 @@ describe('Jasmine', function() {
         this.configObject.stopSpecOnExpectationFailure = true;
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({oneFailurePerSpec: true});
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopSpecOnExpectationFailure: true});
       });
 
       it('does not configure jasmine-core for stopping spec on expectation failure by default', function() {
@@ -276,7 +276,7 @@ describe('Jasmine', function() {
         this.configObject.stopOnSpecFailure = true;
         this.fixtureJasmine.loadConfig(this.configObject);
 
-        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({failFast: true});
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopOnSpecFailure: true});
       });
 
       it('does not configure jasmine-core for stopping execution by default', function() {
@@ -315,7 +315,7 @@ describe('Jasmine', function() {
 
       describe('without options', function() {
         it('falls back to an empty string with an undefined spec_dir', function() {
-          var config = this.configObject;
+          const config = this.configObject;
           delete config.spec_dir;
 
           this.fixtureJasmine.loadConfig(config);
@@ -396,7 +396,7 @@ describe('Jasmine', function() {
       });
 
       it('loads the specified configuration file from an absolute path', function() {
-        var absoluteConfigPath = path.join(__dirname, 'fixtures/sample_project/spec/support/jasmine_alternate.json');
+        const absoluteConfigPath = path.join(__dirname, 'fixtures/sample_project/spec/support/jasmine_alternate.json');
         this.fixtureJasmine.loadConfigFile(absoluteConfigPath);
         expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
         expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
@@ -407,13 +407,13 @@ describe('Jasmine', function() {
       });
 
       it('throw error if specified configuration file doesn\'t exist', function() {
-        var jasmine = this.fixtureJasmine;
+        const jasmine = this.fixtureJasmine;
         function load() { jasmine.loadConfigFile('missing.json'); }
         expect(load).toThrow();
       });
 
       it('no error if default configuration file doesn\'t exist', function() {
-        var jasmine = this.fixtureJasmine;
+        const jasmine = this.fixtureJasmine;
         function load() {
           jasmine.projectBaseDir += '/missing';
           jasmine.loadConfigFile();
@@ -431,16 +431,16 @@ describe('Jasmine', function() {
   });
 
   describe('#stopSpecOnExpectationFailure', function() {
-    it('sets the throwOnExpectationFailure value on the jasmine-core env', function() {
+    it('sets the stopSpecOnExpectationFailure value on the jasmine-core env', function() {
       this.testJasmine.stopSpecOnExpectationFailure('foobar');
-      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({oneFailurePerSpec: 'foobar'});
+      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({stopSpecOnExpectationFailure: 'foobar'});
     });
   });
 
   describe('#stopOnSpecFailure', function() {
     it('sets the stopOnSpecFailure value on the jasmine-core env', function() {
       this.testJasmine.stopOnSpecFailure('blah');
-      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({failFast: 'blah'});
+      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({stopOnSpecFailure: 'blah'});
     });
   });
 
@@ -498,7 +498,7 @@ describe('Jasmine', function() {
     });
 
     it('loads helper files before checking if any reporters were added', async function() {
-      var loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
+      const loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
       spyOn(this.testJasmine, 'configureDefaultReporter').and.callFake(function() {
         expect(loadHelpers).toHaveBeenCalled();
       });
@@ -514,7 +514,7 @@ describe('Jasmine', function() {
         executeArgs: [['spec/fixtures/sample_project/**/*spec.js']]
       });
 
-      var relativePaths = this.testJasmine.specFiles.map(function(filePath) {
+      const relativePaths = this.testJasmine.specFiles.map(function(filePath) {
         return slash(path.relative(__dirname, filePath));
       });
 

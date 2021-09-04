@@ -1,3 +1,4 @@
 spec/fixtures/cjs-syntax-error/syntax_error.js
+spec/fixtures/esm-importing-commonjs-syntax-error/syntax_error.js
 spec/fixtures/js-loader-import/*.js
 spec/fixtures/js-loader-default/*.js

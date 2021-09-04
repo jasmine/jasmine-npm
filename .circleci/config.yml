@@ -10,9 +10,17 @@ executors:
     docker:
       - image: cimg/node:16.1.0
     working_directory: ~/workspace
-  node14:
+  node14_latest:
     docker:
       - image: circleci/node:14
+    working_directory: ~/workspace
+  node14_8:
+    docker:
+      - image: circleci/node:14.8
+    working_directory: ~/workspace
+  node14_7:
+    docker:
+      - image: circleci/node:14.7
     working_directory: ~/workspace
   node12_latest:
     docker:
@@ -24,7 +32,7 @@ executors:
     working_directory: ~/workspace
 
 jobs:
-  build_and_test:
+  test:
     parameters:
       executor:
         type: executor
@@ -45,19 +53,16 @@ workflows:
   version: 2
   push: &push_workflow
     jobs:
-      - build_and_test:
-          executor: node16
-          name: node_16
-      - build_and_test:
-          executor: node14
-          name: node_14
-      - build_and_test:
-          executor: node12_latest
-          name: node_12_latest
-      # 12.16 is the first version with good-enough ES module support
-      - build_and_test:
-          executor: node12_17
-          name: node_12_17
+      - test:
+          matrix:
+            parameters:
+              executor:
+                - node16
+                - node14_latest
+                - node14_8 # first with top level await in ES modules.
+                - node14_7
+                - node12_latest
+                - node12_17 # first with dynamic import() of commonjs modules
   cron:
     <<: *push_workflow
     triggers:

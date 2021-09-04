@@ -73,24 +73,81 @@ function esModuleSharedExamples(extension, alwaysImport) {
     await expectAsync(loaderPromise).toBeResolved();
   });
 
-  it("adds the filename to errors that don't include it", async function() {
+  it("adds the filename to ES module syntax errors", async function() {
     const underlyingError = new SyntaxError('some details but no filename, not even in the stack trace');
-    const importShim = () => Promise.reject(underlyingError);
-    const loader = new Loader({importShim});
+    const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
     await expectAsync(loader.load(`foo.${extension}`, alwaysImport)).toBeRejectedWithError(
       `While loading foo.${extension}: SyntaxError: some details but no filename, not even in the stack trace`
     );
   });
 
-  it('propagates errors that already contain the filename without modifying them', async function () {
-    const requireShim = jasmine.createSpy('requireShim');
+  it('does not modify errors that are not SyntaxError instances', async function() {
     const underlyingError = new Error('nope');
-    underlyingError.stack = underlyingError.stack.replace('loader_spec.js', `foo.${extension}`);
-    const importShim = jasmine.createSpy('importShim')
-      .and.callFake(() => Promise.reject(underlyingError));
-    const loader = new Loader({requireShim, importShim});
+    const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
     await expectAsync(loader.load(`foo.${extension}`, alwaysImport)).toBeRejectedWith(underlyingError);
+  });
+
+  it('does not modify SyntaxErrors that mention the imported filename as a Unix-style path', async function() {
+    const underlyingError = new SyntaxError('nope');
+    underlyingError.stack = `/the/absolute/path/to/foo.${extension}:1\n` +
+      '\n' +
+      '\n' +
+      '\n' +
+      'maybe some more stack\n';
+    const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
+
+    await expectAsync(loader.load(`path/to/foo.${extension}`, alwaysImport))
+      .toBeRejectedWith(underlyingError);
+  });
+
+  it('does not modify SyntaxErrors that mention the imported filename as a Unix-style file URL', async function() {
+    const underlyingError = new SyntaxError('nope');
+    underlyingError.stack += `\n     at async file:///the/absolute/path/to/foo.${extension}:1:1`;
+    const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
+
+    await expectAsync(loader.load(`path/to/foo.${extension}`, alwaysImport))
+      .toBeRejectedWith(underlyingError);
+  });
+
+  it('does not modify SyntaxErrors that mention the imported filename as a Windows-style path', async function() {
+    const underlyingError = new SyntaxError('nope');
+    underlyingError.stack = `c:\\the\\absolute\\path\\to\\foo.${extension}:1\n` +
+      '\n' +
+      '\n' +
+      '\n' +
+      'maybe some more stack\n';
+    const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
+
+    await expectAsync(loader.load(`path/to/foo.${extension}`, alwaysImport))
+      .toBeRejectedWith(underlyingError);
+  });
+
+  it('does not modify SyntaxErrors that mention the imported filename as a Windows-style file URL', async function() {
+    const underlyingError = new SyntaxError('nope');
+    underlyingError.stack += `\n     at async file:///c:/the/absolute/path/to/foo.${extension}:1:1`;
+    const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
+
+    await expectAsync(loader.load(`path/to/foo.${extension}`, alwaysImport))
+      .toBeRejectedWith(underlyingError);
+  });
+
+  it('does not modify SyntaxErrors when the stack trace starts with any Unix-style path', async function() {
+    const underlyingError = new SyntaxError('nope');
+    underlyingError.stack = '/some/path/to/a/file.js:1\n\n\n\n' + underlyingError.stack;
+    const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
+
+    await expectAsync(loader.load(`path/to/some/other/file.${extension}`, alwaysImport))
+      .toBeRejectedWith(underlyingError);
+  });
+
+  it('does not modify SyntaxErrors when the stack trace starts with any Windows-style path', async function() {
+    const underlyingError = new SyntaxError('nope');
+    underlyingError.stack = 'c:\\some\\path\\to\\a\\file.js:1\n\n\n\n' + underlyingError.stack;
+    const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
+
+    await expectAsync(loader.load(`path/to/some/other/file.${extension}`, alwaysImport))
+      .toBeRejectedWith(underlyingError);
   });
 }

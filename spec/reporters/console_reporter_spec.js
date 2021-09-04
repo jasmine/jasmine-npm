@@ -1,15 +1,15 @@
-describe("ConsoleReporter", function() {
-  var ConsoleReporter = require('../../lib/reporters/console_reporter'),
-      jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
+const ConsoleReporter = require('../../lib/reporters/console_reporter');
+const jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
 
-  var fakeStack = ['foo' + jasmineCorePath,
+describe("ConsoleReporter", function() {
+  const fakeStack = ['foo' + jasmineCorePath,
     'bar ' + jasmineCorePath,
     'line of useful stack trace',
     'baz ' + jasmineCorePath].join('\n');
 
   beforeEach(function() {
     this.out = (function() {
-      var output = "";
+      let output = "";
       return {
         print: function(str) {
           output += str;
@@ -25,7 +25,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports that the suite has started to the console", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
 
     reporter.setOptions({
       print: this.out.print
@@ -38,7 +38,7 @@ describe("ConsoleReporter", function() {
 
   describe("When order information is passed to jasmineStarted", function() {
     it("reports the seed number when randomized", function() {
-      var reporter = new ConsoleReporter();
+      const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print
       });
@@ -54,7 +54,7 @@ describe("ConsoleReporter", function() {
     });
 
     it("does not report order info when not randomized", function() {
-      var reporter = new ConsoleReporter();
+      const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print
       });
@@ -70,7 +70,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("setOptions should not override existing options if set multiple times", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
 
     reporter.setOptions({
       print: this.out.print,
@@ -94,7 +94,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a passing spec as a dot", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print
     });
@@ -105,7 +105,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("does not report a disabled spec", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print
     });
@@ -116,7 +116,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a failing spec as an 'F'", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print
     });
@@ -127,7 +127,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a pending spec as a '*'", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print
     });
@@ -138,7 +138,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("alerts user if there are no specs", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print
     });
@@ -151,7 +151,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports the seed number when running in random order", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print
     });
@@ -167,7 +167,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("allows the seed reproduction command to be overridden", function() {
-    var reporter = new ConsoleReporter("jasmine-some-other-tool");
+    const reporter = new ConsoleReporter("jasmine-some-other-tool");
     reporter.setOptions({
       print: this.out.print,
       randomSeedReproductionCmd: function(seed) {
@@ -186,7 +186,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done (singular spec and time)", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
     });
@@ -204,7 +204,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done (pluralized specs and seconds)", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
     });
@@ -237,7 +237,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that indicates the number of specs run (when it's less that the full number of specs)", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
     });
@@ -254,7 +254,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that includes the failed spec number before the full name of a failing spec", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
@@ -286,7 +286,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that includes stack traces without jasmine internals for a failing suite", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
@@ -320,7 +320,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done in case that stack is somehow undefined", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
@@ -352,11 +352,11 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that includes custom filtered stack traces for a failing suite", function() {
-    var stackLine = 'custom line of stack';
-    var customStackFilter = function(stack) {
+    const stackLine = 'custom line of stack';
+    const customStackFilter = function(stack) {
       return stackLine;
     };
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       stackFilter: customStackFilter
@@ -389,7 +389,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that includes which specs are pending and their reasons", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
@@ -413,7 +413,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that includes the reason for an incomplete suite", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
@@ -432,7 +432,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done that shows info for a failed spec with no expectations", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
@@ -456,7 +456,7 @@ describe("ConsoleReporter", function() {
   });
 
   it('reports a summary without "no expectations" message for a spec having failed expectations', function () {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
@@ -485,7 +485,7 @@ describe("ConsoleReporter", function() {
   });
 
   it('reports a summary without a "no expectations" message for a spec having passed expectations', function () {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       jasmineCorePath: jasmineCorePath
@@ -524,7 +524,7 @@ describe("ConsoleReporter", function() {
   });
 
   it("displays all afterAll exceptions", function() {
-    var reporter = new ConsoleReporter();
+    const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
       showColors: true
@@ -541,7 +541,7 @@ describe("ConsoleReporter", function() {
 
   describe("with color", function() {
     it("reports that the suite has started to the console", function() {
-      var reporter = new ConsoleReporter();
+      const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
         showColors: true
@@ -553,7 +553,7 @@ describe("ConsoleReporter", function() {
     });
 
     it("reports a passing spec as a dot", function() {
-      var reporter = new ConsoleReporter();
+      const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
         showColors: true
@@ -565,7 +565,7 @@ describe("ConsoleReporter", function() {
     });
 
     it("does not report a disabled spec", function() {
-      var reporter = new ConsoleReporter();
+      const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
         showColors: true
@@ -577,7 +577,7 @@ describe("ConsoleReporter", function() {
     });
 
     it("reports a failing spec as an 'F'", function() {
-      var reporter = new ConsoleReporter();
+      const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
         showColors: true
