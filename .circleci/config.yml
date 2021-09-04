@@ -14,12 +14,10 @@ executors:
     docker:
       - image: circleci/node:14
     working_directory: ~/workspace
-  # 14.8 is the first version with top level await in ES modules.
   node14_8:
     docker:
       - image: circleci/node:14.8
     working_directory: ~/workspace
-  # 14.7 is the last version without top level await in ES modules.
   node14_7:
     docker:
       - image: circleci/node:14.7
@@ -32,12 +30,10 @@ executors:
     docker:
     - image: circleci/node:12.0
     working_directory: ~/workspace
-  # 12.17 is the first version with dynamic import() of commonjs modules
   node12_17:
     docker:
     - image: circleci/node:12.17
     working_directory: ~/workspace
-  # 12.17 is the last version without dynamic import() of commonjs modules
   node12_16:
     docker:
     - image: circleci/node:12.16
@@ -48,7 +44,7 @@ executors:
     working_directory: ~/workspace
 
 jobs:
-  build_and_test:
+  test:
     parameters:
       executor:
         type: executor
@@ -69,35 +65,19 @@ workflows:
   version: 2
   push: &push_workflow
     jobs:
-      - build_and_test:
-          executor: node16
-          name: node_16
-      - build_and_test:
-          executor: node14_latest
-          name: node_14_latest
-      - build_and_test:
-          executor: node14_8
-          name: node_14_8
-      - build_and_test:
-          executor: node14_7
-          name: node_14_7
-      - build_and_test:
-          executor: node12_latest
-          name: node_12_latest
-      - build_and_test:
-          executor: node12_0
-          name: node_12_0
-      # 12.16 is the last version without good-enough ES module support
-      - build_and_test:
-          executor: node12_16
-          name: node_12_16
-      # 12.16 is the first version with good-enough ES module support
-      - build_and_test:
-          executor: node12_17
-          name: node_12_17
-      - build_and_test:
-          executor: node10
-          name: node_10
+      - test:
+          matrix:
+            parameters:
+              executor:
+                - node16
+                - node14_latest
+                - node14_8 # first with top level await in ES modules.
+                - node14_7
+                - node12_latest
+                - node12_17 # first with dynamic import() of commonjs modules
+                - node12_16
+                - node12_0
+                - node10
   cron:
     <<: *push_workflow
     triggers:
