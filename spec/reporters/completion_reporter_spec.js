@@ -1,6 +1,6 @@
-describe('CompletionReporter', function() {
-  var CompletionReporter = require('../../lib/reporters/completion_reporter');
+const CompletionReporter = require('../../lib/reporters/completion_reporter');
 
+describe('CompletionReporter', function() {
   beforeEach(function() {
     this.reporter = new CompletionReporter();
     this.onComplete = jasmine.createSpy('onComplete');
