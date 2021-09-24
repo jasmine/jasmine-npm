@@ -540,9 +540,14 @@ describe('Jasmine', function() {
           expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
         });
 
-        it('exits with a failure when anything in the suite is not green', async function () {
+        it('exits with a distinct status code when anything in the suite is not green', async function () {
           await this.execute({overallStatus: 'failed'});
-          expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+          expect(this.testJasmine.exit).toHaveBeenCalledWith(3);
+        });
+
+        it('exits with a distinct status code when anything in the suite is focused', async function() {
+          await this.execute({overallStatus: 'incomplete'});
+          expect(this.testJasmine.exit).toHaveBeenCalledWith(2);
         });
       });
 

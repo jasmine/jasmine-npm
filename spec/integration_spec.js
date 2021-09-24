@@ -116,7 +116,7 @@ describe('Integration', function () {
   describe('Programmatic usage', function() {
     it('exits on completion by default', async function() {
       const {exitCode, output} = await runCommand('node', ['spec/fixtures/defaultProgrammaticFail.js']);
-      expect(exitCode).toEqual(1);
+      expect(exitCode).toEqual(3);
       expect(output).toContain('1 spec, 1 failure');
     });
 
