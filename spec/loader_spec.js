@@ -68,7 +68,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
     expect(importShim).toHaveBeenCalledWith('file:///the/path/to/the/module');
     await expectAsync(loaderPromise).toBePending();
 
-    resolve();
+    resolve({});
 
     await expectAsync(loaderPromise).toBeResolved();
   });

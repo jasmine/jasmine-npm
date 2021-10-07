@@ -2,7 +2,7 @@ const path = require('path');
 const loadConfig = require('../lib/loadConfig');
 
 describe('loadConfig', function() {
-  it('should configure the jasmine object based on env and call execute', function() {
+  it('should configure the jasmine object based on env and call execute', async function() {
     const fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
       'stopOnSpecFailure', 'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']),
         env = {
@@ -18,7 +18,7 @@ describe('loadConfig', function() {
           files: 'specs/**/*.spec.js',
           filter: 'filter'
         };
-    loadConfig(fakeJasmine, env, console.log);
+    await loadConfig(fakeJasmine, env, console.log);
 
     expect(fakeJasmine.loadConfigFile).toHaveBeenCalledWith(env.configPath);
     expect(fakeJasmine.stopSpecOnExpectationFailure).toHaveBeenCalledWith(env.stopOnFailure);
@@ -32,11 +32,11 @@ describe('loadConfig', function() {
     expect(fakeJasmine.showColors).toHaveBeenCalledWith(env.color);
   });
 
-  it('should not configure the jasmine object when env is an empty object and call execute', function() {
+  it('should not configure the jasmine object when env is an empty object and call execute', async function() {
     const fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
       'stopOnSpecFailure', 'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']),
         env = {};
-    loadConfig(fakeJasmine, env, console.log);
+    await loadConfig(fakeJasmine, env, console.log);
 
     expect(fakeJasmine.loadConfigFile).toHaveBeenCalled();
     expect(fakeJasmine.stopSpecOnExpectationFailure).not.toHaveBeenCalled();

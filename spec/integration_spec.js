@@ -23,7 +23,7 @@ describe('Integration', function () {
   });
 
   it('supports ES modules', async function () {
-    let {exitCode, output} = await runJasmine('spec/fixtures/esm');
+    let {exitCode, output} = await runJasmine('spec/fixtures/esm', 'jasmine.mjs');
     expect(exitCode).toEqual(0);
     // Node < 14 outputs a warning when ES modules are used, e.g.:
     // (node:5258) ExperimentalWarning: The ESM module loader is experimental.
@@ -94,14 +94,14 @@ describe('Integration', function () {
       }
     }
 
-    const {exitCode, output} = await runJasmine('spec/fixtures/esm-importing-commonjs-syntax-error', true);
+    const {exitCode, output} = await runJasmine('spec/fixtures/esm-importing-commonjs-syntax-error');
     expect(exitCode).toEqual(1);
     expect(output).toContain('SyntaxError');
     expect(output).toContain('syntax_error.js');
   });
 
   it('handles exceptions thrown from a module loaded from an ESM spec properly', async function() {
-    const {exitCode, output} = await runJasmine('spec/fixtures/esm-indirect-error', true);
+    const {exitCode, output} = await runJasmine('spec/fixtures/esm-indirect-error');
     expect(exitCode).toEqual(1);
     expect(output).toContain('nope');
     expect(output).toContain('throws.mjs');
@@ -151,8 +151,8 @@ describe('Integration', function () {
   });
 });
 
-async function runJasmine(cwd) {
-  const args = ['../../../bin/jasmine.js', '--config=jasmine.json'];
+async function runJasmine(cwd, config="jasmine.json") {
+  const args = ['../../../bin/jasmine.js', '--config=' + config];
   return runCommand('node', args, cwd);
 }
 

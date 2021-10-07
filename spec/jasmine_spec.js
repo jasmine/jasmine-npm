@@ -217,16 +217,15 @@ describe('Jasmine', function() {
 
   describe('loading configurations', function() {
     beforeEach(function() {
-      this.loader = jasmine.createSpyObj('loader', ['load']);
       this.fixtureJasmine = new Jasmine({
         jasmineCore: this.fakeJasmineCore,
-        loader: this.loader,
         projectBaseDir: 'spec/fixtures/sample_project'
       });
     });
 
     describe('from an object', function() {
       beforeEach(function() {
+        this.loader = this.fixtureJasmine.loader = jasmine.createSpyObj('loader', ['load']);
         this.configObject = {
           spec_dir: "spec",
           spec_files: [
@@ -341,6 +340,7 @@ describe('Jasmine', function() {
         expect(this.fixtureJasmine.env.configure.calls.argsFor(0)[0].verboseDeprecations)
           .toBeUndefined();
       });
+
       describe('with jsLoader: "require"', function () {
         it('tells the loader not to always import', async function() {
           this.configObject.jsLoader = 'require';
@@ -385,8 +385,8 @@ describe('Jasmine', function() {
     });
 
     describe('from a file', function() {
-      it('adds unique specs to the jasmine runner', function() {
-        this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.json');
+      it('adds unique specs to the jasmine runner', async function() {
+        await this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.json');
         expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
         expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
         expect(this.fixtureJasmine.specFiles).toEqual([
@@ -395,9 +395,29 @@ describe('Jasmine', function() {
         ]);
       });
 
-      it('loads the specified configuration file from an absolute path', function() {
+      it('can use an ES module', async function() {
+        await this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.mjs');
+        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
+        expect(this.fixtureJasmine.specFiles).toEqual([
+          'spec/fixtures/sample_project/spec/fixture_spec.js',
+          'spec/fixtures/sample_project/spec/other_fixture_spec.js'
+        ]);
+      });
+
+      it('can use a CommonJS module', async function() {
+        await this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.cjs');
+        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
+        expect(this.fixtureJasmine.specFiles).toEqual([
+          'spec/fixtures/sample_project/spec/fixture_spec.js',
+          'spec/fixtures/sample_project/spec/other_fixture_spec.js'
+        ]);
+      });
+
+      it('loads the specified configuration file from an absolute path', async function() {
         const absoluteConfigPath = path.join(__dirname, 'fixtures/sample_project/spec/support/jasmine_alternate.json');
-        this.fixtureJasmine.loadConfigFile(absoluteConfigPath);
+        await this.fixtureJasmine.loadConfigFile(absoluteConfigPath);
         expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
         expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
         expect(this.fixtureJasmine.specFiles).toEqual([
@@ -406,23 +426,17 @@ describe('Jasmine', function() {
         ]);
       });
 
-      it('throw error if specified configuration file doesn\'t exist', function() {
-        const jasmine = this.fixtureJasmine;
-        function load() { jasmine.loadConfigFile('missing.json'); }
-        expect(load).toThrow();
+      it("throws an error if the specified configuration file doesn't exist", async function() {
+        await expectAsync(this.fixtureJasmine.loadConfigFile('missing.json')).toBeRejected();
       });
 
-      it('no error if default configuration file doesn\'t exist', function() {
-        const jasmine = this.fixtureJasmine;
-        function load() {
-          jasmine.projectBaseDir += '/missing';
-          jasmine.loadConfigFile();
-        }
-        expect(load).not.toThrow();
+      it("does not throw if the default configuration file doesn't exist", async function() {
+        this.fixtureJasmine.projectBaseDir += '/missing';
+        await expectAsync(this.fixtureJasmine.loadConfigFile()).toBeResolved();
       });
 
-      it('loads the default configuration file', function() {
-        this.fixtureJasmine.loadConfigFile();
+      it('loads the default configuration file', async function() {
+        await this.fixtureJasmine.loadConfigFile();
         expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/fixture_spec.js'
         ]);
