@@ -271,6 +271,31 @@ describe('command', function() {
       expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
     });
 
+    describe('When the reporter path is relative', function() {
+      beforeEach(function() {
+        this.originalWd = process.cwd();
+      });
+
+      afterEach(function() {
+        process.chdir(this.originalWd);
+      });
+
+      it('evaluates the path based on the cwd', async function() {
+        const Reporter = require('./fixtures/customReporter.js');
+        process.chdir('spec/fixtures');
+        await this.command.run(this.fakeJasmine, ['--reporter=./customReporter.js']);
+        expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
+        expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
+
+        this.fakeJasmine.clearReporters.calls.reset();
+        this.fakeJasmine.addReporter.calls.reset();
+        process.chdir('example');
+        await this.command.run(this.fakeJasmine, ['--reporter=../customReporter.js']);
+        expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
+        expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
+      });
+    });
+
     it('prints an error if the file does not export a reporter', async function() {
       const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'badReporter.js'));
       await this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
