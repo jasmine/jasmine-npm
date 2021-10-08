@@ -29,7 +29,7 @@
   ],
   "dependencies": {
     "glob": "^7.1.6",
-    "jasmine-core": "~3.9.0"
+    "jasmine-core": "github:jasmine/jasmine#4.0"
   },
   "engines": {
     "node": ">=12.17"
