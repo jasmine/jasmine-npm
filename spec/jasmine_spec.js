@@ -348,7 +348,8 @@ describe('Jasmine', function() {
           this.fixtureJasmine.loadConfig(this.configObject);
           await this.fixtureJasmine.loadSpecs();
 
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String), false);
+          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String));
+          expect(this.loader.alwaysImport).toBeFalse();
         });
       });
 
@@ -359,7 +360,8 @@ describe('Jasmine', function() {
           this.fixtureJasmine.loadConfig(this.configObject);
           await this.fixtureJasmine.loadSpecs();
 
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String), true);
+          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String));
+          expect(this.loader.alwaysImport).toBeTrue();
         });
       });
 
@@ -379,7 +381,8 @@ describe('Jasmine', function() {
           this.fixtureJasmine.loadConfig(this.configObject);
           await this.fixtureJasmine.loadSpecs();
 
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String), true);
+          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String));
+          expect(this.loader.alwaysImport).toBeTrue();
         });
       });
     });

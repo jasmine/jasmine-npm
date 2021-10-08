@@ -41,6 +41,24 @@ describe('Integration', function () {
     );
   });
 
+  it('supports ES module reporters that end in .mjs', async function() {
+    let {output} = await runJasmine(
+      'spec/fixtures/sample_project',
+      'spec/support/jasmine.json',
+      ['--reporter=../customReporter.mjs']
+    );
+    expect(output).toContain('customReporter.mjs jasmineDone');
+  });
+
+  it('supports ES module reporters that end in .js', async function() {
+    let {output} = await runJasmine(
+      'spec/fixtures/esm-reporter-packagejson',
+      'jasmine.json',
+      ['--reporter=./customReporter.js']
+    );
+    expect(output).toContain('customReporter.js jasmineDone');
+  });
+
   it('loads .js files using import when jsLoader is "import"', async function() {
     expect(await runJasmine('spec/fixtures/js-loader-import')).toBeSuccess();
   });
@@ -151,8 +169,8 @@ describe('Integration', function () {
   });
 });
 
-async function runJasmine(cwd, config="jasmine.json") {
-  const args = ['../../../bin/jasmine.js', '--config=' + config];
+async function runJasmine(cwd, config="jasmine.json", extraArgs = []) {
+  const args = ['../../../bin/jasmine.js', '--config=' + config].concat(extraArgs);
   return runCommand('node', args, cwd);
 }
 

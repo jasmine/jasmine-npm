@@ -271,6 +271,14 @@ describe('command', function() {
       expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
     });
 
+    it('can specify a reporter that is an ES module', async function() {
+      const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'customReporter.mjs'));
+      const Reporter = (await import(reporterPath)).default;
+      await this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
+      expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
+      expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
+    });
+
     describe('When the reporter path is relative', function() {
       beforeEach(function() {
         this.originalWd = process.cwd();
