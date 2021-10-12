@@ -82,47 +82,14 @@ describe('Jasmine', function() {
   });
 
   describe('Methods that specify files via globs', function() {
-    describe('#addSpecFiles', function() {
-      beforeEach(function() {
-        this.testJasmine.env.deprecated = jasmine.createSpy('env.deprecated');
-      });
-
-      hasCommonFileGlobBehavior('addSpecFiles', 'specFiles');
-
-      it('issues a deprecation warning', function() {
-        this.testJasmine.addSpecFiles([]);
-        expect(this.testJasmine.env.deprecated).toHaveBeenCalledWith(
-          'jasmine#addSpecFiles is deprecated. Use ' +
-            'jasmine#addMatchingSpecFiles instead.'
-        );
-      });
-    });
-
     describe('#addMatchingSpecFiles', function() {
       hasCommonFileGlobBehavior('addMatchingSpecFiles', 'specFiles');
-    });
-
-    describe('#addHelperFiles', function() {
-      beforeEach(function() {
-        this.testJasmine.env.deprecated = jasmine.createSpy('env.deprecated');
-      });
-
-      hasCommonFileGlobBehavior('addHelperFiles', 'helperFiles');
-
-      it('issues a deprecation warning', function() {
-        this.testJasmine.addHelperFiles([]);
-        expect(this.testJasmine.env.deprecated).toHaveBeenCalledWith(
-          'jasmine#addHelperFiles is deprecated. Use ' +
-            'jasmine#addMatchingHelperFiles instead.'
-        );
-      });
     });
 
     describe('#addMatchingHelperFiles', function() {
       hasCommonFileGlobBehavior('addMatchingHelperFiles', 'helperFiles');
     });
-
-
+    
     function hasCommonFileGlobBehavior(method, destProp) {
       it('adds a file with an absolute path', function() {
         const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
