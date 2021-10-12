@@ -302,20 +302,32 @@ describe('command', function() {
       });
     });
 
-    it('prints an error if the file does not export a reporter', async function() {
+    it('throws with context if the file does not export a reporter', async function() {
       const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'badReporter.js'));
-      await this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
+      await expectAsync(
+        this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath])
+      ).toBeRejectedWithError(new RegExp(
+        'Failed to instantiate reporter from ' +
+        escapeStringForRegexp(reporterPath) + '\nUnderlying error: .' +
+        '*Reporter is not a constructor'
+      ));
       expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
       expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
-      expect(this.out.getOutput()).toContain('failed to register reporter');
     });
 
-    it('prints an error if the reporter file does not exist', async function() {
+    it('throws with context if the reporter file does not exist', async function() {
       const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'missingReporter.js'));
-      await this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
+
+      await expectAsync(
+        this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath])
+      ).toBeRejectedWithError(new RegExp(
+        'Failed to load reporter module ' +
+          escapeStringForRegexp(reporterPath) + '\nUnderlying error: ' +
+        '.*Cannot find module'
+      ));
+
       expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
       expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
-      expect(this.out.getOutput()).toContain('failed to register reporter');
     });
 
     it('should not configure fail fast by default', async function() {
@@ -370,3 +382,12 @@ describe('command', function() {
     });
   });
 });
+
+// Adapted from Sindre Sorhus's escape-string-regexp (MIT license)
+function escapeStringForRegexp(string) {
+  // Escape characters with special meaning either inside or outside character sets.
+  // Use a simple backslash escape when it’s always valid, and a `\xnn` escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.
+  return string
+    .replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+    .replace(/-/g, '\\x2d');
+}
