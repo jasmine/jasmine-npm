@@ -52,8 +52,8 @@ describe('command', function() {
 
     this.command = new Command(projectBaseDir, examplesDir, this.out.print);
 
-    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute', 'stopSpecOnExpectationFailure',
-      'stopOnSpecFailure', 'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']);
+    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute',
+      'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter', 'configure']);
     this.fakeJasmine.execute.and.returnValue(Promise.resolve());
   });
 
@@ -318,34 +318,30 @@ describe('command', function() {
       expect(this.out.getOutput()).toContain('failed to register reporter');
     });
 
-    it('should not configure stopping spec on expectation failure by default', async function() {
-      await this.command.run(this.fakeJasmine, []);
-      expect(this.fakeJasmine.stopSpecOnExpectationFailure).not.toHaveBeenCalled();
-    });
-
-    it('should be able to turn on stopping spec on expectation failure', async function() {
-      await this.command.run(this.fakeJasmine, ['--stop-on-failure=true']);
-      expect(this.fakeJasmine.stopSpecOnExpectationFailure).toHaveBeenCalledWith(true);
-    });
-
-    it('should be able to turn off stopping spec on expectation failure', async function() {
-      await this.command.run(this.fakeJasmine, ['--stop-on-failure=false']);
-      expect(this.fakeJasmine.stopSpecOnExpectationFailure).toHaveBeenCalledWith(false);
-    });
-
     it('should not configure fail fast by default', async function() {
       await this.command.run(this.fakeJasmine, []);
-      expect(this.fakeJasmine.stopOnSpecFailure).not.toHaveBeenCalled();
+      expect(this.fakeJasmine.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
+        stopOnSpecFailure: jasmine.anything()
+      }));
+      expect(this.fakeJasmine.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
+        stopSpecOnExpectationFailure: jasmine.anything()
+      }));
     });
 
     it('should be able to turn on fail fast', async function() {
       await this.command.run(this.fakeJasmine, ['--fail-fast=true']);
-      expect(this.fakeJasmine.stopOnSpecFailure).toHaveBeenCalledWith(true);
+      expect(this.fakeJasmine.configure).toHaveBeenCalledWith({
+        stopOnSpecFailure: true,
+        stopSpecOnExpectationFailure: true
+      });
     });
 
     it('should be able to turn off fail fast', async function() {
       await this.command.run(this.fakeJasmine, ['--fail-fast=false']);
-      expect(this.fakeJasmine.stopOnSpecFailure).toHaveBeenCalledWith(false);
+      expect(this.fakeJasmine.configure).toHaveBeenCalledWith({
+        stopOnSpecFailure: false,
+        stopSpecOnExpectationFailure: false
+      });
     });
 
     it('uses jasmine-core defaults if random is unspecified', async function() {
