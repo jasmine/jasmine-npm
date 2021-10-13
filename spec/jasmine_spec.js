@@ -497,7 +497,7 @@ describe('Jasmine', function() {
       expect(this.testJasmine.env.configure).toHaveBeenCalledWith({specFilter: jasmine.any(Function)});
     });
 
-    it('adds an exit code reporter', async function() {
+    it('adds an exit code reporter the first time execute is called', async function() {
       const completionReporterSpy = jasmine.createSpyObj('reporter', ['onComplete']);
       this.testJasmine.completionReporter = completionReporterSpy;
       spyOn(this.testJasmine, 'addReporter');
@@ -506,6 +506,12 @@ describe('Jasmine', function() {
 
       expect(this.testJasmine.addReporter).toHaveBeenCalledWith(completionReporterSpy);
       expect(this.testJasmine.completionReporter.exitHandler).toBe(this.testJasmine.checkExit);
+      this.testJasmine.addReporter.calls.reset();
+
+      await this.testJasmine.execute();
+      expect(this.testJasmine.addReporter).not.toHaveBeenCalledWith(
+        completionReporterSpy
+      );
     });
 
     describe('when exit is called prematurely', function() {
