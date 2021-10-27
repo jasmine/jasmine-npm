@@ -23,15 +23,9 @@ describe('Integration', function () {
   });
 
   it('supports ES modules', async function () {
-    let {exitCode, output} = await runJasmine('spec/fixtures/esm', 'jasmine.mjs');
+    const {exitCode, output} = await runJasmine('spec/fixtures/esm', 'jasmine.mjs');
     expect(exitCode).toEqual(0);
-    // Node < 14 outputs a warning when ES modules are used, e.g.:
-    // (node:5258) ExperimentalWarning: The ESM module loader is experimental.
-    // The position of this warning in the output varies. Sometimes it
-    // occurs before the lines we're interested in but sometimes it's in
-    // the middle of them.
-    output = output.replace(/^.*ExperimentalWarning.*$\n/m, '');
-    expect(output).toContain(
+    expect(stripExperimentalModulesWarning(output)).toContain(
       'name_reporter\n' +
       'commonjs_helper\n' +
       'esm_helper\n' +
@@ -128,7 +122,9 @@ describe('Integration', function () {
   it('can configure the env via the `env` config property', async function() {
     const {exitCode, output} = await runJasmine('spec/fixtures/env-config');
     expect(exitCode).toEqual(0);
-    expect(output).toContain('in spec 1\n.in spec 2\n.in spec 3\n.in spec 4\n.in spec 5');
+    expect(stripExperimentalModulesWarning(output)).toContain(
+      'in spec 1\n.in spec 2\n.in spec 3\n.in spec 4\n.in spec 5'
+    );
   });
 
   describe('Programmatic usage', function() {
@@ -195,4 +191,13 @@ async function runCommand(cmd, args, cwd = '.') {
       resolve({exitCode, output});
     });
   });
+}
+
+function stripExperimentalModulesWarning(jasmineOutput) {
+  // Node < 14 outputs a warning when ES modules are used, e.g.:
+  // (node:5258) ExperimentalWarning: The ESM module loader is experimental.
+  // The position of this warning in the output varies. Sometimes it
+  // occurs before the lines we're interested in but sometimes it's in
+  // the middle of them.
+  return jasmineOutput.replace(/^.*ExperimentalWarning.*$\n/m, '');
 }
