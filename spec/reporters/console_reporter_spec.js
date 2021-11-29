@@ -1,12 +1,6 @@
 const ConsoleReporter = require('../../lib/reporters/console_reporter');
-const jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
 
 describe("ConsoleReporter", function() {
-  const fakeStack = ['foo' + jasmineCorePath,
-    'bar ' + jasmineCorePath,
-    'line of useful stack trace',
-    'baz ' + jasmineCorePath].join('\n');
-
   beforeEach(function() {
     this.out = (function() {
       let output = "";
@@ -222,7 +216,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: fakeStack
+          stack: ''
         }
       ],
       passedExpectations: []
@@ -257,7 +251,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -272,7 +265,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: fakeStack
+          stack: ''
         }
       ],
       passedExpectations: []
@@ -285,11 +278,10 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toMatch(/1\) A suite with a failing spec/);
   });
 
-  it("reports a summary when done that includes stack traces without jasmine internals for a failing suite", function() {
+  it("reports a summary when done that includes stack traces for a failing suite", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
-      print: this.out.print,
-      jasmineCorePath: jasmineCorePath
+      print: this.out.print
     });
 
     reporter.jasmineStarted();
@@ -304,7 +296,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: fakeStack
+          stack: 'line 1\nline 2'
         }
       ],
       passedExpectations: []
@@ -315,15 +307,14 @@ describe("ConsoleReporter", function() {
     reporter.jasmineDone();
 
     expect(this.out.getOutput()).toMatch(/true to be false/);
-    expect(this.out.getOutput()).toMatch(/line of useful stack trace/);
-    expect(this.out.getOutput()).not.toMatch(jasmineCorePath);
+    expect(this.out.getOutput()).toMatch(/line 1/);
+    expect(this.out.getOutput()).toMatch(/line 2/);
   });
 
   it("reports a summary when done in case that stack is somehow undefined", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -374,7 +365,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: fakeStack
+          stack: 'the original stack trace'
         }
       ],
       passedExpectations: []
@@ -392,7 +383,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -416,7 +406,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -435,7 +424,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -459,7 +447,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -488,7 +475,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -512,7 +498,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();

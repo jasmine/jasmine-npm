@@ -89,7 +89,7 @@ describe('Jasmine', function() {
     describe('#addMatchingHelperFiles', function() {
       hasCommonFileGlobBehavior('addMatchingHelperFiles', 'helperFiles');
     });
-    
+
     function hasCommonFileGlobBehavior(method, destProp) {
       it('adds a file with an absolute path', function() {
         const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
@@ -173,7 +173,6 @@ describe('Jasmine', function() {
       const reporterOptions = {
         print: 'printer',
         showColors: true,
-        jasmineCorePath: 'path',
       };
 
       const expectedReporterOptions = Object.keys(reporterOptions).reduce(function(options, key) {
@@ -194,7 +193,6 @@ describe('Jasmine', function() {
       const expectedReporterOptions = {
         print: jasmine.any(Function),
         showColors: true,
-        jasmineCorePath: path.normalize('fake/jasmine/path/jasmine.js')
       };
 
       expect(this.testJasmine.reporter.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
