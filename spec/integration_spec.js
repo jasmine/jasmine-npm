@@ -163,6 +163,14 @@ describe('Integration', function () {
     const {exitCode} = await runCommand('node', ['spec/fixtures/prematureExit.js']);
     expect(exitCode).toEqual(4);
   });
+
+  it('does not create globals when the globals option is false', async function() {
+    const {exitCode, output} = await runCommand('node', ['runner.js'], 'spec/fixtures/no-globals');
+
+    expect(exitCode).toEqual(0);
+    expect(output).toContain('1 spec, 0 failures');
+    expect(output).toContain('Globals OK');
+  });
 });
 
 async function runJasmine(cwd, config="jasmine.json", extraArgs = []) {
