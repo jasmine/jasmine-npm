@@ -471,7 +471,7 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).not.toContain("Spec has no expectations");
   });
 
-  it('reports a summary with trace info for a failed spec with trace', function() {
+  it('reports a summary with debug log info for a failed spec with debug logs', function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
@@ -484,14 +484,14 @@ describe("ConsoleReporter", function() {
       fullName: "A suite with a failing spec that has a trace",
       failedExpectations: [],
       passedExpectations: [],
-      trace: [
+      debugLogs: [
         {timestamp: 1, message: 'msg 1'},
         {timestamp: 100, message: 'msg 2'},
       ]
     });
     reporter.jasmineDone();
 
-    expect(this.out.getOutput()).toContain('  Trace:\n    1ms: msg 1\n    100ms: msg 2');
+    expect(this.out.getOutput()).toContain('  Debug logs:\n    1ms: msg 1\n    100ms: msg 2');
   });
 
   it('reports a summary without a "no expectations" message for a spec having passed expectations', function () {
