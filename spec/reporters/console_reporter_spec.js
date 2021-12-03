@@ -139,7 +139,7 @@ describe("ConsoleReporter", function() {
 
     reporter.jasmineStarted();
     this.out.clear();
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/No specs found/);
   });
@@ -230,6 +230,42 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toMatch("Finished in 0.1 seconds\n");
   });
 
+  it('counts failures that are reported in the jasmineDone event', function() {
+    const reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+    });
+
+    reporter.jasmineStarted();
+    reporter.specDone({
+      status: "failed",
+      description: "with a failing spec",
+      fullName: "with a failing spec",
+      failedExpectations: [
+        {
+          message: "Expected true to be false.",
+        }
+      ],
+      passedExpectations: []
+    });
+
+    this.out.clear();
+
+    reporter.jasmineDone({
+      totalTime: 100,
+      failedExpectations: [
+        {
+          message: "Expected true to be false.",
+        },
+        {
+          message: "Expected true to be false.",
+        }
+      ],
+    });
+
+    expect(this.out.getOutput()).toMatch(/1 spec, 3 failures/);
+  });
+
   it("reports a summary when done that indicates the number of specs run (when it's less that the full number of specs)", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
@@ -273,7 +309,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/1\) A suite with a failing spec/);
   });
@@ -304,7 +340,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/true to be false/);
     expect(this.out.getOutput()).toMatch(/line 1/);
@@ -337,7 +373,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/true to be false/);
   });
@@ -373,7 +409,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/true to be false/);
     expect(this.out.getOutput()).toMatch(stackLine);
@@ -396,7 +432,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toContain("A suite with a pending spec");
     expect(this.out.getOutput()).toContain("It's not ready yet!");
@@ -438,7 +474,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toContain("Spec has no expectations");
   });
@@ -466,7 +502,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).not.toContain("Spec has no expectations");
   });
@@ -489,7 +525,7 @@ describe("ConsoleReporter", function() {
         {timestamp: 100, message: 'msg 2'},
       ]
     });
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toContain('  Debug logs:\n    1ms: msg 1\n    100ms: msg 2');
   });
@@ -527,7 +563,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).not.toContain("Spec has no expectations");
   });
