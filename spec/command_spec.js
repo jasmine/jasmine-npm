@@ -53,7 +53,8 @@ describe('command', function() {
     this.command = new Command(projectBaseDir, examplesDir, this.out.print);
 
     this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute',
-      'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter', 'configure']);
+      'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']);
+    this.fakeJasmine.env = jasmine.createSpyObj('env', ['configure']);
     this.fakeJasmine.execute.and.returnValue(Promise.resolve());
   });
 
@@ -332,17 +333,17 @@ describe('command', function() {
 
     it('should not configure fail fast by default', async function() {
       await this.command.run(this.fakeJasmine, []);
-      expect(this.fakeJasmine.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
+      expect(this.fakeJasmine.env.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
         stopOnSpecFailure: jasmine.anything()
       }));
-      expect(this.fakeJasmine.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
+      expect(this.fakeJasmine.env.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
         stopSpecOnExpectationFailure: jasmine.anything()
       }));
     });
 
     it('should be able to turn on fail fast', async function() {
       await this.command.run(this.fakeJasmine, ['--fail-fast=true']);
-      expect(this.fakeJasmine.configure).toHaveBeenCalledWith({
+      expect(this.fakeJasmine.env.configure).toHaveBeenCalledWith({
         stopOnSpecFailure: true,
         stopSpecOnExpectationFailure: true
       });
@@ -350,7 +351,7 @@ describe('command', function() {
 
     it('should be able to turn off fail fast', async function() {
       await this.command.run(this.fakeJasmine, ['--fail-fast=false']);
-      expect(this.fakeJasmine.configure).toHaveBeenCalledWith({
+      expect(this.fakeJasmine.env.configure).toHaveBeenCalledWith({
         stopOnSpecFailure: false,
         stopSpecOnExpectationFailure: false
       });
