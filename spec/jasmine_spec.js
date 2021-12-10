@@ -34,8 +34,6 @@ describe('Jasmine', function() {
     this.execute = async function(options = {}) {
       const overallStatus = options.overallStatus || 'passed';
       const executeArgs = options.executeArgs || [];
-      const reporters = [];
-      this.testJasmine.env.addReporter.and.callFake(r => reporters.push(r));
 
       let executePromise;
       let resolveEnvExecutePromise;
@@ -50,11 +48,7 @@ describe('Jasmine', function() {
         executePromise = this.testJasmine.execute.apply(this.testJasmine, executeArgs);
       });
 
-      for (const reporter of reporters) {
-        reporter.jasmineDone({overallStatus});
-      }
-
-      resolveEnvExecutePromise();
+      resolveEnvExecutePromise({overallStatus});
       return executePromise;
     };
   });
