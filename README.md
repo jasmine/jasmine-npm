@@ -14,89 +14,43 @@ This module allows you to run Jasmine specs for your Node.js code. The output wi
 
 ## Documentation
 
-https://jasmine.github.io/edge/node.html
+https://jasmine.github.io/setup/nodejs.html
 
-## Installation
+## Quick Start
+
+Installation:
+
 ```sh
-# Local installation:
 npm install --save-dev jasmine
-
-# Global installation
-npm install -g jasmine
 ```
 
-## Initializing
+To initialize a project for Jasmine:
 
-To initialize a project for Jasmine
+```sh
+npx jasmine init
+````
 
-`jasmine init`
+To seed your project with some examples:
 
-To initialize a project for Jasmine when being installed locally
+```sh
+npx jasmine examples
+````
 
-`node_modules/.bin/jasmine init`
+To run your test suite:
 
-or
-
-`npx jasmine init`
-
-To seed your project with some examples
-
-`jasmine examples`
-
-## Usage
-
-To run your test suite
-
-`jasmine`
-
-## Configuration
-
-Customize `spec/support/jasmine.json` to enumerate the source and spec files you would like the Jasmine runner to include.
-You may use dir glob strings.
-More information on the format of `jasmine.json` can be found in [the documentation](http://jasmine.github.io/edge/node.html#section-Configuration)
-
-Alternatively, you may specify the path to your `jasmine.json` by setting an environment variable or an option:
-
-```shell
-jasmine JASMINE_CONFIG_PATH=relative/path/to/your/jasmine.json
-jasmine --config=relative/path/to/your/jasmine.json
-```
+```sh
+npx jasmine
+````
 
 ## ES and CommonJS module compatibility
 
-By default, Jasmine uses `import` to load spec files and helper files. This
-should work for both ES modules and CommonJS modules. No additional 
-configuration is required. If you need some files to be loaded via `require`,
-add `"jsLoader": "require"` to `jasmine.json`. With that set, Jasmine will use 
-`require` to load all files with names that don't end in `.mjs`.
+Jasmine is compatible with both ES modules and CommonJS modules. See the 
+[setup guide](https://jasmine.github.io/setup/nodejs.html) for more information.
 
-
-# Filtering specs
-
-Execute only those specs which filename match given glob:
-
-```shell
-jasmine "spec/**/critical/*Spec.js"
-```
-
-Or a single file:
-
-```shell
-jasmine spec/currentSpec.js
-```
-
-Or execute only those specs which name matches a particular regex:
-
-```shell
-jasmine --filter "adapter21*"
-```
-
-(where the *name* of a spec is the first parameter passed to `describe()`)
 
 ## Node version compatibility
 
 Jasmine supports Node 12.x where x >=17, Node 14, and Node 16.
-
 
 ## Support
 
