@@ -342,21 +342,13 @@ describe('command', function() {
     });
 
     it('should be able to turn on fail fast', async function() {
-      await this.command.run(this.fakeJasmine, ['--fail-fast=true']);
+      await this.command.run(this.fakeJasmine, ['--fail-fast']);
       expect(this.fakeJasmine.env.configure).toHaveBeenCalledWith({
         stopOnSpecFailure: true,
         stopSpecOnExpectationFailure: true
       });
     });
-
-    it('should be able to turn off fail fast', async function() {
-      await this.command.run(this.fakeJasmine, ['--fail-fast=false']);
-      expect(this.fakeJasmine.env.configure).toHaveBeenCalledWith({
-        stopOnSpecFailure: false,
-        stopSpecOnExpectationFailure: false
-      });
-    });
-
+    
     it('uses jasmine-core defaults if random is unspecified', async function() {
       await this.command.run(this.fakeJasmine, []);
       expect(this.fakeJasmine.randomizeTests).not.toHaveBeenCalled();
