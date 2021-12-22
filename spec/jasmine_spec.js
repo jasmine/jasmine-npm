@@ -1,6 +1,7 @@
 const path = require('path');
 const slash = require('slash');
 const Jasmine = require('../lib/jasmine');
+const Loader = require("../lib/loader");
 
 describe('Jasmine', function() {
   beforeEach(function() {
@@ -416,13 +417,34 @@ describe('Jasmine', function() {
         await expectAsync(this.fixtureJasmine.loadConfigFile('missing.json')).toBeRejected();
       });
 
-      it("does not throw if the default configuration file doesn't exist", async function() {
+      it("does not throw if the default configuration files don't exist", async function() {
         this.fixtureJasmine.projectBaseDir += '/missing';
         await expectAsync(this.fixtureJasmine.loadConfigFile()).toBeResolved();
       });
 
-      it('loads the default configuration file', async function() {
+      it('loads the default .json configuration file', async function() {
         await this.fixtureJasmine.loadConfigFile();
+        expect(this.fixtureJasmine.specFiles).toEqual([
+          'spec/fixtures/sample_project/spec/fixture_spec.js'
+        ]);
+      });
+
+      it('loads the default .js configuration file', async function() {
+        const config = require('./fixtures/sample_project/spec/support/jasmine.json');
+        spyOn(Loader.prototype, 'load').and.callFake(function(path) {
+          if (path.endsWith('/jasmine.js')) {
+            return Promise.resolve(config);
+          } else {
+            const e = new Error(`Module not found: ${path}`);
+            e.code = 'MODULE_NOT_FOUND';
+            return Promise.reject(e);
+          }
+        });
+
+        await this.fixtureJasmine.loadConfigFile();
+        expect(Loader.prototype.load).toHaveBeenCalledWith(jasmine.stringMatching(
+          '/fixtures/sample_project/spec/support/jasmine.js$'
+        ));
         expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/fixture_spec.js'
         ]);
