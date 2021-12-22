@@ -425,14 +425,14 @@ describe('Jasmine', function() {
       it('loads the default .json configuration file', async function() {
         await this.fixtureJasmine.loadConfigFile();
         expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/fixture_spec.js'
+          jasmine.stringMatching('^spec[\\/]fixtures[\\/]sample_project[\\/]spec[\\/]fixture_spec.js$')
         ]);
       });
 
       it('loads the default .js configuration file', async function() {
         const config = require('./fixtures/sample_project/spec/support/jasmine.json');
         spyOn(Loader.prototype, 'load').and.callFake(function(path) {
-          if (path.endsWith('/jasmine.js')) {
+          if (path.endsWith('jasmine.js')) {
             return Promise.resolve(config);
           } else {
             const e = new Error(`Module not found: ${path}`);
@@ -443,7 +443,7 @@ describe('Jasmine', function() {
 
         await this.fixtureJasmine.loadConfigFile();
         expect(Loader.prototype.load).toHaveBeenCalledWith(jasmine.stringMatching(
-          '/fixtures/sample_project/spec/support/jasmine.js$'
+          'jasmine\.js$'
         ));
         expect(this.fixtureJasmine.specFiles).toEqual([
           'spec/fixtures/sample_project/spec/fixture_spec.js'
