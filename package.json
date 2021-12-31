@@ -28,7 +28,7 @@
   ],
   "dependencies": {
     "glob": "^7.1.6",
-    "jasmine-core": "github:jasmine/jasmine#3.99"
+    "jasmine-core": "github:jasmine/jasmine#main"
   },
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
