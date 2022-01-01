@@ -73,5 +73,3 @@ workflows:
             branches:
                only:
                  - main
-                 - "3.99"
-                 - "4.0"
