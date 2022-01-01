@@ -26,21 +26,9 @@ executors:
     docker:
     - image: circleci/node:12
     working_directory: ~/workspace
-  node12_0:
-    docker:
-    - image: circleci/node:12.0
-    working_directory: ~/workspace
   node12_17:
     docker:
     - image: circleci/node:12.17
-    working_directory: ~/workspace
-  node12_16:
-    docker:
-    - image: circleci/node:12.16
-    working_directory: ~/workspace
-  node10:
-    docker:
-      - image: circleci/node:10
     working_directory: ~/workspace
 
 jobs:
@@ -75,9 +63,6 @@ workflows:
                 - node14_7
                 - node12_latest
                 - node12_17 # first with dynamic import() of commonjs modules
-                - node12_16
-                - node12_0
-                - node10
   cron:
     <<: *push_workflow
     triggers:

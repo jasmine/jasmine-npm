@@ -1,4 +1,4 @@
-{
+const config = {
   "spec_dir": ".",
   "spec_files": [
     "commonjs_spec.js",
@@ -11,4 +11,5 @@
   ],
   "stopSpecOnExpectationFailure": false,
   "random": false
-}
+};
+export default config;

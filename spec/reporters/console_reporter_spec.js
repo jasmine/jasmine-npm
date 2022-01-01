@@ -1,12 +1,6 @@
 const ConsoleReporter = require('../../lib/reporters/console_reporter');
-const jasmineCorePath = 'path/to/jasmine/core/jasmine.js';
 
 describe("ConsoleReporter", function() {
-  const fakeStack = ['foo' + jasmineCorePath,
-    'bar ' + jasmineCorePath,
-    'line of useful stack trace',
-    'baz ' + jasmineCorePath].join('\n');
-
   beforeEach(function() {
     this.out = (function() {
       let output = "";
@@ -145,7 +139,7 @@ describe("ConsoleReporter", function() {
 
     reporter.jasmineStarted();
     this.out.clear();
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/No specs found/);
   });
@@ -222,7 +216,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: fakeStack
+          stack: ''
         }
       ],
       passedExpectations: []
@@ -234,6 +228,42 @@ describe("ConsoleReporter", function() {
 
     expect(this.out.getOutput()).toMatch(/3 specs, 1 failure, 1 pending spec/);
     expect(this.out.getOutput()).toMatch("Finished in 0.1 seconds\n");
+  });
+
+  it('counts failures that are reported in the jasmineDone event', function() {
+    const reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+    });
+
+    reporter.jasmineStarted();
+    reporter.specDone({
+      status: "failed",
+      description: "with a failing spec",
+      fullName: "with a failing spec",
+      failedExpectations: [
+        {
+          message: "Expected true to be false.",
+        }
+      ],
+      passedExpectations: []
+    });
+
+    this.out.clear();
+
+    reporter.jasmineDone({
+      totalTime: 100,
+      failedExpectations: [
+        {
+          message: "Expected true to be false.",
+        },
+        {
+          message: "Expected true to be false.",
+        }
+      ],
+    });
+
+    expect(this.out.getOutput()).toMatch(/1 spec, 3 failures/);
   });
 
   it("reports a summary when done that indicates the number of specs run (when it's less that the full number of specs)", function() {
@@ -257,7 +287,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -272,7 +301,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: fakeStack
+          stack: ''
         }
       ],
       passedExpectations: []
@@ -280,16 +309,15 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/1\) A suite with a failing spec/);
   });
 
-  it("reports a summary when done that includes stack traces without jasmine internals for a failing suite", function() {
+  it("reports a summary when done that includes stack traces for a failing suite", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
-      print: this.out.print,
-      jasmineCorePath: jasmineCorePath
+      print: this.out.print
     });
 
     reporter.jasmineStarted();
@@ -304,7 +332,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: fakeStack
+          stack: 'line 1\nline 2'
         }
       ],
       passedExpectations: []
@@ -312,18 +340,17 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/true to be false/);
-    expect(this.out.getOutput()).toMatch(/line of useful stack trace/);
-    expect(this.out.getOutput()).not.toMatch(jasmineCorePath);
+    expect(this.out.getOutput()).toMatch(/line 1/);
+    expect(this.out.getOutput()).toMatch(/line 2/);
   });
 
   it("reports a summary when done in case that stack is somehow undefined", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -346,7 +373,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/true to be false/);
   });
@@ -374,7 +401,7 @@ describe("ConsoleReporter", function() {
           message: "Expected true to be false.",
           expected: false,
           actual: true,
-          stack: fakeStack
+          stack: 'the original stack trace'
         }
       ],
       passedExpectations: []
@@ -382,7 +409,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toMatch(/true to be false/);
     expect(this.out.getOutput()).toMatch(stackLine);
@@ -392,7 +419,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -406,7 +432,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toContain("A suite with a pending spec");
     expect(this.out.getOutput()).toContain("It's not ready yet!");
@@ -416,7 +442,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -435,7 +460,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -450,7 +474,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).toContain("Spec has no expectations");
   });
@@ -459,7 +483,6 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -479,16 +502,15 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).not.toContain("Spec has no expectations");
   });
 
-  it('reports a summary with trace info for a failed spec with trace', function() {
+  it('reports a summary with debug log info for a failed spec with debug logs', function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -498,21 +520,20 @@ describe("ConsoleReporter", function() {
       fullName: "A suite with a failing spec that has a trace",
       failedExpectations: [],
       passedExpectations: [],
-      trace: [
+      debugLogs: [
         {timestamp: 1, message: 'msg 1'},
         {timestamp: 100, message: 'msg 2'},
       ]
     });
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
-    expect(this.out.getOutput()).toContain('  Trace:\n    1ms: msg 1\n    100ms: msg 2');
+    expect(this.out.getOutput()).toContain('  Debug logs:\n    1ms: msg 1\n    100ms: msg 2');
   });
 
   it('reports a summary without a "no expectations" message for a spec having passed expectations', function () {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      jasmineCorePath: jasmineCorePath
     });
 
     reporter.jasmineStarted();
@@ -542,7 +563,7 @@ describe("ConsoleReporter", function() {
 
     this.out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(this.out.getOutput()).not.toContain("Spec has no expectations");
   });

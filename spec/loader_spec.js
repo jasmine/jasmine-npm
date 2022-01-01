@@ -5,6 +5,10 @@ describe('loader', function() {
     delete global.require_tester_was_loaded;
   });
 
+  it('sets alwaysImport to true by default', function() {
+    expect(new Loader().alwaysImport).toBeTrue();
+  });
+
   describe('#load', function() {
     describe('With alwaysImport: true', function() {
       describe('When the path ends in .mjs', function () {
@@ -14,11 +18,37 @@ describe('loader', function() {
       describe('When the path does not end in .mjs', function () {
         esModuleSharedExamples('js', true);
       });
+
+      it('uses require to load JSON files', async function() {
+        const requireShim = jasmine.createSpy('requireShim')
+          .and.returnValue(Promise.resolve());
+        const importShim = jasmine.createSpy('importShim');
+        const loader = new Loader({requireShim, importShim});
+        loader.alwaysImport = true;
+
+        await expectAsync(loader.load('./jasmine.json')).toBeResolved();
+
+        expect(requireShim).toHaveBeenCalledWith('./jasmine.json');
+        expect(importShim).not.toHaveBeenCalled();
+      });
     });
 
     describe('With alwaysImport: false', function() {
       describe('When the path ends in .mjs', function () {
         esModuleSharedExamples('mjs', false);
+      });
+
+      it('uses require to load JSON files', async function() {
+        const requireShim = jasmine.createSpy('requireShim')
+          .and.returnValue(Promise.resolve());
+        const importShim = jasmine.createSpy('importShim');
+        const loader = new Loader({requireShim, importShim});
+        loader.alwaysImport = false;
+
+        await expectAsync(loader.load('./jasmine.json')).toBeResolved();
+
+        expect(requireShim).toHaveBeenCalledWith('./jasmine.json');
+        expect(importShim).not.toHaveBeenCalled();
       });
 
       describe('When the path does not end in .mjs', function () {
@@ -27,8 +57,9 @@ describe('loader', function() {
             .and.returnValue(Promise.resolve());
           const importShim = jasmine.createSpy('importShim');
           const loader = new Loader({requireShim, importShim});
+          loader.alwaysImport = false;
 
-          await expectAsync(loader.load('./foo/bar/baz', false)).toBeResolved();
+          await expectAsync(loader.load('./foo/bar/baz')).toBeResolved();
 
           expect(requireShim).toHaveBeenCalledWith('./foo/bar/baz');
           expect(importShim).not.toHaveBeenCalled();
@@ -39,7 +70,8 @@ describe('loader', function() {
           const requireShim = jasmine.createSpy('requireShim')
             .and.throwError(underlyingError);
           const importShim = jasmine.createSpy('importShim');
-          const loader = new Loader({requireShim, importShim}, false);
+          const loader = new Loader({requireShim, importShim});
+          loader.alwaysImport = false;
 
           await expectAsync(loader.load('foo')).toBeRejectedWith(underlyingError);
         });
@@ -57,15 +89,19 @@ function esModuleSharedExamples(extension, alwaysImport) {
     });
     const importShim = jasmine.createSpy('importShim')
       .and.returnValue(importPromise);
-    const loader = new Loader({requireShim, importShim});
+    const resolvePath = jasmine.createSpy('resolvePath')
+      .and.returnValue('/the/path/to/the/module');
+    const loader = new Loader({requireShim, importShim, resolvePath});
+    loader.alwaysImport = alwaysImport;
 
-    const loaderPromise = loader.load(`./foo/bar/baz.${extension}`, alwaysImport);
+    const loaderPromise = loader.load(`./foo/bar/baz.${extension}`);
 
     expect(requireShim).not.toHaveBeenCalled();
-    expect(importShim).toHaveBeenCalledWith(`file://./foo/bar/baz.${extension}`);
+    expect(resolvePath).toHaveBeenCalledWith(`./foo/bar/baz.${extension}`);
+    expect(importShim).toHaveBeenCalledWith('file:///the/path/to/the/module');
     await expectAsync(loaderPromise).toBePending();
 
-    resolve();
+    resolve({});
 
     await expectAsync(loaderPromise).toBeResolved();
   });

@@ -1,5 +1,6 @@
 {
   "spec_dir": ".",
   "spec_files": ["anEsModuleSpec.js"],
+  "requires": ["../js-loader-import/anEsRequire.js"],
   "jsLoader": "import"
 }

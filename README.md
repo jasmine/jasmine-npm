@@ -14,90 +14,43 @@ This module allows you to run Jasmine specs for your Node.js code. The output wi
 
 ## Documentation
 
-https://jasmine.github.io/edge/node.html
+https://jasmine.github.io/setup/nodejs.html
 
-## Installation
+## Quick Start
+
+Installation:
+
 ```sh
-# Local installation:
 npm install --save-dev jasmine
-
-# Global installation
-npm install -g jasmine
 ```
 
-## Initializing
+To initialize a project for Jasmine:
 
-To initialize a project for Jasmine
+```sh
+npx jasmine init
+````
 
-`jasmine init`
+To seed your project with some examples:
 
-To initialize a project for Jasmine when being installed locally
+```sh
+npx jasmine examples
+````
 
-`node_modules/.bin/jasmine init`
+To run your test suite:
 
-or
+```sh
+npx jasmine
+````
 
-`npx jasmine init`
+## ES and CommonJS module compatibility
 
-To seed your project with some examples
-
-`jasmine examples`
-
-## Usage
-
-To run your test suite
-
-`jasmine`
-
-## Configuration
-
-Customize `spec/support/jasmine.json` to enumerate the source and spec files you would like the Jasmine runner to include.
-You may use dir glob strings.
-More information on the format of `jasmine.json` can be found in [the documentation](http://jasmine.github.io/edge/node.html#section-Configuration)
-
-Alternatively, you may specify the path to your `jasmine.json` by setting an environment variable or an option:
-
-```shell
-jasmine JASMINE_CONFIG_PATH=relative/path/to/your/jasmine.json
-jasmine --config=relative/path/to/your/jasmine.json
-```
-
-## Using ES modules
-
-If the name of a spec file or helper file ends in `.mjs`, Jasmine will load it
-as an [ES module](https://nodejs.org/docs/latest-v13.x/api/esm.html) rather 
-than a CommonJS module. This allows the spec file or helper to import other 
-ES modules. No extra configuration is required.
-
-You can also use ES modules with names ending in `.js` by adding 
-`"jsLoader": "import"` to `jasmine.json`. This should work for CommonJS modules
-as well as ES modules. We expect to make it the default in a future release.
-Please [log an issue](https://github.com/jasmine/jasmine-npm/issues) if you have
-code that doesn't load correctly with `"jsLoader": "import"`.
+Jasmine is compatible with both ES modules and CommonJS modules. See the 
+[setup guide](https://jasmine.github.io/setup/nodejs.html) for more information.
 
 
-# Filtering specs
+## Node version compatibility
 
-Execute only those specs which filename match given glob:
-
-```shell
-jasmine "spec/**/critical/*Spec.js"
-```
-
-Or a single file:
-
-```shell
-jasmine spec/currentSpec.js
-```
-
-Or execute only those specs which name matches a particular regex:
-
-```shell
-jasmine --filter "adapter21*"
-```
-
-(where the *name* of a spec is the first parameter passed to `describe()`)
-
+Jasmine supports Node 12.x where x >=17, Node 14, and Node 16.
 
 ## Support
 
