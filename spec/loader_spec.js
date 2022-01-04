@@ -19,6 +19,26 @@ describe('loader', function() {
         esModuleSharedExamples('js', true);
       });
 
+      describe('When the extnesion is not supported by import()', function() {
+        it('falls back to require()', async function() {
+          const error = new TypeError();
+          error.code = 'ERR_UNKNOWN_FILE_EXTENSION';
+          const payload = {};
+          const requireShim = jasmine.createSpy('requireShim')
+            .and.returnValue(Promise.resolve(payload));
+          const importShim = jasmine.createSpy('importShim')
+            .and.returnValue(Promise.reject(error));
+          const loader = new Loader({requireShim, importShim});
+          loader.alwaysImport = true;
+
+          const result = await loader.load('./spec.jsx');
+
+          expect(result).toBe(payload);
+          expect(requireShim).toHaveBeenCalled();
+          expect(importShim).toHaveBeenCalled();
+        });
+      });
+
       it('uses require to load JSON files', async function() {
         const requireShim = jasmine.createSpy('requireShim')
           .and.returnValue(Promise.resolve());

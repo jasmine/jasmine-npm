@@ -65,6 +65,11 @@ describe('Integration', function () {
     expect(await runJasmine('spec/fixtures/js-loader-default')).toBeSuccess();
   });
 
+  it('falls back to require when loading extensions that import does not support', async function() {
+    expect(await runJasmine('spec/fixtures/import-jsx')).toBeSuccess();
+  });
+
+
   it('handles load-time exceptions from CommonJS specs properly', async function () {
     const {exitCode, output} = await runJasmine('spec/fixtures/cjs-load-exception');
     expect(exitCode).toEqual(1);
