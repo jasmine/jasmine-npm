@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const Command = require('../lib/command');
+const Loader = require("../lib/loader");
 
 const projectBaseDir = 'spec/fixtures/sample_empty_project/';
 const spec = path.join(projectBaseDir, 'spec');
@@ -54,6 +55,7 @@ describe('command', function() {
 
     this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute',
       'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']);
+    this.fakeJasmine.loader = new Loader();
     this.fakeJasmine.env = jasmine.createSpyObj('env', ['configure']);
     this.fakeJasmine.execute.and.returnValue(Promise.resolve());
   });
@@ -270,6 +272,15 @@ describe('command', function() {
       await this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
       expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
       expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
+    });
+
+    it('uses the provided loader to load reporters', async function() {
+      const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'customReporter.js'));
+      spyOn(this.fakeJasmine.loader, 'load').and.callThrough();
+
+      await this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
+
+      expect(this.fakeJasmine.loader.load).toHaveBeenCalledWith(reporterPath);
     });
 
     it('can specify a reporter that is an ES module', async function() {
