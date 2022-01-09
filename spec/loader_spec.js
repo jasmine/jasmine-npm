@@ -1,3 +1,4 @@
+const path = require('path');
 const Loader = require('../lib/loader');
 
 describe('loader', function() {
@@ -116,7 +117,7 @@ describe('loader', function() {
 });
 
 function esModuleSharedExamples(extension, alwaysImport) {
-  it('loads the file as an es module', async function () {
+  async function testBasicEsModuleLoading(separator) {
     const requireShim = jasmine.createSpy('requireShim');
     let resolve;
     const importPromise = new Promise(function (res) {
@@ -129,16 +130,25 @@ function esModuleSharedExamples(extension, alwaysImport) {
     const loader = new Loader({requireShim, importShim, resolvePath});
     loader.alwaysImport = alwaysImport;
 
-    const loaderPromise = loader.load(`./foo/bar/baz.${extension}`);
+    const requestedPath = ['foo', 'bar', `baz.${extension}`].join(separator);
+    const loaderPromise = loader.load(requestedPath);
 
     expect(requireShim).not.toHaveBeenCalled();
-    expect(resolvePath).toHaveBeenCalledWith(`./foo/bar/baz.${extension}`);
+    expect(resolvePath).toHaveBeenCalledWith(requestedPath);
     expect(importShim).toHaveBeenCalledWith('file:///the/path/to/the/module');
     await expectAsync(loaderPromise).toBePending();
 
     resolve({});
 
     await expectAsync(loaderPromise).toBeResolved();
+  }
+  
+  it('loads the file as an es module', async function () {
+    await testBasicEsModuleLoading(path.sep);
+  });
+  
+  it('supports /-separated paths', async function() {
+    await testBasicEsModuleLoading('/');
   });
 
   it("adds the filename to ES module syntax errors", async function() {
