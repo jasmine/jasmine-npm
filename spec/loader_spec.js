@@ -39,6 +39,21 @@ describe('loader', function() {
         });
       });
 
+      it('imports non-local modules', async function() {
+        const payload = {default: {}};
+        const requireShim = jasmine.createSpy('requireShim');
+        const importShim = jasmine.createSpy('importShim')
+          .and.returnValue(Promise.resolve(payload));
+        const loader = new Loader({requireShim, importShim});
+        loader.alwaysImport = true;
+
+        const result = await loader.load('some-module');
+
+        expect(result).toBe(payload.default);
+        expect(requireShim).not.toHaveBeenCalled();
+        expect(importShim).toHaveBeenCalledWith('some-module');
+      });
+
       it('uses require to load JSON files', async function() {
         const requireShim = jasmine.createSpy('requireShim')
           .and.returnValue(Promise.resolve());
