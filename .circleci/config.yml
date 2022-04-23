@@ -3,9 +3,13 @@
 version: 2.1
 
 executors:
+  node18:
+    docker:
+      - image: cimg/node:18.0.0 # Latest 18.x
+    working_directory: ~/workspace
   node16:
     docker:
-      - image: cimg/node:16.14.0 # Latest 16.x
+      - image: cimg/node:16.14.2 # Latest 16.x
     working_directory: ~/workspace
   node14_latest:
     docker:
@@ -57,6 +61,7 @@ workflows:
           matrix:
             parameters:
               executor:
+                - node18
                 - node16
                 - node14_latest
                 - node14_8 # first with top level await in ES modules.
