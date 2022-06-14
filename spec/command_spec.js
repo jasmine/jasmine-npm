@@ -53,7 +53,7 @@ describe('command', function() {
 
     this.command = new Command(projectBaseDir, examplesDir, this.out.print);
 
-    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addHelperFiles', 'addRequires', 'showColors', 'execute',
+    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addMatchingHelperFiles', 'addRequires', 'showColors', 'execute',
       'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']);
     this.fakeJasmine.loader = new Loader();
     this.fakeJasmine.env = jasmine.createSpyObj('env', ['configure']);
@@ -243,17 +243,17 @@ describe('command', function() {
 
     it('should be able to add one helper pattern', async function() {
       await this.command.run(this.fakeJasmine, ['--helper=helpers/**/*.js']);
-      expect(this.fakeJasmine.addHelperFiles).toHaveBeenCalledWith(['helpers/**/*.js']);
+      expect(this.fakeJasmine.addMatchingHelperFiles).toHaveBeenCalledWith(['helpers/**/*.js']);
     });
 
     it('should be able to add many helper patterns', async function() {
       await this.command.run(this.fakeJasmine, ['--helper=helpers/**/*.js', '--helper=other.js']);
-      expect(this.fakeJasmine.addHelperFiles).toHaveBeenCalledWith(['helpers/**/*.js', 'other.js']);
+      expect(this.fakeJasmine.addMatchingHelperFiles).toHaveBeenCalledWith(['helpers/**/*.js', 'other.js']);
     });
 
     it('should not modify helper patterns if no argument given', async function() {
       await this.command.run(this.fakeJasmine, []);
-      expect(this.fakeJasmine.addHelperFiles).not.toHaveBeenCalled();
+      expect(this.fakeJasmine.addMatchingHelperFiles).not.toHaveBeenCalled();
     });
 
     it('should be able to add one require', async function() {
