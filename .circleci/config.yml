@@ -29,15 +29,6 @@ executors:
     docker:
       - image: cimg/node:14.7
     working_directory: ~/workspace
-  node12_latest:
-    docker:
-    - image: cimg/node:12.22.10 # Latest 12.x
-    working_directory: ~/workspace
-  # 12.17 is the first version with dynamic import() of commonjs modules
-  node12_17:
-    docker:
-    - image: cimg/node:12.17
-    working_directory: ~/workspace
 
 jobs:
   test:
@@ -86,8 +77,6 @@ workflows:
                 - node14_latest
                 - node14_8 # first with top level await in ES modules.
                 - node14_7
-                - node12_latest
-                - node12_17 # first with dynamic import() of commonjs modules
       - test_win
   cron:
     <<: *push_workflow
