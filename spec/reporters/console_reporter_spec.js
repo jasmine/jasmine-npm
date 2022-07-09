@@ -415,27 +415,107 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toMatch(stackLine);
   });
 
-  it("reports a summary when done that includes which specs are pending and their reasons", function() {
-    const reporter = new ConsoleReporter();
-    reporter.setOptions({
-      print: this.out.print,
+  describe('When the overall status is passed', function() {
+    it('includes pending specs in the summary even if alwaysListPendingSpecs is false', function() {
+      const reporter = new ConsoleReporter();
+      reporter.setOptions({
+        print: this.out.print,
+        alwaysListPendingSpecs: false
+      });
+
+      reporter.jasmineStarted();
+
+      reporter.specDone({
+        status: "pending",
+        description: "with a pending spec",
+        fullName: "A suite with a pending spec",
+        pendingReason: "It's not ready yet!"
+      });
+
+      this.out.clear();
+
+      reporter.jasmineDone({overallStatus: 'passed'});
+
+      expect(this.out.getOutput()).toContain("Pending:");
+      expect(this.out.getOutput()).toContain("A suite with a pending spec");
+      expect(this.out.getOutput()).toContain("It's not ready yet!");
+    });
+  });
+
+  describe('When the overall status is failed', function() {
+    it('includes pending specs in the summary when alwaysListPendingSpecs is true', function() {
+      const reporter = new ConsoleReporter();
+      reporter.setOptions({
+        print: this.out.print,
+        alwaysListPendingSpecs: true
+      });
+
+      reporter.jasmineStarted();
+
+      reporter.specDone({
+        status: "pending",
+        description: "with a pending spec",
+        fullName: "A suite with a pending spec",
+        pendingReason: "It's not ready yet!"
+      });
+
+      this.out.clear();
+
+      reporter.jasmineDone({overallStatus: 'failed'});
+
+      expect(this.out.getOutput()).toContain("Pending:");
+      expect(this.out.getOutput()).toContain("A suite with a pending spec");
+      expect(this.out.getOutput()).toContain("It's not ready yet!");
     });
 
-    reporter.jasmineStarted();
+    it('omits pending specs in the summary when alwaysListPendingSpecs is false', function() {
+      const reporter = new ConsoleReporter();
+      reporter.setOptions({
+        print: this.out.print,
+        alwaysListPendingSpecs: false
+      });
 
-    reporter.specDone({
-      status: "pending",
-      description: "with a pending spec",
-      fullName: "A suite with a pending spec",
-      pendingReason: "It's not ready yet!"
+      reporter.jasmineStarted();
+
+      reporter.specDone({
+        status: "pending",
+        description: "with a pending spec",
+        fullName: "A suite with a pending spec",
+        pendingReason: "It's not ready yet!"
+      });
+
+      this.out.clear();
+
+      reporter.jasmineDone({overallStatus: 'failed'});
+
+      expect(this.out.getOutput()).not.toContain("Pending:");
+      expect(this.out.getOutput()).not.toContain("A suite with a pending spec");
+      expect(this.out.getOutput()).not.toContain("It's not ready yet!");
     });
 
-    this.out.clear();
+    it('includes pending specs in the summary when alwaysListPendingSpecs is unspecified', function() {
+      const reporter = new ConsoleReporter();
+      reporter.setOptions({
+        print: this.out.print,
+      });
 
-    reporter.jasmineDone({});
+      reporter.jasmineStarted();
 
-    expect(this.out.getOutput()).toContain("A suite with a pending spec");
-    expect(this.out.getOutput()).toContain("It's not ready yet!");
+      reporter.specDone({
+        status: "pending",
+        description: "with a pending spec",
+        fullName: "A suite with a pending spec",
+        pendingReason: "It's not ready yet!"
+      });
+
+      this.out.clear();
+
+      reporter.jasmineDone({overallStatus: 'failed'});
+
+      expect(this.out.getOutput()).toContain("Pending:");
+      expect(this.out.getOutput()).toContain("A suite with a pending spec");
+      expect(this.out.getOutput()).toContain("It's not ready yet!");
+    });
   });
 
   it("reports a summary when done that includes the reason for an incomplete suite", function() {

@@ -369,6 +369,22 @@ describe('Jasmine', function() {
           expect(this.loader.alwaysImport).toBeTrue();
         });
       });
+
+      it('sets alwaysListPendingSpecs when present', function() {
+        this.configObject.alwaysListPendingSpecs = false;
+
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.alwaysListPendingSpecs_).toBeFalse();
+      });
+
+      it('does not set alwaysListPendingSpecs when absent', function() {
+        delete this.configObject.alwaysListPendingSpecs;
+
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.alwaysListPendingSpecs_).toBeTrue();
+      });
     });
 
     describe('from a file', function() {
@@ -488,19 +504,26 @@ describe('Jasmine', function() {
 
       await this.execute();
 
-      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: true});
+      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
+        showColors: true,
+        alwaysListPendingSpecs: true
+      });
       expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
       expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
 
-    it('configures the default console reporter with the right color settings', async function() {
+    it('configures the default console reporter with the right settings', async function() {
       spyOn(this.testJasmine, 'configureDefaultReporter');
       spyOn(this.testJasmine, 'loadSpecs');
       this.testJasmine.showColors(false);
+      this.testJasmine.alwaysListPendingSpecs(false);
 
       await this.execute();
 
-      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({showColors: false});
+      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
+        showColors: false,
+        alwaysListPendingSpecs: false
+      });
       expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
       expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
