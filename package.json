@@ -10,7 +10,7 @@
     "bdd"
   ],
   "license": "MIT",
-  "version": "4.2.1",
+  "version": "4.3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/jasmine/jasmine-npm"
@@ -29,7 +29,7 @@
   ],
   "dependencies": {
     "glob": "^7.1.6",
-    "jasmine-core": "^4.2.0"
+    "jasmine-core": "^4.3.0"
   },
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
