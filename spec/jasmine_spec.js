@@ -1,7 +1,5 @@
-const path = require('path');
-const slash = require('slash');
 const Jasmine = require('../lib/jasmine');
-const Loader = require("../lib/loader");
+const sharedRunnerBehaviors = require('./shared_runner_behaviors');
 
 describe('Jasmine', function() {
   beforeEach(function() {
@@ -32,123 +30,28 @@ describe('Jasmine', function() {
       // Don't actually exit the node process
     };
 
-    this.execute = async function(options = {}) {
-      const overallStatus = options.overallStatus || 'passed';
-      const executeArgs = options.executeArgs || [];
-
-      let executePromise;
-      let resolveEnvExecutePromise;
-      const envExecutePromise = new Promise(resolve => {
-        resolveEnvExecutePromise = resolve;
-      });
-      await new Promise(resolve => {
-        this.testJasmine.env.execute.and.callFake(function() {
-          resolve();
-          return envExecutePromise;
-        });
-        executePromise = this.testJasmine.execute.apply(this.testJasmine, executeArgs);
-      });
-
-      resolveEnvExecutePromise({overallStatus});
-      return executePromise;
-    };
+    this.execute = execute;
   });
 
-  describe('constructor options', function() {
-    it('have defaults', function() {
-      expect(this.testJasmine.projectBaseDir).toEqual(path.resolve());
+  sharedRunnerBehaviors(function(options) {
+    return new Jasmine({
+      jasmineCore: this.fakeJasmineCore,
+      ...options,
     });
   });
 
-  describe('#addSpecFile', function() {
-    it('adds the provided path to the list of spec files', function () {
-      expect(this.testJasmine.specFiles).toEqual([]);
-      this.testJasmine.addSpecFile('some/file/path.js');
-      expect(this.testJasmine.specFiles).toEqual(['some/file/path.js']);
-    });
-  });
-
-  describe('#addHelperFile', function() {
-    it('adds the provided path to the list of helper files', function () {
-      expect(this.testJasmine.helperFiles).toEqual([]);
-      this.testJasmine.addHelperFile('some/file/path.js');
-      expect(this.testJasmine.helperFiles).toEqual(['some/file/path.js']);
-    });
-  });
-
-  describe('Methods that specify files via globs', function() {
-    describe('#addMatchingSpecFiles', function() {
-      hasCommonFileGlobBehavior('addMatchingSpecFiles', 'specFiles');
-    });
-
-    describe('#addMatchingHelperFiles', function() {
-      hasCommonFileGlobBehavior('addMatchingHelperFiles', 'helperFiles');
-    });
-
-    function hasCommonFileGlobBehavior(method, destProp) {
-      it('adds a file with an absolute path', function() {
-        const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
-        expect(this.testJasmine[destProp]).toEqual([]);
-        this.testJasmine[method]([aFile]);
-        expect(this.testJasmine[destProp]).toEqual([slash(aFile)]);
-      });
-
-      it('adds files that match a glob pattern', function() {
-        expect(this.testJasmine[destProp]).toEqual([]);
-        this.testJasmine[method](['spec/fixtures/jasmine_spec/*.js']);
-        expect(this.testJasmine[destProp].map(basename)).toEqual([
-          'c.js',
-          'd.js',
-          'e.js',
-          'f.js',
-        ]);
-      });
-
-      it('can exclude files that match another glob', function() {
-        expect(this.testJasmine[destProp]).toEqual([]);
-        this.testJasmine[method]([
-          'spec/fixtures/jasmine_spec/*.js',
-          '!spec/fixtures/jasmine_spec/c*'
-        ]);
-        expect(this.testJasmine[destProp].map(basename)).toEqual([
-          'd.js',
-          'e.js',
-          'f.js',
-        ]);
-      });
-
-      it('adds new files to existing files', function() {
-        const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
-        this.testJasmine[destProp] = [aFile, 'b'];
-        this.testJasmine[method](['spec/fixtures/jasmine_spec/*.js']);
-        expect(this.testJasmine[destProp].map(basename)).toEqual([
-          'command_spec.js',
-          'b',
-          'c.js',
-          'd.js',
-          'e.js',
-          'f.js',
-        ]);
-      });
-    }
-
-    function basename(name) { return path.basename(name); }
-  });
-
-  it('delegates #coreVersion to jasmine-core', function() {
-    this.fakeJasmineCore.version = jasmine.createSpy('coreVersion').and.returnValue('a version');
+  it('delegates #coreVersion to jasmine-core', function () {
+    this.fakeJasmineCore.version = () => 'a version';
     expect(this.testJasmine.coreVersion()).toEqual('a version');
   });
 
-  it('registers a console reporter upon construction', function() {
-    spyOn(Jasmine, 'ConsoleReporter').and.returnValue({someProperty: 'some value'});
+  it('registers a console reporter upon construction', function () {
+    const testJasmine = new Jasmine({jasmineCore: this.fakeJasmineCore});
 
-    const testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
-
-    expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
+    expect(testJasmine.env.addReporter).toHaveBeenCalledWith(jasmine.any(Jasmine.ConsoleReporter));
   });
 
-  it('exposes #addReporter and #clearReporters', function() {
+  it('can add and clear reporters', function() {
     const testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
     expect(testJasmine.reportersCount).toEqual(1);
     testJasmine.clearReporters();
@@ -157,41 +60,6 @@ describe('Jasmine', function() {
     testJasmine.addReporter({someProperty: 'some value'});
     expect(testJasmine.reportersCount).toEqual(1);
     expect(testJasmine.env.addReporter).toHaveBeenCalledWith({someProperty: 'some value'});
-  });
-
-  describe('#configureDefaultReporter', function() {
-    beforeEach(function() {
-      spyOn(this.testJasmine.reporter, 'setOptions');
-    });
-
-    it('sets the options on the console reporter', function() {
-      const reporterOptions = {
-        print: 'printer',
-        showColors: true,
-      };
-
-      const expectedReporterOptions = Object.keys(reporterOptions).reduce(function(options, key) {
-        options[key] = reporterOptions[key];
-        return options;
-      }, {});
-
-      this.testJasmine.configureDefaultReporter(reporterOptions);
-
-      expect(this.testJasmine.reporter.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
-    });
-
-    it('creates a reporter with a default option if an option is not specified', function() {
-      const reporterOptions = {};
-
-      this.testJasmine.configureDefaultReporter(reporterOptions);
-
-      const expectedReporterOptions = {
-        print: jasmine.any(Function),
-        showColors: true,
-      };
-
-      expect(this.testJasmine.reporter.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
-    });
   });
 
   it('adds matchers to the jasmine env', function() {
@@ -225,86 +93,42 @@ describe('Jasmine', function() {
         };
       });
 
-      it('adds unique specs to the jasmine runner', function() {
-        this.fixtureJasmine.loadConfig(this.configObject);
-        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
-        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
-        expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/fixture_spec.js',
-          'spec/fixtures/sample_project/spec/other_fixture_spec.js'
-        ]);
-      });
-
+      // TODO move these to shared
       it('can tell jasmine-core to stop spec on no expectations', function() {
-        this.configObject.failSpecWithNoExpectations = true;
-        this.fixtureJasmine.loadConfig(this.configObject);
+        this.fixtureJasmine.loadConfig({failSpecWithNoExpectations: true});
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({failSpecWithNoExpectations: true});
       });
 
       it('can tell jasmine-core to stop spec on expectation failure', function() {
-        this.configObject.stopSpecOnExpectationFailure = true;
-        this.fixtureJasmine.loadConfig(this.configObject);
+        this.fixtureJasmine.loadConfig({stopSpecOnExpectationFailure: true});
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopSpecOnExpectationFailure: true});
       });
 
-      it('does not configure jasmine-core for stopping spec on expectation failure by default', function() {
-        this.fixtureJasmine.loadConfig(this.configObject);
-
-        expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
-      });
-
       it('can tell jasmine-core to stop execution when a spec fails', function() {
-        this.configObject.stopOnSpecFailure = true;
-        this.fixtureJasmine.loadConfig(this.configObject);
+        this.fixtureJasmine.loadConfig({stopOnSpecFailure: true});
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopOnSpecFailure: true});
       });
 
-      it('does not configure jasmine-core for stopping execution by default', function() {
-        this.fixtureJasmine.loadConfig(this.configObject);
-
-        expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
-      });
-
       it('can tell jasmine-core to run random specs', function() {
-        this.configObject.random = true;
-        this.fixtureJasmine.loadConfig(this.configObject);
+        this.fixtureJasmine.loadConfig({random: true});
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({random: true});
       });
 
       it('uses jasmine-core defaults if no config options specified', function() {
-        this.fixtureJasmine.loadConfig(this.configObject);
+        this.fixtureJasmine.loadConfig({});
 
         expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
       });
 
       it('can configure the env with arbitrary properties', function() {
-        this.configObject.env = {someProp: 'someVal'};
-        this.fixtureJasmine.loadConfig(this.configObject);
+        const envConfig = {someProp: 'someVal'};
+        this.fixtureJasmine.loadConfig({env: envConfig});
 
-        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({someProp: 'someVal'});
-      });
-
-      describe('with options', function() {
-        it('instantiates spec_dir with the provided value', function() {
-          this.fixtureJasmine.loadConfig(this.configObject);
-
-          expect(this.fixtureJasmine.specDir).toEqual('spec');
-        });
-      });
-
-      describe('without options', function() {
-        it('falls back to an empty string with an undefined spec_dir', function() {
-          const config = this.configObject;
-          delete config.spec_dir;
-
-          this.fixtureJasmine.loadConfig(config);
-
-          expect(this.fixtureJasmine.specDir).toEqual('');
-        });
+        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith(envConfig);
       });
 
       it('passes verboseDeprecations to jasmine-core when specified', function() {
@@ -325,145 +149,14 @@ describe('Jasmine', function() {
           .toBeUndefined();
       });
 
-      describe('with jsLoader: "require"', function () {
-        it('tells the loader not to always import', async function() {
-          this.configObject.jsLoader = 'require';
-
-          this.fixtureJasmine.loadConfig(this.configObject);
-          await this.fixtureJasmine.loadSpecs();
-
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String));
-          expect(this.loader.alwaysImport).toBeFalse();
-        });
-      });
-
-      describe('with jsLoader: "import"', function () {
-        it('tells the loader to always import', async function() {
-          this.configObject.jsLoader = 'import';
-
-          this.fixtureJasmine.loadConfig(this.configObject);
-          await this.fixtureJasmine.loadSpecs();
-
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String));
-          expect(this.loader.alwaysImport).toBeTrue();
-        });
-      });
-
-      describe('with jsLoader set to an invalid value', function () {
-        it('throws an error', function() {
-          this.configObject.jsLoader = 'bogus';
-          expect(() => {
-            this.fixtureJasmine.loadConfig(this.configObject);
-          }).toThrowError(/"bogus" is not a valid value/);
-        });
-      });
-
-      describe('with jsLoader undefined', function () {
-        it('tells the loader to always import', async function() {
-          this.configObject.jsLoader = undefined;
-
-          this.fixtureJasmine.loadConfig(this.configObject);
-          await this.fixtureJasmine.loadSpecs();
-
-          expect(this.loader.load).toHaveBeenCalledWith(jasmine.any(String));
-          expect(this.loader.alwaysImport).toBeTrue();
-        });
-      });
-
       it('sets alwaysListPendingSpecs when present', function() {
-        this.configObject.alwaysListPendingSpecs = false;
-
-        this.fixtureJasmine.loadConfig(this.configObject);
-
+        this.fixtureJasmine.loadConfig({alwaysListPendingSpecs: false});
         expect(this.fixtureJasmine.alwaysListPendingSpecs_).toBeFalse();
       });
 
       it('does not set alwaysListPendingSpecs when absent', function() {
-        delete this.configObject.alwaysListPendingSpecs;
-
-        this.fixtureJasmine.loadConfig(this.configObject);
-
+        this.fixtureJasmine.loadConfig({});
         expect(this.fixtureJasmine.alwaysListPendingSpecs_).toBeTrue();
-      });
-    });
-
-    describe('from a file', function() {
-      it('adds unique specs to the jasmine runner', async function() {
-        await this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.json');
-        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
-        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
-        expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/fixture_spec.js',
-          'spec/fixtures/sample_project/spec/other_fixture_spec.js'
-        ]);
-      });
-
-      it('can use an ES module', async function() {
-        await this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.mjs');
-        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
-        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
-        expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/fixture_spec.js',
-          'spec/fixtures/sample_project/spec/other_fixture_spec.js'
-        ]);
-      });
-
-      it('can use a CommonJS module', async function() {
-        await this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.cjs');
-        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
-        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
-        expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/fixture_spec.js',
-          'spec/fixtures/sample_project/spec/other_fixture_spec.js'
-        ]);
-      });
-
-      it('loads the specified configuration file from an absolute path', async function() {
-        const absoluteConfigPath = path.join(__dirname, 'fixtures/sample_project/spec/support/jasmine_alternate.json');
-        await this.fixtureJasmine.loadConfigFile(absoluteConfigPath);
-        expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
-        expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
-        expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/fixture_spec.js',
-          'spec/fixtures/sample_project/spec/other_fixture_spec.js'
-        ]);
-      });
-
-      it("throws an error if the specified configuration file doesn't exist", async function() {
-        await expectAsync(this.fixtureJasmine.loadConfigFile('missing.json')).toBeRejected();
-      });
-
-      it("does not throw if the default configuration files don't exist", async function() {
-        this.fixtureJasmine.projectBaseDir += '/missing';
-        await expectAsync(this.fixtureJasmine.loadConfigFile()).toBeResolved();
-      });
-
-      it('loads the default .json configuration file', async function() {
-        await this.fixtureJasmine.loadConfigFile();
-        expect(this.fixtureJasmine.specFiles).toEqual([
-          jasmine.stringMatching('^spec[\\/]fixtures[\\/]sample_project[\\/]spec[\\/]fixture_spec.js$')
-        ]);
-      });
-
-      it('loads the default .js configuration file', async function() {
-        const config = require('./fixtures/sample_project/spec/support/jasmine.json');
-        spyOn(Loader.prototype, 'load').and.callFake(function(path) {
-          if (path.endsWith('jasmine.js')) {
-            return Promise.resolve(config);
-          } else {
-            const e = new Error(`Module not found: ${path}`);
-            e.code = 'MODULE_NOT_FOUND';
-            return Promise.reject(e);
-          }
-        });
-
-        await this.fixtureJasmine.loadConfigFile();
-        expect(Loader.prototype.load).toHaveBeenCalledWith(jasmine.stringMatching(
-          'jasmine\.js$'
-        ));
-        expect(this.fixtureJasmine.specFiles).toEqual([
-          'spec/fixtures/sample_project/spec/fixture_spec.js'
-        ]);
       });
     });
   });
@@ -482,6 +175,7 @@ describe('Jasmine', function() {
     });
   });
 
+  // TODO: not supported in parallel
   describe('#randomizeTests', function() {
     it('sets the randomizeTests value on the jasmine-core env', function() {
       this.testJasmine.randomizeTests('foobar');
@@ -498,47 +192,8 @@ describe('Jasmine', function() {
   });
 
   describe('#execute',  function() {
-    it('uses the default console reporter if no reporters were added', async function() {
-      spyOn(this.testJasmine, 'configureDefaultReporter');
-      spyOn(this.testJasmine, 'loadSpecs');
-
+    it('executes the env', async function() {
       await this.execute();
-
-      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-        showColors: true,
-        alwaysListPendingSpecs: true
-      });
-      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
-      expect(this.testJasmine.env.execute).toHaveBeenCalled();
-    });
-
-    it('configures the default console reporter with the right settings', async function() {
-      spyOn(this.testJasmine, 'configureDefaultReporter');
-      spyOn(this.testJasmine, 'loadSpecs');
-      this.testJasmine.showColors(false);
-      this.testJasmine.alwaysListPendingSpecs(false);
-
-      await this.execute();
-
-      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-        showColors: false,
-        alwaysListPendingSpecs: false
-      });
-      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
-      expect(this.testJasmine.env.execute).toHaveBeenCalled();
-    });
-
-    it('does not configure the default reporter if this was already done', async function() {
-      spyOn(this.testJasmine, 'loadSpecs');
-
-      this.testJasmine.configureDefaultReporter({showColors: false});
-
-      spyOn(this.testJasmine, 'configureDefaultReporter');
-
-      await this.execute();
-
-      expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
-      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
       expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
 
@@ -554,18 +209,6 @@ describe('Jasmine', function() {
       expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalled();
     });
 
-    it('can run only specified files', async function() {
-      await this.execute({
-        executeArgs: [['spec/fixtures/sample_project/**/*spec.js']]
-      });
-
-      const relativePaths = this.testJasmine.specFiles.map(function(filePath) {
-        return slash(path.relative(__dirname, filePath));
-      });
-
-      expect(relativePaths).toEqual(['fixtures/sample_project/spec/fixture_spec.js', 'fixtures/sample_project/spec/other_fixture_spec.js']);
-    });
-
     it('should add spec filter if filterString is provided', async function() {
       await this.execute({
         executeArgs: [['spec/fixtures/example/*spec.js'], 'interesting spec']
@@ -574,35 +217,12 @@ describe('Jasmine', function() {
       expect(this.testJasmine.env.configure).toHaveBeenCalledWith({specFilter: jasmine.any(Function)});
     });
 
-    describe('completion behavior', function() {
-      beforeEach(function() {
-        spyOn(this.testJasmine, 'exit');
-      });
+    it('loads specs', async function() {
+      spyOn(this.testJasmine, 'loadSpecs');
 
-      describe('default', function() {
-        it('exits successfully when the whole suite is green', async function () {
-          await this.execute({overallStatus: 'passed'});
-          expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
-        });
+      await this.execute();
 
-        it('exits with a distinct status code when anything in the suite is not green', async function () {
-          await this.execute({overallStatus: 'failed'});
-          expect(this.testJasmine.exit).toHaveBeenCalledWith(3);
-        });
-
-        it('exits with a distinct status code when anything in the suite is focused', async function() {
-          await this.execute({overallStatus: 'incomplete'});
-          expect(this.testJasmine.exit).toHaveBeenCalledWith(2);
-        });
-      });
-
-      describe('When exitOnCompletion is set to false', function() {
-        it('does not exit', async function() {
-          this.testJasmine.exitOnCompletion = false;
-          await this.execute();
-          expect(this.testJasmine.exit).not.toHaveBeenCalled();
-        });
-      });
+      expect(this.testJasmine.loadSpecs).toHaveBeenCalled();
     });
 
     describe('The returned promise', function() {
@@ -620,3 +240,24 @@ describe('Jasmine', function() {
     });
   });
 });
+
+async function execute(options = {}) {
+  const overallStatus = options.overallStatus || 'passed';
+  const executeArgs = options.executeArgs || [];
+
+  let executePromise;
+  let resolveEnvExecutePromise;
+  const envExecutePromise = new Promise(resolve => {
+    resolveEnvExecutePromise = resolve;
+  });
+  await new Promise(resolve => {
+    this.testJasmine.env.execute.and.callFake(function () {
+      resolve();
+      return envExecutePromise;
+    });
+    executePromise = this.testJasmine.execute.apply(this.testJasmine, executeArgs);
+  });
+
+  resolveEnvExecutePromise({overallStatus});
+  return executePromise;
+}

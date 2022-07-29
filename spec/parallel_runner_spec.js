@@ -1,0 +1,219 @@
+const path = require('path');
+const EventEmitter = require('node:events');
+const sharedRunnerBehaviors = require('./shared_runner_behaviors');
+const ParallelRunner = require("../lib/parallel_runner");
+const ConsoleReporter = require("../lib/reporters/console_reporter");
+
+describe('ParallelRunner', function() {
+  beforeEach(function () {
+    this.cluster = jasmine.createSpyObj(
+      'cluster',
+      ['fork', 'setupPrimary', 'disconnect']
+    );
+    this.cluster.workers = {};
+    this.cluster.disconnect.and.callFake(function (cb) {
+      cb();
+    });
+    this.autoFinishSend = true;
+    let nextWorkerId = 0;
+    this.cluster.fork.and.callFake(() => {
+      const worker = new EventEmitter();
+      worker.id = nextWorkerId++;
+      worker.send = jasmine.createSpy('worker.send');
+
+      if (this.autoFinishSend) {
+        // Most specs for execute() will need this
+        worker.send.and.callFake(function (name, cb) {
+          if (cb) {
+            cb();
+          }
+        });
+      }
+
+      this.cluster.workers[worker.id] = worker;
+      return worker;
+    });
+    this.testJasmine = new ParallelRunner({
+      cluster: this.cluster
+    });
+    this.testJasmine.exit = function () {
+      // Don't actually exit the node process
+    };
+
+    this.execute = execute;
+  });
+
+  sharedRunnerBehaviors(function(options) {
+    return new ParallelRunner(options);
+  });
+
+  it('registers a console reporter upon construction', function() {
+    expect(this.testJasmine.reporters_).toEqual([jasmine.any(ConsoleReporter)]);
+  });
+
+  it('can add and clear reporters', function() {
+    expect(this.testJasmine.reporters_.length).toEqual(1);
+    this.testJasmine.clearReporters();
+    expect(this.testJasmine.reporters_.length).toEqual(0);
+    this.testJasmine.addReporter({someProperty: 'some value'});
+    expect(this.testJasmine.reporters_).toEqual([{someProperty: 'some value'}]);
+  });
+
+  it('can tell jasmine-core to stop spec on no expectations');
+
+  describe('#execute', function() {
+    it('creates the configured number of worker processes', function() {
+      this.testJasmine.numWorkers = 17;
+      this.testJasmine.execute();
+      const expectedPath = path.join(__dirname, '../bin/worker.js');
+      expect(this.cluster.setupPrimary).toHaveBeenCalledWith({
+        exec: expectedPath,
+        // TODO: probably windowsHide: true
+      });
+      expect(this.cluster.fork).toHaveBeenCalledTimes(17);
+    });
+
+    it('configures the workers', async function() {
+      this.testJasmine.numWorkers = 2;
+      this.testJasmine.loadConfig({
+        spec_dir: 'some/spec/dir'
+      });
+      this.testJasmine.addSpecFile('aSpec.js');
+      spyOn(this.testJasmine, 'runSpecFiles_')
+        .and.returnValue(new Promise(() => {}));
+      this.autoFinishSend = false;
+      this.testJasmine.execute();
+
+      const workers = this.cluster.fork.calls.all().map(c => c.returnValue);
+      const configuration = {
+        // TODO: other properties, including env config, requires, helpers,
+        // jsLoader, etc. Basically everything that shouldn't intentionally
+        // be excluded.
+        spec_dir: 'some/spec/dir',
+        spec_files: []
+      };
+      expect(workers[0].send).toHaveBeenCalledWith(
+        {type: 'configure', configuration}, jasmine.any(Function)
+      );
+      expect(workers[1].send).toHaveBeenCalledWith(
+        {type: 'configure', configuration}, jasmine.any(Function)
+      );
+      workers[0].send.calls.argsFor(0)[1]();
+      await Promise.resolve();
+      expect(this.testJasmine.runSpecFiles_).not.toHaveBeenCalled();
+      workers[1].send.calls.argsFor(0)[1]();
+      await new Promise(resolve => setTimeout(resolve));
+      expect(this.testJasmine.runSpecFiles_).toHaveBeenCalled();
+    });
+
+    it('passes a custom jasmineCore path to the workers',  function() {
+      const jasmineCorePath = './path/to/jasmine-core.js';
+      this.testJasmine = new ParallelRunner({
+        cluster: this.cluster,
+        jasmineCorePath
+      });
+      this.testJasmine.exit = function () {
+        // Don't actually exit the node process
+      };
+      this.testJasmine.execute();
+
+      for (const worker of Object.values(this.cluster.workers)) {
+        expect(worker.send).toHaveBeenCalledWith(
+          {
+            type: 'configure',
+            configuration: jasmine.objectContaining({jasmineCorePath}),
+          },
+          jasmine.any(Function)
+        );
+      }
+    });
+
+    it('initially assigns one spec file to each process', async function() {
+      this.testJasmine.numWorkers = 2;
+      this.testJasmine.loadConfig({
+        spec_dir: 'some/spec/dir'
+      });
+      this.testJasmine.addSpecFile('spec1.js');
+      this.testJasmine.addSpecFile('spec2.js');
+      this.testJasmine.addSpecFile('spec3.js');
+      this.testJasmine.execute();
+      await new Promise(resolve => setTimeout(resolve));
+
+      expect(this.cluster.workers[0].send).toHaveBeenCalledWith(
+        {type: 'runSpecFile', filePath: 'spec1.js'}
+      );
+      expect(this.cluster.workers[1].send).toHaveBeenCalledWith(
+        {type: 'runSpecFile', filePath: 'spec2.js'}
+      );
+      expect(this.cluster.workers[0].send).not.toHaveBeenCalledWith(
+        {type: 'runSpecFile', filePath: 'spec3.js'}
+      );
+      expect(this.cluster.workers[1].send).not.toHaveBeenCalledWith(
+        {type: 'runSpecFile', filePath: 'spec3.js'}
+      );
+    });
+
+    it('randomizes spec file assignment');
+
+    describe('When a worker finishes processing a spec file', function() {
+      it('assigns another spec file', async function() {
+        this.testJasmine.numWorkers = 2;
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        this.testJasmine.addSpecFile('spec1.js');
+        this.testJasmine.addSpecFile('spec2.js');
+        this.testJasmine.addSpecFile('spec3.js');
+        this.testJasmine.execute();
+        await new Promise(resolve => setTimeout(resolve));
+
+        this.cluster.workers[0].emit(
+          'message', {type: 'specFileDone', filename: 'spec1.js'}
+        );
+        expect(this.cluster.workers[0].send).toHaveBeenCalledWith(
+          {type: 'runSpecFile', filePath: 'spec3.js'}
+        );
+      });
+
+      it('finishes when all workers are idle', async function() {
+        this.testJasmine.numWorkers = 2;
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        this.testJasmine.addSpecFile('spec1.js');
+        this.testJasmine.addSpecFile('spec2.js');
+        this.testJasmine.addSpecFile('spec3.js');
+        const executePromise = this.testJasmine.execute();
+
+        await new Promise(resolve => setTimeout(resolve));
+        this.cluster.workers[0].emit(
+          'message', {type: 'specFileDone', filename: 'spec1.js'}
+        );
+        this.cluster.workers[1].emit(
+          'message', {type: 'specFileDone', filename: 'spec2.js'}
+        );
+        await expectAsync(executePromise).toBePending();
+        this.cluster.workers[0].emit(
+          'message', {type: 'specFileDone', filename: 'spec3.js'}
+        );
+        await new Promise(resolve => setTimeout(resolve));
+        expect(this.cluster.disconnect).toHaveBeenCalled();
+        this.cluster.disconnect.calls.argsFor(0)[0]();
+        await expectAsync(executePromise).toBeResolved();
+      });
+    });
+
+    it('handles worker crashes');
+    it('handles worker exec failures');
+    it('terminates workers if the parent crashes');
+  });
+});
+
+async function execute(options = {}) {
+  if (options.overallStatus) {
+    pending();
+  }
+
+  const executeArgs = options.executeArgs || [];
+  return this.testJasmine.execute.apply(this.testJasmine, executeArgs);
+}

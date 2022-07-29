@@ -51,13 +51,33 @@ describe('command', function() {
       };
     }());
 
-    this.command = new Command(projectBaseDir, examplesDir, this.out.print);
-
-    this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addMatchingHelperFiles', 'addRequires', 'showColors', 'execute',
-      'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']);
+    const commonMethods = [
+      'loadConfigFile',
+      'execute',
+      'showColors',
+      'coreVersion',
+      'clearReporters',
+      'addReporter',
+      'addRequires',
+      'addMatchingHelperFiles'
+    ];
+    this.fakeJasmine = jasmine.createSpyObj(
+      'jasmine',
+      [...commonMethods, 'seed', 'randomizeTests']
+    );
     this.fakeJasmine.loader = new Loader();
     this.fakeJasmine.env = jasmine.createSpyObj('env', ['configure']);
+    this.parallelRunner = jasmine.createSpyObj(
+      'parallelRunner',
+      commonMethods
+    );
+    this.parallelRunner.loader = new Loader();
     this.fakeJasmine.execute.and.returnValue(Promise.resolve());
+    this.command = new Command(projectBaseDir, examplesDir, {
+      print: this.out.print,
+      jasmine: this.fakeJasmine,
+      parallelRunner: this.parallelRunner
+    });
   });
 
   afterEach(function() {
@@ -66,7 +86,7 @@ describe('command', function() {
 
   describe('passing in environment variables', function() {
     beforeEach(function () {
-      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'TESTKEY=TESTVALUE']);
+      this.command.run(['node', 'bin/jasmine.js', 'TESTKEY=TESTVALUE']);
     });
 
     afterEach(function() {
@@ -80,7 +100,7 @@ describe('command', function() {
 
   describe('init', function() {
     beforeEach(function() {
-      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'init']);
+      this.command.run(['node', 'bin/jasmine.js', 'init']);
     });
 
     it('creates setup folders and files for specs', function() {
@@ -97,7 +117,7 @@ describe('command', function() {
   describe('version', function() {
     beforeEach(function() {
       this.fakeJasmine.coreVersion.and.returnValue('fake core version');
-      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'version']);
+      this.command.run(['node', 'bin/jasmine.js', 'version']);
     });
 
     it('displays the version of jasmine', function() {
@@ -113,7 +133,7 @@ describe('command', function() {
   describe('-v', function() {
     beforeEach(function() {
       this.fakeJasmine.coreVersion.and.returnValue('fake core version');
-      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '-v']);
+      this.command.run(['node', 'bin/jasmine.js', '-v']);
     });
 
     it('displays the version of jasmine', function() {
@@ -136,7 +156,7 @@ describe('command', function() {
     });
 
     it('displays unknown options and usage', function() {
-      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--some-option', '--no-color', '--another-option']);
+      this.command.run(['node', 'bin/jasmine.js', '--some-option', '--no-color', '--another-option']);
       expect(this.out.getOutput()).toContain('Unknown options: --some-option, --another-option');
       expect(this.out.getOutput()).toContain('Usage');
       expect(process.exitCode).toBe(1);
@@ -146,7 +166,7 @@ describe('command', function() {
   describe('--', function() {
     it('skips anything after it', async function() {
       await withValueForIsTTY(true, async function () {
-        await this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--', '--no-color']);
+        await this.command.run(['node', 'bin/jasmine.js', '--', '--no-color']);
         expect(this.out.getOutput()).toBe('');
         expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
       }.bind(this));
@@ -155,7 +175,7 @@ describe('command', function() {
 
   describe('examples', function() {
     beforeEach(function() {
-      this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'examples']);
+      this.command.run(['node', 'bin/jasmine.js', 'examples']);
     });
 
     it('should create init files if they do not exist', function() {
@@ -173,216 +193,268 @@ describe('command', function() {
   });
 
   describe('running specs', function() {
-    beforeEach(function() {
+    beforeEach(function () {
       this.originalConfigPath = process.env.JASMINE_CONFIG_PATH;
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.originalConfigPath) {
         process.env.JASMINE_CONFIG_PATH = this.originalConfigPath;
       } else {
         delete process.env.JASMINE_CONFIG_PATH;
       }
     });
-
-    it('should load the default config file', async function() {
-      await this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
-      expect(this.fakeJasmine.loadConfigFile).toHaveBeenCalledWith(undefined);
-    });
-
-    it('should load a custom config file specified by env variable', async function() {
-      await this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', 'JASMINE_CONFIG_PATH=somewhere.json']);
-      expect(this.fakeJasmine.loadConfigFile).toHaveBeenCalledWith('somewhere.json');
-    });
-
-    it('should load a custom config file specified by option', async function() {
-      await this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--config=somewhere.json']);
-      expect(this.fakeJasmine.loadConfigFile).toHaveBeenCalledWith('somewhere.json');
-    });
-
-    it('should show colors by default if stdout is a TTY', async function() {
-      await withValueForIsTTY(true, async function () {
-        await this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
-        expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
-      }.bind(this));
-    });
-
-    it('should not show colors by default if stdout is not a TTY', async function() {
-      await withValueForIsTTY(undefined, async function () {
-        await this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
-        expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(false);
-      }.bind(this));
-    });
-
-    it('should allow colors to be turned off', async function() {
-      await this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--no-color']);
-      expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(false);
-    });
-
-    it('should be able to force colors to be turned on', async function() {
-      await withValueForIsTTY(undefined, async function () {
-        await this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js', '--color']);
-        expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
-      }.bind(this));
-    });
-
-    it('should execute the jasmine suite', async function() {
-      await this.command.run(this.fakeJasmine, ['node', 'bin/jasmine.js']);
-      expect(this.fakeJasmine.execute).toHaveBeenCalled();
-    });
-
-    it('should be able to run only specified specs', async function() {
-      await this.command.run(this.fakeJasmine, ['spec/some/fileSpec.js', 'SOME_ENV=SOME_VALUE', '--no-color']);
-      expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['spec/some/fileSpec.js'], undefined);
-    });
-
-    it('should be able filter by spec name', async function() {
-      await this.command.run(this.fakeJasmine, ['--filter=interesting spec']);
-      expect(this.fakeJasmine.execute).toHaveBeenCalledWith(jasmine.any(Array), 'interesting spec');
-    });
-
-    it('should be able to add one helper pattern', async function() {
-      await this.command.run(this.fakeJasmine, ['--helper=helpers/**/*.js']);
-      expect(this.fakeJasmine.addMatchingHelperFiles).toHaveBeenCalledWith(['helpers/**/*.js']);
-    });
-
-    it('should be able to add many helper patterns', async function() {
-      await this.command.run(this.fakeJasmine, ['--helper=helpers/**/*.js', '--helper=other.js']);
-      expect(this.fakeJasmine.addMatchingHelperFiles).toHaveBeenCalledWith(['helpers/**/*.js', 'other.js']);
-    });
-
-    it('should not modify helper patterns if no argument given', async function() {
-      await this.command.run(this.fakeJasmine, []);
-      expect(this.fakeJasmine.addMatchingHelperFiles).not.toHaveBeenCalled();
-    });
-
-    it('should be able to add one require', async function() {
-      await this.command.run(this.fakeJasmine, ['--require=ts-node/require']);
-      expect(this.fakeJasmine.addRequires).toHaveBeenCalledWith(['ts-node/require']);
-    });
-
-    it('should be able to add multiple requires', async function() {
-      await this.command.run(this.fakeJasmine, ['--require=ts-node/require', '--require=@babel/register']);
-      expect(this.fakeJasmine.addRequires).toHaveBeenCalledWith(['ts-node/require', '@babel/register']);
-    });
-
-    it('can specify a reporter', async function() {
-      const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'customReporter.js'));
-      const Reporter = require(reporterPath);
-      await this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
-      expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
-      expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
-    });
-
-    it('uses the provided loader to load reporters', async function() {
-      const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'customReporter.js'));
-      spyOn(this.fakeJasmine.loader, 'load').and.callThrough();
-
-      await this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath]);
-
-      expect(this.fakeJasmine.loader.load).toHaveBeenCalledWith(reporterPath);
-    });
-
-    it('can specify a reporter that is an ES module', async function() {
-      await this.command.run(this.fakeJasmine, ['--reporter=./spec/fixtures/customReporter.mjs']);
-      expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
-      expect(this.fakeJasmine.addReporter.calls.argsFor(0)[0].isCustomReporterDotMjs).toBe(true);
-    });
-
-    describe('When the reporter path is relative', function() {
-      beforeEach(function() {
-        this.originalWd = process.cwd();
-      });
-
-      afterEach(function() {
-        process.chdir(this.originalWd);
-      });
-
-      it('evaluates the path based on the cwd', async function() {
-        const Reporter = require('./fixtures/customReporter.js');
-        process.chdir('spec/fixtures');
-        await this.command.run(this.fakeJasmine, ['--reporter=./customReporter.js']);
-        expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
-        expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
-
-        this.fakeJasmine.clearReporters.calls.reset();
-        this.fakeJasmine.addReporter.calls.reset();
-        process.chdir('example');
-        await this.command.run(this.fakeJasmine, ['--reporter=../customReporter.js']);
-        expect(this.fakeJasmine.clearReporters).toHaveBeenCalled();
-        expect(this.fakeJasmine.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
-      });
-    });
-
-    it('throws with context if the file does not export a reporter', async function() {
-      const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'badReporter.js'));
-      await expectAsync(
-        this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath])
-      ).toBeRejectedWithError(new RegExp(
-        'Failed to instantiate reporter from ' +
-        escapeStringForRegexp(reporterPath) + '\nUnderlying error: .' +
-        '*Reporter is not a constructor'
-      ));
-      expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
-      expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
-    });
-
-    it('throws with context if the reporter file does not exist', async function() {
-      const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'missingReporter.js'));
-
-      await expectAsync(
-        this.command.run(this.fakeJasmine, ['--reporter=' + reporterPath])
-      ).toBeRejectedWithError(new RegExp(
-        'Failed to load reporter module ' +
-          escapeStringForRegexp(reporterPath) + '\nUnderlying error: ' +
-        '.*Cannot find module'
-      ));
-
-      expect(this.fakeJasmine.clearReporters).not.toHaveBeenCalled();
-      expect(this.fakeJasmine.addReporter).not.toHaveBeenCalled();
-    });
-
-    it('should not configure fail fast by default', async function() {
-      await this.command.run(this.fakeJasmine, []);
-      expect(this.fakeJasmine.env.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
-        stopOnSpecFailure: jasmine.anything()
-      }));
-      expect(this.fakeJasmine.env.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
-        stopSpecOnExpectationFailure: jasmine.anything()
-      }));
-    });
-
-    it('should be able to turn on fail fast', async function() {
-      await this.command.run(this.fakeJasmine, ['--fail-fast']);
-      expect(this.fakeJasmine.env.configure).toHaveBeenCalledWith({
-        stopOnSpecFailure: true,
-        stopSpecOnExpectationFailure: true
-      });
-    });
     
-    it('uses jasmine-core defaults if random is unspecified', async function() {
-      await this.command.run(this.fakeJasmine, []);
-      expect(this.fakeJasmine.randomizeTests).not.toHaveBeenCalled();
+    function sharedRunBehavior(extraArg) {
+      beforeEach(function() {
+        this.run = async function(args) {
+          if (extraArg) {
+            args.push(extraArg);
+          }
+
+          await this.command.run(args);
+        };
+      });
+
+      it('should load the default config file', async function () {
+        await this.run(['node', 'bin/jasmine.js']);
+        expect(this.runner.loadConfigFile).toHaveBeenCalledWith(undefined);
+      });
+
+      it('should load a custom config file specified by env variable', async function () {
+        await this.run(['node', 'bin/jasmine.js', 'JASMINE_CONFIG_PATH=somewhere.json']);
+        expect(this.runner.loadConfigFile).toHaveBeenCalledWith('somewhere.json');
+      });
+
+      it('should load a custom config file specified by option', async function () {
+        await this.run(['node', 'bin/jasmine.js', '--config=somewhere.json']);
+        expect(this.runner.loadConfigFile).toHaveBeenCalledWith('somewhere.json');
+      });
+
+      it('should show colors by default if stdout is a TTY', async function () {
+        await withValueForIsTTY(true, async function () {
+          await this.run(['node', 'bin/jasmine.js']);
+          expect(this.runner.showColors).toHaveBeenCalledWith(true);
+        }.bind(this));
+      });
+
+      it('should not show colors by default if stdout is not a TTY', async function () {
+        await withValueForIsTTY(undefined, async function () {
+          await this.run(['node', 'bin/jasmine.js']);
+          expect(this.runner.showColors).toHaveBeenCalledWith(false);
+        }.bind(this));
+      });
+
+      it('should allow colors to be turned off', async function () {
+        await this.run(['node', 'bin/jasmine.js', '--no-color']);
+        expect(this.runner.showColors).toHaveBeenCalledWith(false);
+      });
+
+      it('should be able to force colors to be turned on', async function () {
+        await withValueForIsTTY(undefined, async function () {
+          await this.run(['node', 'bin/jasmine.js', '--color']);
+          expect(this.runner.showColors).toHaveBeenCalledWith(true);
+        }.bind(this));
+      });
+
+      it('should execute the jasmine suite', async function () {
+        await this.run(['node', 'bin/jasmine.js']);
+        expect(this.runner.execute).toHaveBeenCalled();
+      });
+
+      it('should be able to run only specified specs', async function () {
+        await this.run(['spec/some/fileSpec.js', 'SOME_ENV=SOME_VALUE', '--no-color']);
+        expect(this.runner.execute).toHaveBeenCalledWith(['spec/some/fileSpec.js'], undefined);
+      });
+
+      it('should be able filter by spec name', async function () {
+        await this.run(['--filter=interesting spec']);
+        expect(this.runner.execute).toHaveBeenCalledWith(jasmine.any(Array), 'interesting spec');
+      });
+
+      it('should be able to add one helper pattern', async function () {
+        await this.run(['--helper=helpers/**/*.js']);
+        expect(this.runner.addMatchingHelperFiles).toHaveBeenCalledWith(['helpers/**/*.js']);
+      });
+
+      it('should be able to add many helper patterns', async function () {
+        await this.run(['--helper=helpers/**/*.js', '--helper=other.js']);
+        expect(this.runner.addMatchingHelperFiles).toHaveBeenCalledWith(['helpers/**/*.js', 'other.js']);
+      });
+
+      it('should not modify helper patterns if no argument given', async function () {
+        await this.run([]);
+        expect(this.runner.addMatchingHelperFiles).not.toHaveBeenCalled();
+      });
+
+      it('should be able to add one require', async function () {
+        await this.run(['--require=ts-node/require']);
+        expect(this.runner.addRequires).toHaveBeenCalledWith(['ts-node/require']);
+      });
+
+      it('should be able to add multiple requires', async function () {
+        await this.run(['--require=ts-node/require', '--require=@babel/register']);
+        expect(this.runner.addRequires).toHaveBeenCalledWith(['ts-node/require', '@babel/register']);
+      });
+
+      it('can specify a reporter', async function () {
+        const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'customReporter.js'));
+        const Reporter = require(reporterPath);
+        await this.run(['--reporter=' + reporterPath]);
+        expect(this.runner.clearReporters).toHaveBeenCalled();
+        expect(this.runner.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
+      });
+
+      it('uses the provided loader to load reporters', async function () {
+        const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'customReporter.js'));
+        spyOn(this.runner.loader, 'load').and.callThrough();
+
+        await this.run(['--reporter=' + reporterPath]);
+
+        expect(this.runner.loader.load).toHaveBeenCalledWith(reporterPath);
+      });
+
+      it('can specify a reporter that is an ES module', async function () {
+        await this.run(['--reporter=./spec/fixtures/customReporter.mjs']);
+        expect(this.runner.clearReporters).toHaveBeenCalled();
+        expect(this.runner.addReporter.calls.argsFor(0)[0].isCustomReporterDotMjs).toBe(true);
+      });
+
+      describe('When the reporter path is relative', function () {
+        beforeEach(function () {
+          this.originalWd = process.cwd();
+        });
+
+        afterEach(function () {
+          process.chdir(this.originalWd);
+        });
+
+        it('evaluates the path based on the cwd', async function () {
+          const Reporter = require('./fixtures/customReporter.js');
+          process.chdir('spec/fixtures');
+          await this.run(['--reporter=./customReporter.js']);
+          expect(this.runner.clearReporters).toHaveBeenCalled();
+          expect(this.runner.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
+
+          this.runner.clearReporters.calls.reset();
+          this.runner.addReporter.calls.reset();
+          process.chdir('example');
+          await this.run(['--reporter=../customReporter.js']);
+          expect(this.runner.clearReporters).toHaveBeenCalled();
+          expect(this.runner.addReporter).toHaveBeenCalledWith(jasmine.any(Reporter));
+        });
+      });
+
+      it('throws with context if the file does not export a reporter', async function () {
+        const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'badReporter.js'));
+        await expectAsync(
+          this.run(['--reporter=' + reporterPath])
+        ).toBeRejectedWithError(new RegExp(
+          'Failed to instantiate reporter from ' +
+          escapeStringForRegexp(reporterPath) + '\nUnderlying error: .' +
+          '*Reporter is not a constructor'
+        ));
+        expect(this.runner.clearReporters).not.toHaveBeenCalled();
+        expect(this.runner.addReporter).not.toHaveBeenCalled();
+      });
+
+      it('throws with context if the reporter file does not exist', async function () {
+        const reporterPath = path.resolve(path.join(__dirname, 'fixtures', 'missingReporter.js'));
+
+        await expectAsync(
+          this.run(['--reporter=' + reporterPath])
+        ).toBeRejectedWithError(new RegExp(
+          'Failed to load reporter module ' +
+          escapeStringForRegexp(reporterPath) + '\nUnderlying error: ' +
+          '.*Cannot find module'
+        ));
+
+        expect(this.runner.clearReporters).not.toHaveBeenCalled();
+        expect(this.runner.addReporter).not.toHaveBeenCalled();
+      });
+    }
+
+    it('runs in normal mode if --num-workers is not specified', async function() {
+      await this.command.run(['node', 'bin/jasmine.js']);
+      expect(this.fakeJasmine.execute).toHaveBeenCalled();
+      expect(this.parallelRunner.execute).not.toHaveBeenCalled();
     });
 
-    it('should be able to turn on random tests', async function() {
-      await this.command.run(this.fakeJasmine, ['--random=true']);
-      expect(this.fakeJasmine.randomizeTests).toHaveBeenCalledWith(true);
+    it('runs in normal mode if --num-workers is 1', async function() {
+      await this.command.run(['node', 'bin/jasmine.js', '--num-workers=1']);
+      expect(this.fakeJasmine.execute).toHaveBeenCalled();
+      expect(this.parallelRunner.execute).not.toHaveBeenCalled();
     });
 
-    it('should be able to turn off random tests', async function() {
-      await this.command.run(this.fakeJasmine, ['--random=false']);
-      expect(this.fakeJasmine.randomizeTests).toHaveBeenCalledWith(false);
+    it('runs in parallel mode if --num-workers is >1', async function() {
+      await this.command.run(['node', 'bin/jasmine.js', '--num-workers=2']);
+      expect(this.fakeJasmine.execute).not.toHaveBeenCalled();
+      expect(this.parallelRunner.execute).toHaveBeenCalled();
     });
 
-    it('should not configure seed by default', async function() {
-      await this.command.run(this.fakeJasmine, []);
-      expect(this.fakeJasmine.seed).not.toHaveBeenCalled();
+    describe('In normal mode', function () {
+      beforeEach(function() {
+        this.runner = this.fakeJasmine;
+      });
+      
+      sharedRunBehavior();
+
+      it('uses jasmine-core defaults if random is unspecified', async function () {
+        await this.run([]);
+        expect(this.runner.randomizeTests).not.toHaveBeenCalled();
+      });
+
+      it('should be able to turn on random tests', async function () {
+        await this.run(['--random=true']);
+        expect(this.runner.randomizeTests).toHaveBeenCalledWith(true);
+      });
+
+      it('should be able to turn off random tests', async function () {
+        await this.run(['--random=false']);
+        expect(this.runner.randomizeTests).toHaveBeenCalledWith(false);
+      });
+
+      it('should not configure seed by default', async function () {
+        await this.run([]);
+        expect(this.runner.seed).not.toHaveBeenCalled();
+      });
+
+      it('should be able to set a seed', async function () {
+        await this.run(['--seed=12345']);
+        expect(this.runner.seed).toHaveBeenCalledWith('12345');
+      });
+
+      it('should not configure fail fast by default', async function () {
+        await this.run([]);
+        expect(this.runner.env.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
+          stopOnSpecFailure: jasmine.anything()
+        }));
+        expect(this.runner.env.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
+          stopSpecOnExpectationFailure: jasmine.anything()
+        }));
+      });
+
+      it('should be able to turn on fail fast', async function () {
+        await this.run(['--fail-fast']);
+        expect(this.runner.env.configure).toHaveBeenCalledWith({
+          stopOnSpecFailure: true,
+          stopSpecOnExpectationFailure: true
+        });
+      });
     });
 
-    it('should be able to set a seed', async function() {
-      await this.command.run(this.fakeJasmine, ['--seed=12345']);
-      expect(this.fakeJasmine.seed).toHaveBeenCalledWith('12345');
+    describe('In parallel mode', function() {
+      beforeEach(function() {
+        this.runner = this.parallelRunner;
+      });
+
+      sharedRunBehavior('--num-workers=2');
+
+      it('does not allow the random seed to be set');
+
+      it('does not allow randomization to be disabled');
+
+      // TODO: either support or prohibit --fail-fast
     });
   });
 });
