@@ -36,9 +36,7 @@ describe('ParallelRunner', function() {
     this.testJasmine = new ParallelRunner({
       cluster: this.cluster
     });
-    this.testJasmine.exit = function () {
-      // Don't actually exit the node process
-    };
+    this.testJasmine.exit = dontExit;
 
     this.execute = execute;
   });
@@ -63,7 +61,11 @@ describe('ParallelRunner', function() {
 
   describe('#execute', function() {
     it('creates the configured number of worker processes', function() {
-      this.testJasmine.numWorkers = 17;
+      this.testJasmine = new ParallelRunner({
+        cluster: this.cluster,
+        numWorkers: 17
+      });
+      this.testJasmine.exit = dontExit;
       this.testJasmine.execute();
       const expectedPath = path.join(__dirname, '../bin/worker.js');
       expect(this.cluster.setupPrimary).toHaveBeenCalledWith({
@@ -112,9 +114,7 @@ describe('ParallelRunner', function() {
         cluster: this.cluster,
         jasmineCorePath
       });
-      this.testJasmine.exit = function () {
-        // Don't actually exit the node process
-      };
+      this.testJasmine.exit = dontExit;
       this.testJasmine.execute();
 
       for (const worker of Object.values(this.cluster.workers)) {
@@ -216,4 +216,7 @@ async function execute(options = {}) {
 
   const executeArgs = options.executeArgs || [];
   return this.testJasmine.execute.apply(this.testJasmine, executeArgs);
+}
+
+function dontExit() {
 }

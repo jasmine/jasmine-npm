@@ -67,16 +67,20 @@ describe('command', function() {
     );
     this.fakeJasmine.loader = new Loader();
     this.fakeJasmine.env = jasmine.createSpyObj('env', ['configure']);
-    this.parallelRunner = jasmine.createSpyObj(
+    this.Jasmine = jasmine.createSpy('Jasmine')
+      .and.returnValue(this.fakeJasmine);
+      this.parallelRunner = jasmine.createSpyObj(
       'parallelRunner',
       commonMethods
     );
     this.parallelRunner.loader = new Loader();
+    this.ParallelRunner = jasmine.createSpy('ParallelRunner')
+      .and.returnValue(this.parallelRunner);
     this.fakeJasmine.execute.and.returnValue(Promise.resolve());
     this.command = new Command(projectBaseDir, examplesDir, {
       print: this.out.print,
-      jasmine: this.fakeJasmine,
-      parallelRunner: this.parallelRunner
+      Jasmine: this.Jasmine,
+      ParallelRunner: this.ParallelRunner
     });
   });
 
@@ -377,18 +381,22 @@ describe('command', function() {
     it('runs in normal mode if --num-workers is not specified', async function() {
       await this.command.run(['node', 'bin/jasmine.js']);
       expect(this.fakeJasmine.execute).toHaveBeenCalled();
-      expect(this.parallelRunner.execute).not.toHaveBeenCalled();
+      expect(this.ParallelRunner).not.toHaveBeenCalled();
     });
 
     it('runs in normal mode if --num-workers is 1', async function() {
       await this.command.run(['node', 'bin/jasmine.js', '--num-workers=1']);
       expect(this.fakeJasmine.execute).toHaveBeenCalled();
-      expect(this.parallelRunner.execute).not.toHaveBeenCalled();
+      expect(this.ParallelRunner).not.toHaveBeenCalled();
     });
 
     it('runs in parallel mode if --num-workers is >1', async function() {
       await this.command.run(['node', 'bin/jasmine.js', '--num-workers=2']);
       expect(this.fakeJasmine.execute).not.toHaveBeenCalled();
+      expect(this.ParallelRunner).toHaveBeenCalledWith({
+        projectBaseDir,
+        numWorkers: 2
+      });
       expect(this.parallelRunner.execute).toHaveBeenCalled();
     });
 

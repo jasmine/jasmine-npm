@@ -7,8 +7,8 @@ const ParallelRunner = require("../lib/parallel_runner");
 
 const examplesDir = path.join(path.dirname(require.resolve('jasmine-core')), 'jasmine-core', 'example', 'node_example');
 const command = new Command(path.resolve(), examplesDir, {
-  jasmine: new Jasmine({ projectBaseDir: path.resolve() }),
-  parallelRunner: new ParallelRunner({ projectBaseDir: path.resolve() }),
+  Jasmine,
+  ParallelRunner,
   print: console.log
 });
 
