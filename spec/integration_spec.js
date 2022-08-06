@@ -176,6 +176,88 @@ describe('Integration', function () {
     expect(output).toContain('1 spec, 0 failures');
     expect(output).toContain('Globals OK');
   });
+
+  describe('Parallel execution', function() {
+    it('runs a passing suite', async function () {
+      const expectedOutput = 'Started\n' +
+        '...\n' +
+        '\n' +
+        '\n' +
+        '3 specs, 0 failures\n' +
+        'Finished in ';
+
+      const {exitCode, output} = await runJasmine(
+        'spec/fixtures/parallel_pass',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      expect(exitCode).toEqual(0);
+      expect(output).toContain(expectedOutput);
+    });
+
+    it('runs a suite with a spec failure', async function () {
+      const expectedChunks = [
+        'Started\n',
+
+        '\n' +
+        'Failures:\n' +
+        '1) Spec file 1 a failing spec\n' +
+        '  Message:\n' +
+        '    Expected 1 to be 2.\n' +
+        '  Stack:\n' +
+        '        at <Jasmine>\n' +
+        '        at UserContext.<anonymous> ',
+
+        '3 specs, 1 failure\n' +
+        'Finished in '
+      ];
+
+      const {output} = await runJasmine(
+        'spec/fixtures/parallel_spec_fail',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      // TODO: check exit code
+
+      for (const chunk of expectedChunks) {
+        expect(output).toContain(chunk);
+      }
+
+      expect(output).toMatch(/(F\.\.)|(\.F\.)|(\.\.\F)/);
+    });
+
+    it('runs a suite with a suite failure', async function () {
+      const expectedChunks = [
+        'Started\n' +
+        '..\n' +
+        '\n' +
+        '\n' +
+        'Suite error: Spec file 1\n' +
+        '  Message:\n' +
+        '    Expected 1 to be 2.\n' +
+        '  Stack:\n' +
+        '        at <Jasmine>\n' +
+        '        at UserContext.<anonymous> ',
+
+        '2 specs, 1 failure\n' +
+        'Finished in '
+      ];
+
+      const {output} = await runJasmine(
+        'spec/fixtures/parallel_suite_fail',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      // TODO: check exit code
+
+      for (const chunk of expectedChunks) {
+        expect(output).toContain(chunk);
+      }
+    });
+  });
 });
 
 async function runJasmine(cwd, config="jasmine.json", extraArgs = []) {

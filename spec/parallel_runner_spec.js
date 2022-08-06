@@ -44,11 +44,12 @@ describe('ParallelRunner', function() {
       ]
     );
     const consoleReporter = this.consoleReporter;
+    this.ConsoleReporter = function() {
+      return consoleReporter;
+    };
     this.testJasmine = new ParallelRunner({
       cluster: this.cluster,
-      ConsoleReporter: function() {
-        return consoleReporter;
-      }
+      ConsoleReporter: this.ConsoleReporter,
     });
     this.testJasmine.exit = dontExit;
 
@@ -105,7 +106,8 @@ describe('ParallelRunner', function() {
     it('creates the configured number of worker processes', function() {
       this.testJasmine = new ParallelRunner({
         cluster: this.cluster,
-        numWorkers: 17
+        numWorkers: 17,
+        ConsoleReporter: this.ConsoleReporter
       });
       this.testJasmine.exit = dontExit;
       this.testJasmine.execute();
@@ -154,7 +156,8 @@ describe('ParallelRunner', function() {
       const jasmineCorePath = './path/to/jasmine-core.js';
       this.testJasmine = new ParallelRunner({
         cluster: this.cluster,
-        jasmineCorePath
+        jasmineCorePath,
+        ConsoleReporter: this.ConsoleReporter
       });
       this.testJasmine.exit = dontExit;
       this.testJasmine.execute();
