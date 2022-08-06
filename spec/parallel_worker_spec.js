@@ -116,8 +116,6 @@ describe('ParallelWorker', function() {
       expect(this.env.parallelReset).toHaveBeenCalled();
     });
 
-    it('proxies reporter events');
-
     it('reports completion', async function() {
       this.loader.load.withArgs('jasmine-core')
         .and.returnValue(Promise.resolve(dummyCore(this.env)));
@@ -143,21 +141,58 @@ describe('ParallelWorker', function() {
     });
   });
 
+  describe('Handling reporter events', function() {
+    const events = ['jasmineStarted', 'jasmineDone', 'suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
+
+    for (const eventName of events) {
+      it(`forwards ${eventName} to the primary`, async function() {
+        const env = jasmine.createSpyObj(
+          'env', ['execute', 'parallelReset', 'addReporter']
+        );
+        const loader = jasmine.createSpyObj('loader', ['load']);
+        loader.load.withArgs('jasmine-core')
+          .and.returnValue(Promise.resolve(dummyCore(env)));
+        const jasmineWorker = new ParallelWorker({
+          loader,
+          clusterWorker: this.clusterWorker
+        });
+
+        this.clusterWorker.emit('message', {type: 'configure', configuration: {}});
+        await jasmineWorker.envPromise_;
+        loader.load.calls.reset();
+
+        expect(env.addReporter).toHaveBeenCalledTimes(1);
+        const reporter = env.addReporter.calls.argsFor(0)[0];
+        const payload = 'arbitrary reporter event payload';
+        reporter[eventName](payload);
+
+        expect(this.clusterWorker.send).toHaveBeenCalledWith({
+          type: 'reporterEvent',
+          eventName,
+          payload
+        });
+      });
+    }
+
+    // jasmineStarted, jasmineDone
+  });
+
+
   it('exits on disconnect');
   it('exits on parent death');
-
-  function dummyCore(env) {
-    return {
-      boot: function() {
-        return {
-          getEnv: function() {
-            return env || {
-              addReporter: function() {},
-              parallelReset: function() {}
-            };
-          },
-        };
-      }
-    };
-  }
 });
+
+function dummyCore(env) {
+  return {
+    boot: function() {
+      return {
+        getEnv: function() {
+          return env || {
+            addReporter: function() {},
+            parallelReset: function() {}
+          };
+        },
+      };
+    }
+  };
+}

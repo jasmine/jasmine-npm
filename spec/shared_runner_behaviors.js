@@ -95,7 +95,9 @@ function sharedRunnerBehaviors(makeRunner) {
 
     describe('#configureDefaultReporter', function () {
       beforeEach(function () {
-        spyOn(this.testJasmine.reporter, 'setOptions');
+        if (!jasmine.isSpy(this.testJasmine.reporter.setOptions)) {
+          spyOn(this.testJasmine.reporter, 'setOptions');
+        }
       });
 
       it('sets the options on the console reporter', function () {

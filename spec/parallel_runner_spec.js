@@ -2,9 +2,11 @@ const path = require('path');
 const EventEmitter = require('node:events');
 const sharedRunnerBehaviors = require('./shared_runner_behaviors');
 const ParallelRunner = require("../lib/parallel_runner");
-const ConsoleReporter = require("../lib/reporters/console_reporter");
 
 describe('ParallelRunner', function() {
+  const forwardedReporterEvents = ['suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
+  const nonForwardedReporterEvents = ['jasmineStarted', 'jasmineDone'];
+
   beforeEach(function () {
     this.cluster = jasmine.createSpyObj(
       'cluster',
@@ -33,8 +35,20 @@ describe('ParallelRunner', function() {
       this.cluster.workers[worker.id] = worker;
       return worker;
     });
+    this.consoleReporter = jasmine.createSpyObj(
+      'consoleReporter',
+      [
+        'setOptions',
+        ...forwardedReporterEvents,
+        ...nonForwardedReporterEvents
+      ]
+    );
+    const consoleReporter = this.consoleReporter;
     this.testJasmine = new ParallelRunner({
-      cluster: this.cluster
+      cluster: this.cluster,
+      ConsoleReporter: function() {
+        return consoleReporter;
+      }
     });
     this.testJasmine.exit = dontExit;
 
@@ -46,15 +60,19 @@ describe('ParallelRunner', function() {
   });
 
   it('registers a console reporter upon construction', function() {
-    expect(this.testJasmine.reporters_).toEqual([jasmine.any(ConsoleReporter)]);
+    this.testJasmine.reportDispatcher_.specStarted('payload');
+    expect(this.consoleReporter.specStarted).toHaveBeenCalledWith('payload');
   });
 
   it('can add and clear reporters', function() {
-    expect(this.testJasmine.reporters_.length).toEqual(1);
+    spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
+    spyOn(this.testJasmine.reportDispatcher_, 'clearReporters');
     this.testJasmine.clearReporters();
-    expect(this.testJasmine.reporters_.length).toEqual(0);
-    this.testJasmine.addReporter({someProperty: 'some value'});
-    expect(this.testJasmine.reporters_).toEqual([{someProperty: 'some value'}]);
+    expect(this.testJasmine.reportDispatcher_.clearReporters).toHaveBeenCalled();
+    const reporter = {someProperty: 'some value'};
+    this.testJasmine.addReporter(reporter);
+    expect(this.testJasmine.reportDispatcher_.addReporter)
+      .toHaveBeenCalledWith(jasmine.is(reporter));
   });
 
   it('can tell jasmine-core to stop spec on no expectations');
@@ -206,8 +224,68 @@ describe('ParallelRunner', function() {
     it('handles worker crashes');
     it('handles worker exec failures');
     it('terminates workers if the parent crashes');
+
+    describe('Handling reporter events from workers', function() {
+      beforeEach(async function() {
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        this.testJasmine.addSpecFile('spec1.js');
+        this.testJasmine.execute();
+        await poll(() => {
+          return this.cluster.workers[0].listeners('message').length > 0;
+        });
+
+      });
+
+      for (const eventName of forwardedReporterEvents) {
+        it(`forwards the ${eventName} event to reporters`, async function() {
+          const reporter = jasmine.createSpyObj('reporter', [eventName]);
+          this.testJasmine.addReporter(reporter);
+
+          const payload = 'arbitrary event payload';
+          this.cluster.workers[0].emit(
+            'message', {type: 'reporterEvent', eventName, payload}
+          );
+
+          expect(reporter[eventName]).toHaveBeenCalledWith(payload);
+        });
+      }
+
+      for (const eventName of nonForwardedReporterEvents) {
+        it(`does not forward the ${eventName} event to reporters`, async function() {
+          const reporter = jasmine.createSpyObj('reporter', [eventName]);
+          this.testJasmine.addReporter(reporter);
+
+          this.cluster.workers[0].emit(
+            'message',
+            {type: 'reporterEvent', eventName, payload: 'arbitrary event payload'}
+          );
+
+          expect(reporter[eventName]).not.toHaveBeenCalled();
+        });
+      }
+    });
   });
 });
+
+async function poll(predicate) {
+  return new Promise(function(resolve, reject) {
+    function check() {
+      try {
+        if (predicate()) {
+          resolve();
+        } else {
+          setTimeout(check);
+        }
+      } catch (e) {
+        reject(e);
+      }
+    }
+
+    check();
+  });
+}
 
 async function execute(options = {}) {
   if (options.overallStatus) {
