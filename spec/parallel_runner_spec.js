@@ -69,8 +69,8 @@ describe('ParallelRunner', function() {
       );
     };
 
-    this.emitFileDone = (worker, filename) => {
-      worker.emit('message', {type: 'specFileDone', filename});
+    this.emitFileDone = (worker, payload) => {
+      worker.emit('message', {type: 'specFileDone', ...payload});
     };
 
     this.disconnect = async () => {
@@ -275,11 +275,11 @@ describe('ParallelRunner', function() {
 
       await new Promise(resolve => setTimeout(resolve));
       this.emitSpecDone(this.cluster.workers[0], {status: 'passed'});
-      this.emitFileDone(this.cluster.workers[0], 'spec1.js');
+      this.emitFileDone(this.cluster.workers[0]);
       this.emitSpecDone(this.cluster.workers[1], {status: 'passed'});
-      this.emitFileDone(this.cluster.workers[1], 'spec2.js');
+      this.emitFileDone(this.cluster.workers[1]);
       this.emitSpecDone(this.cluster.workers[0], {status: 'passed'});
-      this.emitFileDone(this.cluster.workers[0], 'spec3.js');
+      this.emitFileDone(this.cluster.workers[0]);
       await this.disconnect();
       await executePromise;
 
@@ -302,10 +302,10 @@ describe('ParallelRunner', function() {
 
       await new Promise(resolve => setTimeout(resolve));
       this.emitSpecDone(this.cluster.workers[0], {status: 'passed'});
-      this.emitFileDone(this.cluster.workers[0], 'spec1.js');
+      this.emitFileDone(this.cluster.workers[0]);
       this.emitSpecDone(this.cluster.workers[1], {status: 'passed'});
       this.emitSpecDone(this.cluster.workers[1], {status: 'failed'});
-      this.emitFileDone(this.cluster.workers[1], 'spec2.js');
+      this.emitFileDone(this.cluster.workers[1]);
       await this.disconnect();
       await executePromise;
 
@@ -327,10 +327,10 @@ describe('ParallelRunner', function() {
 
       await new Promise(resolve => setTimeout(resolve));
       this.emitSuiteDone(this.cluster.workers[0], {status: 'passed'});
-      this.emitFileDone(this.cluster.workers[0], 'spec1.js');
+      this.emitFileDone(this.cluster.workers[0]);
       this.emitSuiteDone(this.cluster.workers[1], {status: 'passed'});
       this.emitSuiteDone(this.cluster.workers[1], {status: 'failed'});
-      this.emitFileDone(this.cluster.workers[1], 'spec2.js');
+      this.emitFileDone(this.cluster.workers[1]);
       await this.disconnect();
       await executePromise;
 
@@ -341,9 +341,89 @@ describe('ParallelRunner', function() {
       );
     });
 
-    it('sets the jasmineDone event status to incomplete when there are focused suites');
-    it('sets the jasmineDone event status to incomplete when there are focused specs');
-    it('sets the jasmineDone event status to incomplete when there are no specs');
+    it('sets the jasmineDone event status to incomplete when there are focused runables', async function() {
+      this.testJasmine.numWorkers = 2;
+      this.testJasmine.loadConfig({
+        spec_dir: 'some/spec/dir'
+      });
+      this.testJasmine.addSpecFile('spec1.js');
+      this.testJasmine.addSpecFile('spec2.js');
+      const executePromise = this.testJasmine.execute();
+
+      await new Promise(resolve => setTimeout(resolve));
+      this.emitFileDone(this.cluster.workers[0], {
+        overallStatus: 'incomplete',
+        incompleteCode: 'focused',
+        incompleteReason: 'fit() or fdescribe() was found'
+      });
+      this.emitFileDone(this.cluster.workers[1]);
+      await this.disconnect();
+      await executePromise;
+
+      expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          overallStatus: 'incomplete',
+          incompleteCode: 'focused',
+          incompleteReason: 'fit() or fdescribe() was found'
+        })
+      );
+    });
+
+    it('sets the jasmineDone event status to incomplete when there are no specs', async function() {
+      this.testJasmine.numWorkers = 2;
+      this.testJasmine.loadConfig({
+        spec_dir: 'some/spec/dir'
+      });
+      this.testJasmine.addSpecFile('spec1.js');
+      this.testJasmine.addSpecFile('spec2.js');
+      const executePromise = this.testJasmine.execute();
+
+      await new Promise(resolve => setTimeout(resolve));
+      this.emitFileDone(this.cluster.workers[0], {
+        overallStatus: 'incomplete',
+        incompleteCode: 'noSpecsFound',
+      });
+      this.emitFileDone(this.cluster.workers[1], {
+        overallStatus: 'incomplete',
+        incompleteCode: 'noSpecsFound',
+      });
+      await this.disconnect();
+      await executePromise;
+
+      expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          overallStatus: 'incomplete',
+          incompleteCode: 'noSpecsFound',
+          incompleteReason: 'No specs found'
+        })
+      );
+    });
+
+    it('does not set the jasmineDone event status to incomplete when one file has no specs', async function() {
+      this.testJasmine.numWorkers = 2;
+      this.testJasmine.loadConfig({
+        spec_dir: 'some/spec/dir'
+      });
+      this.testJasmine.addSpecFile('spec1.js');
+      this.testJasmine.addSpecFile('spec2.js');
+      const executePromise = this.testJasmine.execute();
+
+      await new Promise(resolve => setTimeout(resolve));
+      this.emitFileDone(this.cluster.workers[0], {
+        overallStatus: 'incomplete',
+        incompleteCode: 'noSpecsFound',
+      });
+      this.emitFileDone(this.cluster.workers[1]);
+      await this.disconnect();
+      await executePromise;
+
+      expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          overallStatus: 'passed',
+        })
+      );
+    });
+
     it('includes failedExpectations in the jasmineDone event');
     it('includes deprecationWarnings in the jasmineDone event');
 

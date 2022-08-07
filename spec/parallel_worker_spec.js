@@ -77,7 +77,7 @@ describe('ParallelWorker', function() {
             resolveLoader = resolve;
           }
         ));
-      this.env.execute.and.returnValue(Promise.resolve());
+      this.env.execute.and.returnValue(new Promise(() => {}));
       this.clusterWorker.emit('message', {
         type: 'runSpecFile',
         filePath: 'aSpec.js'
@@ -96,7 +96,7 @@ describe('ParallelWorker', function() {
       await this.configure();
 
       this.loader.load.withArgs('aSpec.js').and.returnValue(Promise.resolve());
-      this.env.execute.and.returnValue(Promise.resolve());
+      this.env.execute.and.returnValue(new Promise(() => {}));
       this.clusterWorker.emit('message', {type: 'runSpecFile', filePath: 'aSpec.js'});
       await new Promise(resolve => setTimeout(resolve));
       expect(this.loader.load).toHaveBeenCalledWith('aSpec.js');
@@ -109,9 +109,27 @@ describe('ParallelWorker', function() {
       await this.configure();
 
       this.loader.load.and.returnValue(Promise.resolve());
-      this.env.execute.and.returnValue(Promise.resolve());
-      await this.jasmineWorker.runSpecFile('aSpec.js');
-      await this.jasmineWorker.runSpecFile('bSpec.js');
+      let resolveExecute;
+      this.env.execute.and.callFake(function() {
+        return new Promise(function(res) {
+          resolveExecute = res;
+        });
+      });
+      let doneCalls = 0;
+      this.clusterWorker.send.and.callFake(function(event) {
+        if (event.type === 'specFileDone') {
+          doneCalls++;
+        }
+      });
+      this.jasmineWorker.runSpecFile('aSpec.js');
+      await poll(() => !!resolveExecute);
+      dispatchRepoterEvent(this.env, 'jasmineDone', {});
+      resolveExecute();
+      await poll(() => doneCalls === 1);
+      this.env.parallelReset.calls.reset();
+      resolveExecute = null;
+      this.jasmineWorker.runSpecFile('bSpec.js');
+      await poll(() => !!resolveExecute);
 
       expect(this.env.parallelReset).toHaveBeenCalled();
     });
@@ -132,19 +150,28 @@ describe('ParallelWorker', function() {
         {type: 'specFileDone'}
       );
 
+      dispatchRepoterEvent(this.env, 'jasmineDone', {
+        overallStatus: 'incomplete',
+        incompleteCode: 'focused',
+        incompleteReason: 'fit'
+      });
       resolveExecute();
       await Promise.resolve();
       await Promise.resolve();
-      expect(this.clusterWorker.send).toHaveBeenCalledWith(
-        {type: 'specFileDone'}
-      );
+      expect(this.clusterWorker.send).toHaveBeenCalledWith({
+        type: 'specFileDone',
+        overallStatus: 'incomplete',
+        incompleteCode: 'focused',
+        incompleteReason: 'fit'
+      });
     });
   });
 
   describe('Handling reporter events', function() {
-    const events = ['jasmineStarted', 'jasmineDone', 'suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
+    const forwardedEvents = ['suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
+    const nonForwardedEvents = ['jasmineStarted', 'jasmineDone'];
 
-    for (const eventName of events) {
+    for (const eventName of forwardedEvents) {
       it(`forwards ${eventName} to the primary`, async function() {
         const env = jasmine.createSpyObj(
           'env', ['execute', 'parallelReset', 'addReporter']
@@ -159,12 +186,9 @@ describe('ParallelWorker', function() {
 
         this.clusterWorker.emit('message', {type: 'configure', configuration: {}});
         await jasmineWorker.envPromise_;
-        loader.load.calls.reset();
 
-        expect(env.addReporter).toHaveBeenCalledTimes(1);
-        const reporter = env.addReporter.calls.argsFor(0)[0];
         const payload = 'arbitrary reporter event payload';
-        reporter[eventName](payload);
+        dispatchRepoterEvent(env, eventName, payload);
 
         expect(this.clusterWorker.send).toHaveBeenCalledWith({
           type: 'reporterEvent',
@@ -174,13 +198,45 @@ describe('ParallelWorker', function() {
       });
     }
 
-    // jasmineStarted, jasmineDone
+    for (const eventName of nonForwardedEvents) {
+      it(`does not forward ${eventName}`, async function () {
+        const env = jasmine.createSpyObj(
+          'env', ['execute', 'parallelReset', 'addReporter']
+        );
+        const loader = jasmine.createSpyObj('loader', ['load']);
+        loader.load.withArgs('jasmine-core')
+          .and.returnValue(Promise.resolve(dummyCore(env)));
+        const jasmineWorker = new ParallelWorker({
+          loader,
+          clusterWorker: this.clusterWorker
+        });
+
+        this.clusterWorker.emit('message', {type: 'configure', configuration: {}});
+        await jasmineWorker.envPromise_;
+
+        dispatchRepoterEvent(env, eventName, {});
+
+        expect(this.clusterWorker.send).not.toHaveBeenCalled();
+      });
+    }
   });
 
 
   it('exits on disconnect');
   it('exits on parent death');
 });
+
+function dispatchRepoterEvent(env, eventName, payload) {
+  expect(env.addReporter).toHaveBeenCalled();
+
+  for (const [reporter] of env.addReporter.calls.allArgs()) {
+    if (reporter[eventName]) {
+      reporter[eventName](payload);
+      dispatched = true;
+    }
+  }
+}
+
 
 function dummyCore(env) {
   return {
@@ -195,4 +251,22 @@ function dummyCore(env) {
       };
     }
   };
+}
+
+async function poll(predicate) {
+  return new Promise(function(resolve, reject) {
+    function check() {
+      try {
+        if (predicate()) {
+          resolve();
+        } else {
+          setTimeout(check);
+        }
+      } catch (e) {
+        reject(e);
+      }
+    }
+
+    check();
+  });
 }

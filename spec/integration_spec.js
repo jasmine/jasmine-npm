@@ -196,6 +196,17 @@ describe('Integration', function () {
       expect(output).toContain(expectedOutput);
     });
 
+    it('runs a passing suite with a focused suite', async function () {
+      const {output} = await runJasmine(
+        'spec/fixtures/parallel_suite_focused',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      // TODO: check exit code
+      expect(output).toContain('Incomplete: fit() or fdescribe() was found');
+    });
+
     it('runs a suite with a spec failure', async function () {
       const expectedChunks = [
         'Started\n',
@@ -247,6 +258,30 @@ describe('Integration', function () {
 
       const {output} = await runJasmine(
         'spec/fixtures/parallel_suite_fail',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      // TODO: check exit code
+
+      for (const chunk of expectedChunks) {
+        expect(output).toContain(chunk);
+      }
+    });
+
+    it('runs a suite with no specs', async function () {
+      const expectedChunks = [
+        'Started\n' +
+        '\n' +
+        '\n' +
+        'No specs found\n' +
+        'Finished in ',
+
+        'Incomplete: No specs found\n'
+      ];
+
+      const {output} = await runJasmine(
+        'spec/fixtures/parallel_no_specs',
         'jasmine.json',
         ['--num-workers=2']
       );
