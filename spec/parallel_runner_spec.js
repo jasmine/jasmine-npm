@@ -70,7 +70,12 @@ describe('ParallelRunner', function() {
     };
 
     this.emitFileDone = (worker, payload) => {
-      worker.emit('message', {type: 'specFileDone', ...payload});
+      worker.emit('message', {
+        type: 'specFileDone',
+        failedExpectations: [],
+        deprecationWarnings: [],
+        ...payload
+      });
     };
 
     this.disconnect = async () => {
@@ -212,9 +217,7 @@ describe('ParallelRunner', function() {
         this.testJasmine.execute();
         await new Promise(resolve => setTimeout(resolve));
 
-        this.cluster.workers[0].emit(
-          'message', {type: 'specFileDone', filename: 'spec1.js'}
-        );
+        this.emitFileDone(this.cluster.workers[0]);
         expect(this.cluster.workers[0].send).toHaveBeenCalledWith(
           {type: 'runSpecFile', filePath: 'spec3.js'}
         );
@@ -231,16 +234,10 @@ describe('ParallelRunner', function() {
         const executePromise = this.testJasmine.execute();
 
         await new Promise(resolve => setTimeout(resolve));
-        this.cluster.workers[0].emit(
-          'message', {type: 'specFileDone', filename: 'spec1.js'}
-        );
-        this.cluster.workers[1].emit(
-          'message', {type: 'specFileDone', filename: 'spec2.js'}
-        );
+        this.emitFileDone(this.cluster.workers[0]);
+        this.emitFileDone(this.cluster.workers[1]);
         await expectAsync(executePromise).toBePending();
-        this.cluster.workers[0].emit(
-          'message', {type: 'specFileDone', filename: 'spec3.js'}
-        );
+        this.emitFileDone(this.cluster.workers[0]);
         await new Promise(resolve => setTimeout(resolve));
         await this.disconnect();
         await expectAsync(executePromise).toBeResolved();
@@ -288,7 +285,7 @@ describe('ParallelRunner', function() {
         totalTime: jasmine.any(Number),
         numWorkers: 2,
         failedExpectations: [],
-        passedExpectations: []
+        deprecationWarnings: []
       });
     });
 
@@ -425,9 +422,49 @@ describe('ParallelRunner', function() {
       );
     });
 
-    it('includes failedExpectations in the jasmineDone event');
-    it('includes deprecationWarnings in the jasmineDone event');
+    it('merges top level failedExpectations and deprecationWarnings from workers', async function() {
+      this.testJasmine.numWorkers = 2;
+      this.testJasmine.loadConfig({
+        spec_dir: 'some/spec/dir'
+      });
+      this.testJasmine.addSpecFile('spec1.js');
+      this.testJasmine.addSpecFile('spec2.js');
+      this.testJasmine.addSpecFile('spec3.js');
+      const executePromise = this.testJasmine.execute();
 
+      await new Promise(resolve => setTimeout(resolve));
+      this.emitFileDone(this.cluster.workers[0], {
+        failedExpectations: ['failed expectation 1'],
+        deprecationWarnings: ['deprecation 1'],
+      });
+      this.emitFileDone(this.cluster.workers[1], {
+        failedExpectations: ['failed expectation 2'],
+        deprecationWarnings: ['deprecation 2'],
+      });
+      this.emitFileDone(this.cluster.workers[0], {
+        failedExpectations: ['failed expectation 3'],
+        deprecationWarnings: ['deprecation 3'],
+      });
+
+      await this.disconnect();
+      await executePromise;
+
+      expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          overallStatus: 'failed',
+          failedExpectations: [
+            'failed expectation 1',
+            'failed expectation 2',
+            'failed expectation 3',
+          ],
+          deprecationWarnings: [
+            'deprecation 1',
+            'deprecation 2',
+            'deprecation 3',
+          ]
+        })
+      );
+    });
 
     describe('Handling reporter events from workers', function() {
       beforeEach(async function() {

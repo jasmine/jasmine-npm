@@ -153,7 +153,10 @@ describe('ParallelWorker', function() {
       dispatchRepoterEvent(this.env, 'jasmineDone', {
         overallStatus: 'incomplete',
         incompleteCode: 'focused',
-        incompleteReason: 'fit'
+        incompleteReason: 'fit',
+        order: 'should be ignored',
+        failedExpectations: ['failed expectations'],
+        deprecationWarnings: ['deprecations'],
       });
       resolveExecute();
       await Promise.resolve();
@@ -162,7 +165,9 @@ describe('ParallelWorker', function() {
         type: 'specFileDone',
         overallStatus: 'incomplete',
         incompleteCode: 'focused',
-        incompleteReason: 'fit'
+        incompleteReason: 'fit',
+        failedExpectations: ['failed expectations'],
+        deprecationWarnings: ['deprecations'],
       });
     });
   });
