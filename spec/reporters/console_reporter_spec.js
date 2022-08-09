@@ -648,6 +648,32 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).not.toContain("Spec has no expectations");
   });
 
+  it('reports a summary for a parallel run', function() {
+    const reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+    });
+
+    reporter.jasmineDone({
+      numWorkers: 3
+    });
+
+    expect(this.out.getOutput()).toContain('Ran in parallel with 3 workers\n');
+  });
+
+  it('does not report non-parallel runs as parallel', function() {
+    const reporter = new ConsoleReporter();
+    reporter.setOptions({
+      print: this.out.print,
+    });
+
+    reporter.jasmineDone({
+      numWorkers: undefined
+    });
+
+    expect(this.out.getOutput()).not.toContain('Ran in parallel');
+  });
+
   it("displays all afterAll exceptions", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({

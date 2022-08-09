@@ -286,6 +286,7 @@ describe('ParallelRunner', function() {
       expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith({
         overallStatus: 'passed',
         totalTime: jasmine.any(Number),
+        numWorkers: 2,
         failedExpectations: [],
         passedExpectations: []
       });

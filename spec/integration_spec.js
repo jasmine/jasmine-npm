@@ -184,6 +184,7 @@ describe('Integration', function () {
         '\n' +
         '\n' +
         '3 specs, 0 failures\n' +
+        'Ran in parallel with 2 workers\n' +
         'Finished in ';
 
       const {exitCode, output} = await runJasmine(
@@ -221,6 +222,7 @@ describe('Integration', function () {
         '        at UserContext.<anonymous> ',
 
         '3 specs, 1 failure\n' +
+        'Ran in parallel with 2 workers\n' +
         'Finished in '
       ];
 
@@ -253,6 +255,7 @@ describe('Integration', function () {
         '        at UserContext.<anonymous> ',
 
         '2 specs, 1 failure\n' +
+        'Ran in parallel with 2 workers\n' +
         'Finished in '
       ];
 
@@ -275,6 +278,7 @@ describe('Integration', function () {
         '\n' +
         '\n' +
         'No specs found\n' +
+        'Ran in parallel with 2 workers\n' +
         'Finished in ',
 
         'Incomplete: No specs found\n'
