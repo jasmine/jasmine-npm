@@ -197,13 +197,13 @@ describe('Integration', function () {
     });
 
     it('runs a passing suite with a focused suite', async function () {
-      const {output} = await runJasmine(
+      const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_suite_focused',
         'jasmine.json',
         ['--num-workers=2']
       );
 
-      // TODO: check exit code
+      expect(exitCode).toEqual(2);
       expect(output).toContain('Incomplete: fit() or fdescribe() was found');
     });
 
@@ -224,13 +224,13 @@ describe('Integration', function () {
         'Finished in '
       ];
 
-      const {output} = await runJasmine(
+      const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_spec_fail',
         'jasmine.json',
         ['--num-workers=2']
       );
 
-      // TODO: check exit code
+      expect(exitCode).toEqual(3);
 
       for (const chunk of expectedChunks) {
         expect(output).toContain(chunk);
@@ -256,13 +256,13 @@ describe('Integration', function () {
         'Finished in '
       ];
 
-      const {output} = await runJasmine(
+      const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_suite_fail',
         'jasmine.json',
         ['--num-workers=2']
       );
 
-      // TODO: check exit code
+      expect(exitCode).toEqual(3);
 
       for (const chunk of expectedChunks) {
         expect(output).toContain(chunk);
@@ -280,13 +280,13 @@ describe('Integration', function () {
         'Incomplete: No specs found\n'
       ];
 
-      const {output} = await runJasmine(
+      const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_no_specs',
         'jasmine.json',
         ['--num-workers=2']
       );
 
-      // TODO: check exit code
+      expect(exitCode).toEqual(2);
 
       for (const chunk of expectedChunks) {
         expect(output).toContain(chunk);
