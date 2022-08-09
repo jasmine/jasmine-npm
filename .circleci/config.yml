@@ -15,20 +15,6 @@ executors:
     docker:
       - image: cimg/node:16.14.2 # Latest 16.x
     working_directory: ~/workspace
-  node14_latest:
-    docker:
-      - image: cimg/node:14.17.4 # Latest 14.x
-    working_directory: ~/workspace
-  # 14.8 is the first version with top level await in ES modules.
-  node14_8:
-    docker:
-      - image: cimg/node:14.8
-    working_directory: ~/workspace
-  # 14.7 is the last version without top level await in ES modules.
-  node14_7:
-    docker:
-      - image: cimg/node:14.7
-    working_directory: ~/workspace
 
 jobs:
   test:
@@ -74,9 +60,6 @@ workflows:
               executor:
                 - node18
                 - node16
-                - node14_latest
-                - node14_8 # first with top level await in ES modules.
-                - node14_7
       - test_win
   cron:
     <<: *push_workflow
