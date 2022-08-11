@@ -1,0 +1,1 @@
+global.helperLoaded = true;

@@ -127,7 +127,8 @@ describe('ParallelRunner', function() {
     it('configures the workers', async function() {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
-        spec_dir: 'some/spec/dir'
+        spec_dir: 'spec/fixtures/parallel_helpers',
+        helpers: ['helper*.js'],
       });
       this.testJasmine.addSpecFile('aSpec.js');
       spyOn(this.testJasmine, 'runSpecFiles_')
@@ -137,11 +138,13 @@ describe('ParallelRunner', function() {
 
       const workers = this.cluster.fork.calls.all().map(c => c.returnValue);
       const configuration = {
-        // TODO: other properties, including env config, requires, helpers,
+        // TODO: other properties, including env config, requires,
         // jsLoader, etc. Basically everything that shouldn't intentionally
         // be excluded.
-        spec_dir: 'some/spec/dir',
-        spec_files: []
+        spec_dir: 'spec/fixtures/parallel_helpers',
+        helpers: [
+          jasmine.stringMatching(/spec\/fixtures\/parallel_helpers\/helper1\.js$/)
+        ]
       };
       expect(workers[0].send).toHaveBeenCalledWith(
         {type: 'configure', configuration}, jasmine.any(Function)
@@ -246,7 +249,6 @@ describe('ParallelRunner', function() {
 
     it('handles worker crashes');
     it('handles worker exec failures');
-    it('terminates workers if the parent crashes');
 
     it('dispatches an empty jasmineStarted event at the start of execution', async function() {
       this.testJasmine.numWorkers = 2;

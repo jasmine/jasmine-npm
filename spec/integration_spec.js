@@ -296,6 +296,25 @@ describe('Integration', function () {
         expect(output).toContain(chunk);
       }
     });
+
+    it('loads helper files in each worker process', async function () {
+      const expectedOutput = 'Started\n' +
+        '..\n' +
+        '\n' +
+        '\n' +
+        '2 specs, 0 failures\n' +
+        'Ran in parallel with 2 workers\n' +
+        'Finished in ';
+
+      const {exitCode, output} = await runJasmine(
+        'spec/fixtures/parallel_helpers',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      expect(exitCode).toEqual(0);
+      expect(output).toContain(expectedOutput);
+    });
   });
 });
 

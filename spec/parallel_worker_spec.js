@@ -17,7 +17,10 @@ describe('ParallelWorker', function() {
 
       this.clusterWorker.emit('message', {
         type: 'configure',
-        configuration: {jasmineCorePath: './path/to/jasmine-core.js'}
+        configuration: {
+          jasmineCorePath: './path/to/jasmine-core.js',
+          helpers: [],
+        }
       });
       await Promise.resolve();
 
@@ -33,7 +36,12 @@ describe('ParallelWorker', function() {
       loader.load.and.returnValue(Promise.resolve(core));
       new ParallelWorker({loader, clusterWorker: this.clusterWorker});
 
-      this.clusterWorker.emit('message', {type: 'configure', configuration: {}});
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {
+          helpers: [],
+        }
+      });
       await Promise.resolve();
 
       expect(loader.load).toHaveBeenCalledWith('jasmine-core');
@@ -42,9 +50,32 @@ describe('ParallelWorker', function() {
 
     it('does something reasonable when the core module fails to load');
 
-    it('creates and configures an env'); // incl. autoCleanClosures: false
+    it('creates and configures an env');
 
-    it('loads helper files');
+    it('loads helper files after booting the core', async function() {
+      const loader = jasmine.createSpyObj('loader', ['load']);
+      const core = dummyCore();
+      spyOn(core, 'boot').and.callThrough();
+      loader.load.withArgs('jasmine-core')
+        .and.returnValue(Promise.resolve(core));
+      loader.load.withArgs(jasmine.stringContaining('/some/dir/helper'))
+        .and.returnValue(Promise.resolve({}));
+      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {
+          helpers: [
+            '/some/dir/helper1.js',
+            '/some/dir/helper2.js',
+          ]
+        }
+      });
+      await Promise.resolve();
+
+      expect(loader.load).toHaveBeenCalledWith('/some/dir/helper1.js');
+      expect(loader.load).toHaveBeenCalledWith('/some/dir/helper2.js');
+    });
   });
 
   describe('When a runSpecFile message is received', function() {
@@ -62,7 +93,12 @@ describe('ParallelWorker', function() {
       });
 
       this.configure = async () => {
-        this.clusterWorker.emit('message', {type: 'configure', configuration: {}});
+        this.clusterWorker.emit('message', {
+          type: 'configure',
+          configuration: {
+            helpers: [],
+          }
+        });
         await this.jasmineWorker.envPromise_;
         this.loader.load.calls.reset();
       };
@@ -189,7 +225,12 @@ describe('ParallelWorker', function() {
           clusterWorker: this.clusterWorker
         });
 
-        this.clusterWorker.emit('message', {type: 'configure', configuration: {}});
+        this.clusterWorker.emit('message', {
+          type: 'configure',
+          configuration: {
+            helpers: [],
+          }
+        });
         await jasmineWorker.envPromise_;
 
         const payload = 'arbitrary reporter event payload';
@@ -216,7 +257,12 @@ describe('ParallelWorker', function() {
           clusterWorker: this.clusterWorker
         });
 
-        this.clusterWorker.emit('message', {type: 'configure', configuration: {}});
+        this.clusterWorker.emit('message', {
+          type: 'configure',
+          configuration: {
+            helpers: [],
+          }
+        });
         await jasmineWorker.envPromise_;
 
         dispatchRepoterEvent(env, eventName, {});
@@ -228,7 +274,6 @@ describe('ParallelWorker', function() {
 
 
   it('exits on disconnect');
-  it('exits on parent death');
 });
 
 function dispatchRepoterEvent(env, eventName, payload) {
