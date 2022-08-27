@@ -39,7 +39,12 @@ jobs:
       shell: bash.exe
     steps:
       - checkout
-      - node/install
+      - run:
+          name: Install Node.js
+          # 16.3.2 is possibly the newest Node 16.x version that's compatible
+          # with nvm for windows:
+          # See <https://stackoverflow.com/questions/70958371/unexpected-token-when-trying-to-run-npm-install>.
+          command: nvm install 16.13.2 && nvm use 16.13.2
       - run:
           name: Report Node and NPM versions
           command: echo "Using Node $(node --version) and NPM $(npm --version)"
