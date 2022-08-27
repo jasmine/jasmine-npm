@@ -29,7 +29,7 @@
   ],
   "dependencies": {
     "glob": "^7.1.6",
-    "jasmine-core": "file:../par-core"
+    "jasmine-core": "github:jasmine/jasmine#parallel"
   },
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
