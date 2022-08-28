@@ -315,6 +315,18 @@ describe('Integration', function () {
       expect(exitCode).toEqual(0);
       expect(output).toContain(expectedOutput);
     });
+
+    it('handles spec file load exceptions in worker processes', async function () {
+      const {exitCode, output} = await runJasmine(
+        'spec/fixtures/parallel_load_exception',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      expect(exitCode).toEqual(1);
+      expect(output).toContain('Fatal error in worker: nope\n');
+      expect(output).toMatch(/at Object\.<anonymous> .*spec\/fixtures\/parallel_load_exception\/spec\.js/);
+    });
   });
 });
 

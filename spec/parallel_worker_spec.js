@@ -123,6 +123,7 @@ describe('ParallelWorker', function() {
 
       resolveLoader();
       await Promise.resolve();
+      await Promise.resolve();
       expect(this.env.execute).toHaveBeenCalledWith();
     });
 
@@ -137,6 +138,33 @@ describe('ParallelWorker', function() {
       await new Promise(resolve => setTimeout(resolve));
       expect(this.loader.load).toHaveBeenCalledWith('aSpec.js');
       expect(this.env.execute).toHaveBeenCalledWith();
+    });
+
+    describe('When the spec file fails to load', function() {
+      it('reports the failure', async function() {
+        this.loader.load.withArgs('jasmine-core')
+          .and.returnValue(Promise.resolve(dummyCore(this.env)));
+        await this.configure();
+
+        const error = new Error('nope');
+        this.loader.load.withArgs('aSpec.js')
+          .and.returnValue(Promise.reject(error));
+
+        this.clusterWorker.emit('message', {type: 'runSpecFile', filePath: 'aSpec.js'});
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(this.clusterWorker.send).toHaveBeenCalledWith(
+          {
+            type: 'fatalError',
+            error: {
+              message: error.message,
+              stack: error.stack
+            },
+          }
+        );
+        expect(this.env.execute).not.toHaveBeenCalled();
+      });
     });
 
     it('resets state from previous spec files', async function() {

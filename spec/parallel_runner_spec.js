@@ -509,6 +509,25 @@ describe('ParallelRunner', function() {
         });
       }
     });
+
+    it('handles fatal errors from workers', async function() {
+      spyOn(console, 'error');
+      spyOn(this.testJasmine, 'exit');
+      this.testJasmine.numWorkers = 2;
+      this.testJasmine.loadConfig({
+        spec_dir: 'some/spec/dir'
+      });
+      this.testJasmine.addSpecFile('spec1.js');
+
+      this.testJasmine.execute();
+      await new Promise(resolve => setTimeout(resolve));
+      this.cluster.workers[0].emit('message', {
+        type: 'fatalError',
+        error: new Error('nope'),
+      });
+
+      expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+    });
   });
 });
 
