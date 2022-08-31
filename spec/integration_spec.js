@@ -325,7 +325,7 @@ describe('Integration', function () {
 
       expect(exitCode).toEqual(1);
       expect(output).toContain('Fatal error in worker: nope\n');
-      expect(output).toMatch(/at Object\.<anonymous> .*spec\/fixtures\/parallel_load_exception\/spec\.js/);
+      expect(output).toMatch(/at Object\.<anonymous> .*spec[\\\/]fixtures[\\\/]parallel_load_exception[\\\/]spec\.js/);
     });
   });
 });
