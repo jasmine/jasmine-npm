@@ -5,6 +5,9 @@ describe('ParallelWorker', function() {
   beforeEach(function() {
     this.clusterWorker = new EventEmitter();
     this.clusterWorker.send = jasmine.createSpy('clusterWorker.send');
+    this.clusterWorker.isConnected = jasmine.createSpy(
+      'clusterWorker.isConnected'
+    ).and.returnValue(true);
   });
 
   describe('When a configure event is received', function() {
@@ -234,6 +237,43 @@ describe('ParallelWorker', function() {
         deprecationWarnings: ['deprecations'],
       });
     });
+
+    it('does not try to report completion if disconnected', async function() {
+      this.loader.load.withArgs('jasmine-core')
+        .and.returnValue(Promise.resolve(dummyCore(this.env)));
+      await this.configure();
+      this.loader.load.withArgs('aSpec.js').and.returnValue(Promise.resolve());
+
+      let resolveExecute;
+      this.env.execute
+        .and.returnValue(new Promise(res => resolveExecute = res));
+      this.clusterWorker.emit('message', {type: 'runSpecFile', filePath: 'aSpec.js'});
+
+      await Promise.resolve();
+      expect(this.clusterWorker.send).not.toHaveBeenCalledWith(
+        {type: 'specFileDone'}
+      );
+
+      dispatchRepoterEvent(this.env, 'jasmineDone', {
+        overallStatus: 'incomplete',
+        incompleteCode: 'focused',
+        incompleteReason: 'fit',
+        order: 'should be ignored',
+        failedExpectations: ['failed expectations'],
+        deprecationWarnings: ['deprecations'],
+      });
+
+      this.clusterWorker.isConnected.and.returnValue(false);
+      spyOn(console, 'error');
+      resolveExecute();
+
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(this.clusterWorker.send).not.toHaveBeenCalled();
+      expect(console.error).toHaveBeenCalledOnceWith(
+        'Jasmine worker not sending specFileDone message after disconnect'
+      );
+    });
   });
 
   describe('Handling reporter events', function() {
@@ -241,7 +281,7 @@ describe('ParallelWorker', function() {
     const nonForwardedEvents = ['jasmineStarted', 'jasmineDone'];
 
     for (const eventName of forwardedEvents) {
-      it(`forwards ${eventName} to the primary`, async function() {
+      it(`forwards ${eventName} to the primary if connected`, async function() {
         const env = jasmine.createSpyObj(
           'env', ['execute', 'parallelReset', 'addReporter']
         );
@@ -269,6 +309,16 @@ describe('ParallelWorker', function() {
           eventName,
           payload
         });
+
+        this.clusterWorker.send.calls.reset();
+        this.clusterWorker.isConnected.and.returnValue(false);
+        spyOn(console, 'error');
+        dispatchRepoterEvent(env, eventName, payload);
+
+        expect(this.clusterWorker.send).not.toHaveBeenCalled();
+        expect(console.error).toHaveBeenCalledOnceWith(
+          `Jasmine worker not sending ${eventName} reporter event after disconnect`
+        );
       });
     }
 

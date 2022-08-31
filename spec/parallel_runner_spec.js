@@ -510,23 +510,55 @@ describe('ParallelRunner', function() {
       }
     });
 
-    it('handles fatal errors from workers', async function() {
-      spyOn(console, 'error');
-      spyOn(this.testJasmine, 'exit');
-      this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
-        spec_dir: 'some/spec/dir'
-      });
-      this.testJasmine.addSpecFile('spec1.js');
+    describe('When a worker reports a fatal error', function() {
+      it('exits', async function() {
+        spyOn(console, 'error');
+        spyOn(this.testJasmine, 'exit');
+        this.testJasmine.numWorkers = 2;
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        this.testJasmine.addSpecFile('spec1.js');
 
-      this.testJasmine.execute();
-      await new Promise(resolve => setTimeout(resolve));
-      this.cluster.workers[0].emit('message', {
-        type: 'fatalError',
-        error: new Error('nope'),
+        const executePromise = this.testJasmine.execute();
+        await new Promise(resolve => setTimeout(resolve));
+        this.cluster.workers[0].emit('message', {
+          type: 'fatalError',
+          error: new Error('nope'),
+        });
+
+        await expectAsync(executePromise).toBeRejectedWithError(
+          /Fatal error in Jasmine worker process/
+        );
+        expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
       });
 
-      expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+      it('does not send additional runSpecFile messages after a fatal error', async function() {
+        spyOn(console, 'error');
+        this.testJasmine.numWorkers = 2;
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        this.testJasmine.addSpecFile('spec1.js');
+        this.testJasmine.addSpecFile('spec2.js');
+        this.testJasmine.addSpecFile('spec3.js');
+
+        const executePromise = this.testJasmine.execute();
+        await new Promise(resolve => setTimeout(resolve));
+        this.cluster.workers[0].emit('message', {
+          type: 'fatalError',
+          error: new Error('nope'),
+        });
+        this.cluster.workers[0].send.calls.reset();
+        this.cluster.workers[1].send.calls.reset();
+        this.emitFileDone(this.cluster.workers[1]);
+        await expectAsync(executePromise).toBeRejectedWithError(
+          /Fatal error in Jasmine worker process/
+        );
+
+        expect(this.cluster.workers[0].send).not.toHaveBeenCalled();
+        expect(this.cluster.workers[1].send).not.toHaveBeenCalled();
+      });
     });
   });
 });
