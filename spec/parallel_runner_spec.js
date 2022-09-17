@@ -275,33 +275,46 @@ describe('ParallelRunner', function() {
       expect(this.consoleReporter.jasmineStarted).toHaveBeenCalledWith({});
     });
 
-    it('dispatches a jasmineDone event when all workers are idle', async function() {
-      this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
-        spec_dir: 'some/spec/dir'
+    describe('When all workers are idle', function() {
+      beforeEach(async function() {
+        this.testJasmine.numWorkers = 2;
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        this.testJasmine.addSpecFile('spec1.js');
+        this.testJasmine.addSpecFile('spec2.js');
+        this.testJasmine.addSpecFile('spec3.js');
+        this.executePromise = this.testJasmine.execute();
+        this.emitAllBooted();
+
+        await new Promise(resolve => setTimeout(resolve));
+        this.emitSpecDone(this.cluster.workers[0], {status: 'passed'});
+        this.emitFileDone(this.cluster.workers[0]);
+        this.emitSpecDone(this.cluster.workers[1], {status: 'passed'});
+        this.emitFileDone(this.cluster.workers[1]);
+        this.emitSpecDone(this.cluster.workers[0], {status: 'passed'});
+        this.emitFileDone(this.cluster.workers[0]);
+        await this.disconnect();
+
+        this.expectedJasmineDoneEvent = {
+          overallStatus: 'passed',
+          totalTime: jasmine.any(Number),
+          numWorkers: 2,
+          failedExpectations: [],
+          deprecationWarnings: []
+        };
       });
-      this.testJasmine.addSpecFile('spec1.js');
-      this.testJasmine.addSpecFile('spec2.js');
-      this.testJasmine.addSpecFile('spec3.js');
-      const executePromise = this.testJasmine.execute();
-      this.emitAllBooted();
 
-      await new Promise(resolve => setTimeout(resolve));
-      this.emitSpecDone(this.cluster.workers[0], {status: 'passed'});
-      this.emitFileDone(this.cluster.workers[0]);
-      this.emitSpecDone(this.cluster.workers[1], {status: 'passed'});
-      this.emitFileDone(this.cluster.workers[1]);
-      this.emitSpecDone(this.cluster.workers[0], {status: 'passed'});
-      this.emitFileDone(this.cluster.workers[0]);
-      await this.disconnect();
-      await executePromise;
+      it('dispatches a jasmineDone event', async function() {
+        await this.executePromise;
+        expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith(
+          this.expectedJasmineDoneEvent);
+      });
 
-      expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith({
-        overallStatus: 'passed',
-        totalTime: jasmine.any(Number),
-        numWorkers: 2,
-        failedExpectations: [],
-        deprecationWarnings: []
+      it('resolves the returned promise to the jasmineDone event', async function() {
+        await expectAsync(this.executePromise).toBeResolvedTo(
+          this.expectedJasmineDoneEvent
+        );
       });
     });
 

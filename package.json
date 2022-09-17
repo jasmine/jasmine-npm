@@ -19,7 +19,10 @@
     "test": "node ./bin/jasmine.js",
     "posttest": "eslint \"bin/**/*.js\" \"lib/**/*.js\" \"spec/**/*.js\""
   },
-  "exports": "./lib/jasmine.js",
+  "exports": {
+    ".": "./lib/jasmine.js",
+    "./parallel": "./lib/parallel_runner.js"
+  },
   "files": [
     "bin",
     "lib",
