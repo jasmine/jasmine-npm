@@ -59,25 +59,45 @@ describe('ParallelWorker', function() {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
       spyOn(core, 'boot').and.callThrough();
+      const helperPromises = [], resolveHelperPromises = [];
+
+      for (let i = 0; i < 2; i++) {
+        helperPromises[i] = new Promise(function(resolve) {
+          resolveHelperPromises[i] = resolve;
+        });
+      }
+
       loader.load.withArgs('jasmine-core')
         .and.returnValue(Promise.resolve(core));
-      loader.load.withArgs(jasmine.stringContaining('/some/dir/helper'))
-        .and.returnValue(Promise.resolve({}));
+      loader.load.withArgs('/some/dir/helper0.js')
+        .and.returnValue(helperPromises[0]);
+      loader.load.withArgs('/some/dir/helper1.js')
+        .and.returnValue(helperPromises[1]);
       new ParallelWorker({loader, clusterWorker: this.clusterWorker});
 
       this.clusterWorker.emit('message', {
         type: 'configure',
         configuration: {
           helpers: [
+            '/some/dir/helper0.js',
             '/some/dir/helper1.js',
-            '/some/dir/helper2.js',
           ]
         }
       });
       await Promise.resolve();
 
+      expect(loader.load).toHaveBeenCalledWith('/some/dir/helper0.js');
       expect(loader.load).toHaveBeenCalledWith('/some/dir/helper1.js');
-      expect(loader.load).toHaveBeenCalledWith('/some/dir/helper2.js');
+
+      resolveHelperPromises[0]();
+      await Promise.resolve(resolve => setTimeout(resolve));
+      await Promise.resolve(resolve => setTimeout(resolve));
+      expect(this.clusterWorker.send).not.toHaveBeenCalledWith({type: 'booted'});
+
+      resolveHelperPromises[1]();
+      await Promise.resolve(resolve => setTimeout(resolve));
+      await Promise.resolve(resolve => setTimeout(resolve));
+      expect(this.clusterWorker.send).toHaveBeenCalledWith({type: 'booted'});
     });
   });
 
@@ -269,7 +289,8 @@ describe('ParallelWorker', function() {
 
       await Promise.resolve();
       await Promise.resolve();
-      expect(this.clusterWorker.send).not.toHaveBeenCalled();
+      // No other messages should have been sent
+      expect(this.clusterWorker.send).toHaveBeenCalledOnceWith({type: 'booted'});
       expect(console.error).toHaveBeenCalledOnceWith(
         'Jasmine worker not sending specFileDone message after disconnect'
       );
@@ -345,7 +366,8 @@ describe('ParallelWorker', function() {
 
         dispatchRepoterEvent(env, eventName, {});
 
-        expect(this.clusterWorker.send).not.toHaveBeenCalled();
+        // No other messages should have been sent
+        expect(this.clusterWorker.send).toHaveBeenCalledOnceWith({type: 'booted'});
       });
     }
   });
