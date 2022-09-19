@@ -16,22 +16,11 @@ describe('ParallelRunner', function() {
     this.cluster.disconnect.and.callFake(function (cb) {
       cb();
     });
-    this.autoFinishSend = true;
     let nextWorkerId = 0;
     this.cluster.fork.and.callFake(() => {
       const worker = new EventEmitter();
       worker.id = nextWorkerId++;
       worker.send = jasmine.createSpy('worker.send');
-
-      if (this.autoFinishSend) {
-        // Most specs for execute() will need this
-        worker.send.and.callFake(function (name, cb) {
-          if (cb) {
-            cb();
-          }
-        });
-      }
-
       this.cluster.workers[worker.id] = worker;
       return worker;
     });
@@ -115,6 +104,47 @@ describe('ParallelRunner', function() {
 
   it('can tell jasmine-core to stop spec on no expectations');
 
+  it('can use a caller-specified jasmine-core', async function() {
+    const jasmineCorePath = 'my-custom-jasmine-core.js';
+    const bootedCore = jasmine.createSpyObj('bootedCore', [
+      'ReportDispatcher',
+      'Timer',
+    ]);
+    bootedCore.ReportDispatcher.and.returnValue({
+      addReporter() {}
+    });
+    bootedCore.Timer.and.returnValue({
+      start() {}
+    });
+    const jasmineCore = {
+      boot: () => bootedCore,
+      files: {
+        self: jasmineCorePath
+      }
+    };
+    this.testJasmine = new ParallelRunner({
+      jasmineCore,
+      cluster: this.cluster,
+      ConsoleReporter: this.ConsoleReporter,
+    });
+    this.testJasmine.exit = dontExit;
+
+    expect(bootedCore.ReportDispatcher).toHaveBeenCalled();
+    expect(bootedCore.Timer).toHaveBeenCalled();
+
+    this.testJasmine.execute();
+    await poll(() => Object.values(this.cluster.workers).length > 0);
+
+    for (const worker of Object.values(this.cluster.workers)) {
+      expect(worker.send).toHaveBeenCalledWith(
+        {
+          type: 'configure',
+          configuration: jasmine.objectContaining({jasmineCorePath}),
+        }
+      );
+    }
+  });
+
   describe('#execute', function() {
     it('creates the configured number of worker processes', function() {
       this.testJasmine = new ParallelRunner({
@@ -141,7 +171,6 @@ describe('ParallelRunner', function() {
       this.testJasmine.addSpecFile('aSpec.js');
       spyOn(this.testJasmine, 'runSpecFiles_')
         .and.returnValue(new Promise(() => {}));
-      this.autoFinishSend = false;
       this.testJasmine.execute();
 
       const workers = this.cluster.fork.calls.all().map(c => c.returnValue);
@@ -168,26 +197,6 @@ describe('ParallelRunner', function() {
       this.emitBooted(workers[1]);
       await new Promise(resolve => setTimeout(resolve));
       expect(this.testJasmine.runSpecFiles_).toHaveBeenCalled();
-    });
-
-    it('passes a custom jasmineCore path to the workers',  function() {
-      const jasmineCorePath = './path/to/jasmine-core.js';
-      this.testJasmine = new ParallelRunner({
-        cluster: this.cluster,
-        jasmineCorePath,
-        ConsoleReporter: this.ConsoleReporter
-      });
-      this.testJasmine.exit = dontExit;
-      this.testJasmine.execute();
-
-      for (const worker of Object.values(this.cluster.workers)) {
-        expect(worker.send).toHaveBeenCalledWith(
-          {
-            type: 'configure',
-            configuration: jasmine.objectContaining({jasmineCorePath}),
-          }
-        );
-      }
     });
 
     it('initially assigns one spec file to each process', async function() {
