@@ -318,14 +318,34 @@ describe('Integration', function () {
 
     it('handles spec file load exceptions in worker processes', async function () {
       const {exitCode, output} = await runJasmine(
-        'spec/fixtures/parallel_load_exception',
+        'spec/fixtures/parallel_spec_load_exception',
         'jasmine.json',
         ['--num-workers=2']
       );
 
       expect(exitCode).toEqual(1);
       expect(output).toContain('Fatal error in worker: nope\n');
-      expect(output).toMatch(/at Object\.<anonymous> .*spec[\\\/]fixtures[\\\/]parallel_load_exception[\\\/]spec\.js/);
+      expect(output).toMatch(/at Object\.<anonymous> .*spec[\\\/]fixtures[\\\/]parallel_spec_load_exception[\\\/]spec\.js/);
+    });
+
+    it('handles helper file load exceptions in worker processes', async function () {
+      const {exitCode, output} = await runJasmine(
+        'spec/fixtures/parallel_helper_load_exception',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      expect(exitCode).toEqual(1);
+      const prefix = 'Fatal error in worker: nope\n';
+      expect(output).toContain(prefix);
+      expect(output).toMatch(/at Object\.<anonymous> .*spec[\\\/]fixtures[\\\/]parallel_helper_load_exception[\\\/]helper\.js/);
+
+      // The error should only be logged once.
+      const firstIndex = output.indexOf(prefix);
+      const nextIndex = output.indexOf(prefix, firstIndex + 1);
+      expect(nextIndex)
+        .withContext('error was reported more than once')
+        .toEqual(-1);
     });
   });
 });
