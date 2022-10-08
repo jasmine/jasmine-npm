@@ -554,7 +554,7 @@ describe('ParallelRunner', function() {
     });
 
     describe('When a worker reports a fatal error', function() {
-      it('exits', async function() {
+      it('fails', async function() {
         spyOn(console, 'error');
         spyOn(this.testJasmine, 'exit');
         this.testJasmine.numWorkers = 2;
@@ -603,6 +603,50 @@ describe('ParallelRunner', function() {
 
         expect(this.cluster.workers[0].send).not.toHaveBeenCalled();
         expect(this.cluster.workers[1].send).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Handling worker exit', function() {
+      it('fails if the worker exits before the suite is finished', async function() {
+        spyOn(console, 'error');
+        spyOn(this.testJasmine, 'exit');
+        this.testJasmine.numWorkers = 2;
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        this.testJasmine.addSpecFile('spec1.js');
+
+        const executePromise = this.testJasmine.execute();
+        this.emitAllBooted();
+        await new Promise(resolve => setTimeout(resolve));
+        this.cluster.workers[0].emit('exit', {});
+
+        await expectAsync(executePromise).toBeRejectedWithError(
+          /Fatal error in Jasmine worker process/
+        );
+        expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+      });
+
+      it('does not fail when the worker exits after the suite is finished', async function() {
+        spyOn(console, 'error');
+        spyOn(this.testJasmine, 'exit');
+        this.testJasmine.numWorkers = 2;
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        this.testJasmine.addSpecFile('spec1.js');
+        this.testJasmine.addSpecFile('spec2.js');
+
+        const executePromise = this.testJasmine.execute();
+        this.emitAllBooted();
+        await new Promise(resolve => setTimeout(resolve));
+        this.emitFileDone(this.cluster.workers[0]);
+        this.emitFileDone(this.cluster.workers[1]);
+        this.cluster.workers[0].emit('exit', {});
+        await executePromise;
+
+        expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
+        expect(console.error).not.toHaveBeenCalled();
       });
     });
   });
