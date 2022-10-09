@@ -53,7 +53,31 @@ describe('ParallelWorker', function() {
 
     it('does something reasonable when the core module fails to load');
 
-    it('creates and configures an env');
+    it('creates and configures an env', async function() {
+      const env = jasmine.createSpyObj('env', [
+        'configure', 'addReporter'
+      ]);
+      const loader = {
+        load() {
+          return Promise.resolve(dummyCore(env));
+        }
+      };
+      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      const envConfig = {
+        stopSpecOnExpectationFailure: true,
+      };
+
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {
+          helpers: [],
+          env: envConfig,
+        }
+      });
+      await new Promise(res => setTimeout(res));
+
+      expect(env.configure).toHaveBeenCalledWith(envConfig);
+    });
 
     it('loads helper files after booting the core', async function() {
       const loader = jasmine.createSpyObj('loader', ['load']);

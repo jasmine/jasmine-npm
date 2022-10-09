@@ -164,9 +164,13 @@ describe('ParallelRunner', function() {
 
     it('configures the workers and waits for them to acknowledge', async function() {
       this.testJasmine.numWorkers = 2;
+      const envConfig = {
+        stopSpecOnExpectationFailure: true,
+      };
       this.testJasmine.loadConfig({
         spec_dir: 'spec/fixtures/parallel_helpers',
         helpers: ['helper*.js'],
+        env: envConfig,
       });
       this.testJasmine.addSpecFile('aSpec.js');
       spyOn(this.testJasmine, 'runSpecFiles_')
@@ -174,20 +178,21 @@ describe('ParallelRunner', function() {
       this.testJasmine.execute();
 
       const workers = this.cluster.fork.calls.all().map(c => c.returnValue);
-      const configuration = {
-        // TODO: other properties, including env config, requires,
+      const expectedConfig = {
+        // TODO: other properties, including requires,
         // jsLoader, etc. Basically everything that shouldn't intentionally
         // be excluded.
         spec_dir: 'spec/fixtures/parallel_helpers',
         helpers: [
           jasmine.stringMatching(/spec\/fixtures\/parallel_helpers\/helper1\.js$/)
-        ]
+        ],
+        env: envConfig,
       };
       expect(workers[0].send).toHaveBeenCalledWith(
-        {type: 'configure', configuration}
+        {type: 'configure', configuration: expectedConfig}
       );
       expect(workers[1].send).toHaveBeenCalledWith(
-        {type: 'configure', configuration}
+        {type: 'configure', configuration: expectedConfig}
       );
 
       this.emitBooted(workers[0]);
