@@ -63,10 +63,9 @@ describe('command', function() {
     ];
     this.fakeJasmine = jasmine.createSpyObj(
       'jasmine',
-      [...commonMethods, 'seed', 'randomizeTests']
+      [...commonMethods, 'seed', 'randomizeTests', 'configureEnv']
     );
     this.fakeJasmine.loader = new Loader();
-    this.fakeJasmine.env = jasmine.createSpyObj('env', ['configure']);
     this.Jasmine = jasmine.createSpy('Jasmine')
       .and.returnValue(this.fakeJasmine);
       this.parallelRunner = jasmine.createSpyObj(
@@ -434,17 +433,17 @@ describe('command', function() {
 
       it('should not configure fail fast by default', async function () {
         await this.run([]);
-        expect(this.runner.env.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
+        expect(this.runner.configureEnv).not.toHaveBeenCalledWith(jasmine.objectContaining({
           stopOnSpecFailure: jasmine.anything()
         }));
-        expect(this.runner.env.configure).not.toHaveBeenCalledWith(jasmine.objectContaining({
+        expect(this.runner.configureEnv).not.toHaveBeenCalledWith(jasmine.objectContaining({
           stopSpecOnExpectationFailure: jasmine.anything()
         }));
       });
 
       it('should be able to turn on fail fast', async function () {
         await this.run(['--fail-fast']);
-        expect(this.runner.env.configure).toHaveBeenCalledWith({
+        expect(this.runner.configureEnv).toHaveBeenCalledWith({
           stopOnSpecFailure: true,
           stopSpecOnExpectationFailure: true
         });
@@ -461,8 +460,6 @@ describe('command', function() {
       it('does not allow the random seed to be set');
 
       it('does not allow randomization to be disabled');
-
-      // TODO: either support or prohibit --fail-fast
     });
   });
 });

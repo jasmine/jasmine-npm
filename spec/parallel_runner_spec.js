@@ -526,7 +526,6 @@ describe('ParallelRunner', function() {
         await poll(() => {
           return this.cluster.workers[0].listeners('message').length > 0;
         });
-
       });
 
       for (const eventName of forwardedReporterEvents) {
@@ -555,6 +554,54 @@ describe('ParallelRunner', function() {
 
           expect(reporter[eventName]).not.toHaveBeenCalled();
         });
+      }
+    });
+
+    describe('When stopSpecOnExpectationFailure is true', function() {
+      beforeEach(async function() {
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir',
+          stopOnSpecFailure: true,
+        });
+        this.testJasmine.addSpecFile('spec1.js');
+        this.testJasmine.addSpecFile('spec2.js');
+        this.testJasmine.addSpecFile('spec3.js');
+        this.testJasmine.addSpecFile('spec4.js');
+        this.executePromise = this.testJasmine.execute();
+
+        this.emitAllBooted();
+        await poll(() => {
+          return numRunSpecFileCalls(this.cluster.workers[0]) === 1
+            && numRunSpecFileCalls(this.cluster.workers[1]) === 1;
+        });
+      });
+
+      it('makes a best effort to stop after a spec failure', async function() {
+        this.emitSpecDone(this.cluster.workers[0], {status: 'failed'});
+        this.emitFileDone(this.cluster.workers[0]);
+        this.emitFileDone(this.cluster.workers[1]);
+
+        await this.executePromise;
+
+        expect(numRunSpecFileCalls(this.cluster.workers[0])).toEqual(1);
+        expect(numRunSpecFileCalls(this.cluster.workers[1])).toEqual(1);
+      });
+
+      it('makes a best effort to stop after a suite failure', async function() {
+        this.emitSuiteDone(this.cluster.workers[0], {status: 'failed'});
+        this.emitFileDone(this.cluster.workers[0]);
+        this.emitFileDone(this.cluster.workers[1]);
+
+        await this.executePromise;
+
+        expect(numRunSpecFileCalls(this.cluster.workers[0])).toEqual(1);
+        expect(numRunSpecFileCalls(this.cluster.workers[1])).toEqual(1);
+      });
+
+      function numRunSpecFileCalls(worker) {
+        return worker.send.calls.all()
+          .filter(call => call.args[0].type === 'runSpecFile')
+          .length;
       }
     });
 
@@ -653,6 +700,14 @@ describe('ParallelRunner', function() {
         expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
         expect(console.error).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('#configureEnv', function() {
+    it('throws if called after execution starts', function() {
+      this.testJasmine.execute();
+      expect(() => this.testJasmine.configureEnv({}))
+        .toThrowError("Can't call configureEnv() after execute()");
     });
   });
 });
