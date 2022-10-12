@@ -347,6 +347,44 @@ describe('Integration', function () {
         .withContext('error was reported more than once')
         .toEqual(-1);
     });
+
+    it('prohibits top level beforeEach in spec files in parallel', async function() {
+      const {exitCode, output} = await runJasmine(
+        'spec/fixtures/parallel_invalid_beforeEach',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      expect(exitCode).toEqual(1);
+      expect(output).toContain('Fatal error in worker: In parallel mode, ' +
+        'beforeEach must be in a describe block or in a helper file');
+    });
+
+    it('prohibits top level afterEach in spec files in parallel', async function() {
+      const {exitCode, output} = await runJasmine(
+        'spec/fixtures/parallel_invalid_afterEach',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      expect(exitCode).toEqual(1);
+      expect(output).toContain('Fatal error in worker: In parallel mode, ' +
+        'afterEach must be in a describe block or in a helper file');
+    });
+
+    it('allows beforeEach and afterEach in helpers and in describe in parallel', async function() {
+      const {exitCode, output} = await runJasmine(
+        'spec/fixtures/parallel_before_after',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      expect(exitCode).toEqual(0);
+      expect(output).toContain('beforeEach in helper ran');
+      expect(output).toContain('afterEach in helper ran');
+      expect(output).toContain('beforeEach in describe ran');
+      expect(output).toContain('afterEach in describe ran');
+    });
   });
 });
 

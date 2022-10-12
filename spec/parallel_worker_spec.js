@@ -55,7 +55,7 @@ describe('ParallelWorker', function() {
 
     it('creates and configures an env', async function() {
       const env = jasmine.createSpyObj('env', [
-        'configure', 'addReporter'
+        'configure', 'addReporter', 'setParallelLoadingState'
       ]);
       const loader = {
         load() {
@@ -129,7 +129,7 @@ describe('ParallelWorker', function() {
     beforeEach(async function() {
       this.loader = jasmine.createSpyObj('loader', ['load']);
       this.env = jasmine.createSpyObj(
-        'env', ['execute', 'parallelReset', 'addReporter']
+        'env', ['execute', 'parallelReset', 'addReporter', 'setParallelLoadingState']
       );
       this.core = dummyCore(this.env);
       this.loader.load.withArgs('jasmine-core')
@@ -370,7 +370,7 @@ describe('ParallelWorker', function() {
     for (const eventName of nonForwardedEvents) {
       it(`does not forward ${eventName}`, async function () {
         const env = jasmine.createSpyObj(
-          'env', ['execute', 'parallelReset', 'addReporter']
+          'env', ['execute', 'parallelReset', 'addReporter', 'setParallelLoadingState']
         );
         const loader = jasmine.createSpyObj('loader', ['load']);
         loader.load.withArgs('jasmine-core')
@@ -418,8 +418,9 @@ function dummyCore(env) {
       return {
         getEnv: function() {
           return env || {
-            addReporter: function() {},
-            parallelReset: function() {}
+            addReporter() {},
+            parallelReset() {},
+            setParallelLoadingState() {},
           };
         },
       };
