@@ -197,15 +197,15 @@ describe('Integration', function () {
       expect(output).toContain(expectedOutput);
     });
 
-    it('runs a passing suite with a focused suite', async function () {
+    it('runs an incomplete suite', async function () {
       const {exitCode, output} = await runJasmine(
-        'spec/fixtures/parallel_suite_focused',
+        'spec/fixtures/parallel_suite_incomplete',
         'jasmine.json',
         ['--num-workers=2']
       );
 
       expect(exitCode).toEqual(2);
-      expect(output).toContain('Incomplete: fit() or fdescribe() was found');
+      expect(output).toContain('Incomplete: No specs found');
     });
 
     it('runs a suite with a spec failure', async function () {

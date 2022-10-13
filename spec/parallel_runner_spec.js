@@ -209,28 +209,29 @@ describe('ParallelRunner', function() {
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
-      this.testJasmine.addSpecFile('spec1.js');
-      this.testJasmine.addSpecFile('spec2.js');
-      this.testJasmine.addSpecFile('spec3.js');
+      const specFiles = ['spec1.js', 'spec2.js', 'spec3.js'];
+
+      for (const f of specFiles) {
+        this.testJasmine.addSpecFile(f);
+      }
+
       this.testJasmine.execute();
       this.emitAllBooted();
       await new Promise(resolve => setTimeout(resolve));
 
       expect(this.cluster.workers[0].send).toHaveBeenCalledWith(
-        {type: 'runSpecFile', filePath: 'spec1.js'}
+        {type: 'runSpecFile', filePath: jasmine.any(String) }
       );
       expect(this.cluster.workers[1].send).toHaveBeenCalledWith(
-        {type: 'runSpecFile', filePath: 'spec2.js'}
+        {type: 'runSpecFile', filePath: jasmine.any(String)}
       );
-      expect(this.cluster.workers[0].send).not.toHaveBeenCalledWith(
-        {type: 'runSpecFile', filePath: 'spec3.js'}
-      );
-      expect(this.cluster.workers[1].send).not.toHaveBeenCalledWith(
-        {type: 'runSpecFile', filePath: 'spec3.js'}
-      );
-    });
+      const specFilesRan = new Set(getSpecFilesRan(this.cluster.workers));
+      expect(specFilesRan.size).toEqual(2);
 
-    it('randomizes spec file assignment');
+      for (const f of specFilesRan) {
+        expect(specFiles).toContain(f);
+      }
+    });
 
     describe('When a worker finishes processing a spec file', function() {
       it('assigns another spec file', async function() {
@@ -238,16 +239,23 @@ describe('ParallelRunner', function() {
         this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
-        this.testJasmine.addSpecFile('spec1.js');
-        this.testJasmine.addSpecFile('spec2.js');
-        this.testJasmine.addSpecFile('spec3.js');
+        const specFiles = ['spec1.js', 'spec2,js', 'spec3.js'];
+
+        for (const f of specFiles) {
+          this.testJasmine.addSpecFile(f);
+        }
+
         this.testJasmine.execute();
         this.emitAllBooted();
         await new Promise(resolve => setTimeout(resolve));
 
+        const alreadyRanSpecs = getSpecFilesRan(this.cluster.workers);
+        expect(alreadyRanSpecs.length).withContext('number of spec files initially ran').toEqual(2);
+        const remainingSpec = specFiles.filter(f => !alreadyRanSpecs.includes(f))[0];
+
         this.emitFileDone(this.cluster.workers[0]);
         expect(this.cluster.workers[0].send).toHaveBeenCalledWith(
-          {type: 'runSpecFile', filePath: 'spec3.js'}
+          {type: 'runSpecFile', filePath: remainingSpec}
         );
       });
 
@@ -740,4 +748,12 @@ async function execute(options = {}) {
 }
 
 function dontExit() {
+}
+
+function getSpecFilesRan(workers) {
+  return Object.values(workers)
+    .flatMap(worker => worker.send.calls.allArgs())
+    .map(args => args[0])
+    .filter(msg => msg.type === 'runSpecFile')
+    .map(msg => msg.filePath);
 }
