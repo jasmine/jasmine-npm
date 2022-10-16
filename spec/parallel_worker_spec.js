@@ -111,9 +111,10 @@ describe('ParallelWorker', function() {
       await Promise.resolve();
 
       expect(loader.load).toHaveBeenCalledWith('/some/dir/helper0.js');
+      resolveHelperPromises[0]();
+      await Promise.resolve(resolve => setTimeout(resolve));
       expect(loader.load).toHaveBeenCalledWith('/some/dir/helper1.js');
 
-      resolveHelperPromises[0]();
       await Promise.resolve(resolve => setTimeout(resolve));
       await Promise.resolve(resolve => setTimeout(resolve));
       expect(this.clusterWorker.send).not.toHaveBeenCalledWith({type: 'booted'});
