@@ -177,10 +177,11 @@ describe('ParallelRunner', function() {
       this.testJasmine.addSpecFile('aSpec.js');
       spyOn(this.testJasmine, 'runSpecFiles_')
         .and.returnValue(new Promise(() => {}));
-      this.testJasmine.execute();
+      this.testJasmine.execute(null, 'myFilterString');
 
       const workers = this.cluster.fork.calls.all().map(c => c.returnValue);
       const expectedConfig = {
+        filter: 'myFilterString',
         jsLoader: 'require',
         spec_dir: 'spec/fixtures/parallel_helpers',
         helpers: [

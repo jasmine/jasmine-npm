@@ -406,6 +406,19 @@ describe('Integration', function () {
       expect(exitCode).toEqual(0);
       expect(output).toContain('1 spec, 0 failures');
     });
+
+    it('passes the --filter setting to workers', async function() {
+      const {output} = await runJasmine(
+        'spec/fixtures/parallel_filter',
+        'jasmine.json',
+        ['--num-workers=2', '--filter=foo']
+      );
+
+      expect(output).toContain('suite 1 foo');
+      expect(output).toContain('suite 2 foo');
+      expect(output).toContain('Ran 2 of 4 specs');
+      expect(output).toContain('2 specs, 2 failures');
+    });
   });
 });
 

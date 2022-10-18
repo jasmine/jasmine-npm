@@ -113,6 +113,37 @@ describe('ParallelWorker', function() {
       expect(loader.alwaysImport).toBeTrue();
     });
 
+    it('applies a spec filter if specified', async function() {
+      const env = jasmine.createSpyObj('env', [
+        'addReporter', 'setParallelLoadingState'
+      ]);
+      let envConfig = {};
+      env.configure = function(config) {
+        envConfig = {
+          ...envConfig,
+          ...config
+        };
+      };
+      const loader = {
+        load() {
+          return Promise.resolve(dummyCore(env));
+        }
+      };
+      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {
+          filter: '^foo',
+        }
+      });
+      await new Promise(res => setTimeout(res));
+
+      expect(envConfig.specFilter).toEqual(jasmine.any(Function));
+      expect(envConfig.specFilter({getFullName: () => 'foobar'})).toEqual(true);
+      expect(envConfig.specFilter({getFullName: () => ' foo'})).toEqual(false);
+    });
+
     it('loads helper files after booting the core', async function() {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
