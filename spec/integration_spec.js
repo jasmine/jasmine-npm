@@ -385,6 +385,27 @@ describe('Integration', function () {
       expect(output).toContain('beforeEach in describe ran');
       expect(output).toContain('afterEach in describe ran');
     });
+
+    it('loads requires in each worker', async function() {
+      const {exitCode} = await runJasmine(
+        'spec/fixtures/parallel_requires',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      expect(exitCode).toEqual(0);
+    });
+
+    it('passes the jsLoader config setting to workers', async function() {
+      const {exitCode, output} = await runJasmine(
+        'spec/fixtures/parallel_jsLoader',
+        'jasmine.json',
+        ['--num-workers=2']
+      );
+
+      expect(exitCode).toEqual(0);
+      expect(output).toContain('1 spec, 0 failures');
+    });
   });
 });
 

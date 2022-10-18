@@ -79,6 +79,40 @@ describe('ParallelWorker', function() {
       expect(env.configure).toHaveBeenCalledWith(envConfig);
     });
 
+    it('uses the configured jsLoader setting', async function() {
+      const loader = {
+        load() {
+          return Promise.resolve(dummyCore());
+        }
+      };
+      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {
+          jsLoader: 'require'
+        }
+      });
+      await new Promise(res => setTimeout(res));
+
+      expect(loader.alwaysImport).toBeFalse();
+    });
+
+    it('defaults to import if jsLoader is not specified', async function() {
+      const loader = {
+        load() {
+          return Promise.resolve(dummyCore());
+        }
+      };
+      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {}
+      });
+      await new Promise(res => setTimeout(res));
+
+      expect(loader.alwaysImport).toBeTrue();
+    });
+
     it('loads helper files after booting the core', async function() {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
@@ -108,21 +142,66 @@ describe('ParallelWorker', function() {
           ]
         }
       });
-      await Promise.resolve();
 
+      await poll(() => loader.load.calls.count() === 2);
       expect(loader.load).toHaveBeenCalledWith('/some/dir/helper0.js');
-      resolveHelperPromises[0]();
-      await Promise.resolve(resolve => setTimeout(resolve));
-      expect(loader.load).toHaveBeenCalledWith('/some/dir/helper1.js');
 
-      await Promise.resolve(resolve => setTimeout(resolve));
-      await Promise.resolve(resolve => setTimeout(resolve));
+      resolveHelperPromises[0]();
+      await poll(() => loader.load.calls.count() === 3);
+      expect(loader.load).toHaveBeenCalledWith('/some/dir/helper1.js');
       expect(this.clusterWorker.send).not.toHaveBeenCalledWith({type: 'booted'});
 
       resolveHelperPromises[1]();
-      await Promise.resolve(resolve => setTimeout(resolve));
-      await Promise.resolve(resolve => setTimeout(resolve));
+      await poll(() => this.clusterWorker.send.calls.any());
       expect(this.clusterWorker.send).toHaveBeenCalledWith({type: 'booted'});
+    });
+
+    it('loads requires before helpers', async function() {
+      const loader = jasmine.createSpyObj('loader', ['load']);
+      const core = dummyCore();
+      spyOn(core, 'boot').and.callThrough();
+      const requirePromises = [], resolveRequirePromises = [];
+
+      for (let i = 0; i < 2; i++) {
+        requirePromises[i] = new Promise(function(resolve) {
+          resolveRequirePromises[i] = resolve;
+        });
+      }
+
+      loader.load.withArgs('jasmine-core')
+        .and.returnValue(Promise.resolve(core));
+      loader.load.withArgs('/some/dir/require0.js')
+        .and.returnValue(requirePromises[0]);
+      loader.load.withArgs('/some/dir/require1.js')
+        .and.returnValue(requirePromises[1]);
+      loader.load.withArgs('/some/dir/helper.js')
+        .and.returnValue(new Promise(() => {}));
+
+      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {
+          helpers: [
+            '/some/dir/helper.js',
+          ],
+          requires: [
+            '/some/dir/require0.js',
+            '/some/dir/require1.js',
+          ]
+        }
+      });
+      await poll(() => loader.load.calls.count() === 2);
+
+      expect(loader.load).toHaveBeenCalledWith('/some/dir/require0.js');
+      resolveRequirePromises[0]();
+      await poll(() => loader.load.calls.count() === 3);
+      expect(loader.load).toHaveBeenCalledWith('/some/dir/require1.js');
+      expect(loader.load).not.toHaveBeenCalledWith('/some/dir/helper.js');
+
+      resolveRequirePromises[1]();
+      await poll(() => loader.load.calls.count() === 4);
+      expect(loader.load).toHaveBeenCalledWith('/some/dir/helper.js');
     });
   });
 

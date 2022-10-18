@@ -168,8 +168,10 @@ describe('ParallelRunner', function() {
         stopSpecOnExpectationFailure: true,
       };
       this.testJasmine.loadConfig({
+        jsLoader: 'require',
         spec_dir: 'spec/fixtures/parallel_helpers',
         helpers: ['helper*.js'],
+        requires: ['require1', 'require2'],
         env: envConfig,
       });
       this.testJasmine.addSpecFile('aSpec.js');
@@ -179,13 +181,12 @@ describe('ParallelRunner', function() {
 
       const workers = this.cluster.fork.calls.all().map(c => c.returnValue);
       const expectedConfig = {
-        // TODO: other properties, including requires,
-        // jsLoader, etc. Basically everything that shouldn't intentionally
-        // be excluded.
+        jsLoader: 'require',
         spec_dir: 'spec/fixtures/parallel_helpers',
         helpers: [
           jasmine.stringMatching(/spec\/fixtures\/parallel_helpers\/helper1\.js$/)
         ],
+        requires: ['require1', 'require2'],
         env: envConfig,
       };
       expect(workers[0].send).toHaveBeenCalledWith(
@@ -716,6 +717,15 @@ describe('ParallelRunner', function() {
       this.testJasmine.execute();
       expect(() => this.testJasmine.configureEnv({}))
         .toThrowError("Can't call configureEnv() after execute()");
+    });
+
+    it('throws if specFilter is set', function() {
+      const config = {
+        specFilter: function() {}
+      };
+      expect(() => this.testJasmine.configureEnv(config))
+        .toThrowError('The specFilter config property is not supported in ' +
+          'parallel mode');
     });
   });
 });

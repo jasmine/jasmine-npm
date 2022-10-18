@@ -1,0 +1,5 @@
+{
+  "jsLoader": "require",
+  "spec_dir": ".",
+  "spec_files": ["a%20spec.js"]
+}
