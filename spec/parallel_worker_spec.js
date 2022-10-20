@@ -444,6 +444,7 @@ describe('ParallelWorker', function() {
         const loader = jasmine.createSpyObj('loader', ['load']);
         loader.load.withArgs('jasmine-core')
           .and.returnValue(Promise.resolve(dummyCore(env)));
+        this.clusterWorker.id = 17;
         const jasmineWorker = new ParallelWorker({
           loader,
           clusterWorker: this.clusterWorker
@@ -457,13 +458,19 @@ describe('ParallelWorker', function() {
         });
         await jasmineWorker.envPromise_;
 
-        const payload = 'arbitrary reporter event payload';
+        const payload = {
+          id: 'foo',
+          description: 'a spec or suite'
+        };
         dispatchRepoterEvent(env, eventName, payload);
 
         expect(this.clusterWorker.send).toHaveBeenCalledWith({
           type: 'reporterEvent',
           eventName,
-          payload
+          payload: {
+            id: '17-foo',
+            description: 'a spec or suite'
+          }
         });
 
         this.clusterWorker.send.calls.reset();
