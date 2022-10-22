@@ -158,6 +158,17 @@ describe('Jasmine', function() {
         this.fixtureJasmine.loadConfig({});
         expect(this.fixtureJasmine.alwaysListPendingSpecs_).toBeTrue();
       });
+
+      it('adds specified reporters', function() {
+        const reporter1 = {id: 'reporter1'};
+        const reporter2 = {id: 'reporter2'};
+        this.configObject.reporters = [reporter1, reporter2];
+
+        this.fixtureJasmine.loadConfig(this.configObject);
+
+        expect(this.fixtureJasmine.env.addReporter).toHaveBeenCalledWith(reporter1);
+        expect(this.fixtureJasmine.env.addReporter).toHaveBeenCalledWith(reporter2);
+      });
     });
   });
 
