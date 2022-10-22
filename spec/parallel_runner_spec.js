@@ -729,6 +729,20 @@ describe('ParallelRunner', function() {
           'parallel mode');
     });
   });
+
+  describe('Loading configuration', function() {
+    it('adds specified reporters', function () {
+      const reporters = [{id: 'reporter1'}, {id: 'reporter2'}];
+      spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
+
+      this.testJasmine.loadConfig({reporters});
+
+      expect(this.testJasmine.reportDispatcher_.addReporter)
+        .toHaveBeenCalledWith(reporters[0]);
+      expect(this.testJasmine.reportDispatcher_.addReporter)
+        .toHaveBeenCalledWith(reporters[1]);
+    });
+  });
 });
 
 async function poll(predicate) {
