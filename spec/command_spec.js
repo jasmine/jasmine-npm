@@ -51,7 +51,10 @@ describe('command', function() {
       };
     }());
 
-    this.command = new Command(projectBaseDir, examplesDir, this.out.print);
+    this.command = new Command(projectBaseDir, examplesDir, {
+      print: this.out.print,
+      platform: () => 'Oberon'
+    });
 
     this.fakeJasmine = jasmine.createSpyObj('jasmine', ['loadConfigFile', 'addMatchingHelperFiles', 'addRequires', 'showColors', 'execute',
       'randomizeTests', 'seed', 'coreVersion', 'clearReporters', 'addReporter']);
@@ -383,6 +386,50 @@ describe('command', function() {
     it('should be able to set a seed', async function() {
       await this.command.run(this.fakeJasmine, ['--seed=12345']);
       expect(this.fakeJasmine.seed).toHaveBeenCalledWith('12345');
+    });
+  });
+
+  describe('Path handling', function() {
+    describe('On Windows', function () {
+      beforeEach(function() {
+        this.deps = {
+          print: this.out.print,
+          platform: () => 'win32'
+        };
+      });
+
+      it('replaces backslashes in the project base dir with slashes', function() {
+        const subject = new Command('foo\\bar', '', this.deps);
+        expect(subject.projectBaseDir).toEqual('foo/bar');
+        expect(subject.specDir).toEqual('foo/bar/spec');
+      });
+
+      it('replaces backslashes in spec file paths from the command line', async function() {
+        const subject = new Command('arbitrary', '', this.deps);
+        await subject.run(this.fakeJasmine, ['somedir\\somespec.js']);
+        expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['somedir/somespec.js'], undefined);
+      });
+    });
+
+    describe('On non-Windows systems', function () {
+      beforeEach(function() {
+        this.deps = {
+          print: this.out.print,
+          platform: () => 'BeOS'
+        };
+      });
+
+      it('does not replace backslashes in the project base dir', function() {
+        const subject = new Command('foo\\bar', '', this.deps);
+        expect(subject.projectBaseDir).toEqual('foo\\bar');
+        expect(subject.specDir).toEqual('foo\\bar/spec');
+      });
+
+      it('does not replace backslashes in spec file paths from the command line', async function() {
+        const subject = new Command('arbitrary', '', this.deps);
+        await subject.run(this.fakeJasmine, ['somedir\\somespec.js']);
+        expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['somedir\\somespec.js'], undefined);
+      });
     });
   });
 });

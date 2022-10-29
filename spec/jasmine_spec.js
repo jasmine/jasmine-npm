@@ -630,4 +630,122 @@ describe('Jasmine', function() {
       });
     });
   });
+
+  describe('When running on Windows', function() {
+    beforeEach(function() {
+      spyOn(console, 'warn');
+    });
+
+    function windows() {
+      return 'win32';
+    }
+
+    it('warns about backslashes in the configured project base dir', function() {
+      new Jasmine({
+        projectBaseDir: 'c:\\foo\\bar',
+        platform: windows,
+        jasmineCore: this.fakeJasmineCore,
+      });
+      expect(console.warn).toHaveBeenCalledWith('Backslashes in ' +
+        'file paths behave inconsistently between platforms and might not be ' +
+        'treated as directory separators in a future version. Consider ' +
+        'changing c:\\foo\\bar to c:/foo/bar.');
+    });
+
+    it('does not warn about backslashes in the current working directory', function() {
+      const jasmine = new Jasmine({
+        getcwd: () => 'c:\\foo\\bar',
+        platform: windows,
+        jasmineCore: this.fakeJasmineCore,
+      });
+      expect(jasmine.projectBaseDir).toEqual('c:\\foo\\bar');
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it('warns about backslashes in spec_dir', function() {
+      const jasmine = new Jasmine({
+        platform: windows,
+        jasmineCore: this.fakeJasmineCore,
+      });
+      jasmine.loadConfig({
+        spec_dir: 'foo\\bar',
+      });
+
+      expect(console.warn).toHaveBeenCalledWith('Backslashes in ' +
+        'file paths behave inconsistently between platforms and might not be ' +
+        'treated as directory separators in a future version. Consider ' +
+        'changing foo\\bar to foo/bar.');
+    });
+
+    it('warns about backslashes in helpers', function() {
+      const jasmine = new Jasmine({
+        platform: windows,
+        jasmineCore: this.fakeJasmineCore,
+      });
+
+      jasmine.loadConfig({
+        helpers: ['foo\\bar']
+      });
+      expect(console.warn).toHaveBeenCalledWith('Backslashes in ' +
+        'file paths behave inconsistently between platforms and might not be ' +
+        'treated as directory separators in a future version. Consider ' +
+        'changing foo\\bar to foo/bar.');
+
+      jasmine.addMatchingHelperFiles(['foo\\baz']);
+      expect(console.warn).toHaveBeenCalledWith('Backslashes in ' +
+        'file paths behave inconsistently between platforms and might not be ' +
+        'treated as directory separators in a future version. Consider ' +
+        'changing foo\\baz to foo/baz.');
+    });
+
+    it('warns about backslashes in spec_files', function() {
+      const jasmine = new Jasmine({
+        platform: windows,
+        jasmineCore: this.fakeJasmineCore,
+      });
+
+      jasmine.loadConfig({
+        spec_files: ['foo\\bar']
+      });
+      expect(console.warn).toHaveBeenCalledWith('Backslashes in ' +
+        'file paths behave inconsistently between platforms and might not be ' +
+        'treated as directory separators in a future version. Consider ' +
+        'changing foo\\bar to foo/bar.');
+
+      jasmine.addMatchingSpecFiles(['foo\\baz']);
+      expect(console.warn).toHaveBeenCalledWith('Backslashes in ' +
+        'file paths behave inconsistently between platforms and might not be ' +
+        'treated as directory separators in a future version. Consider ' +
+        'changing foo\\baz to foo/baz.');
+    });
+
+    it('does not warn if no configured path contains backslashes', function() {
+      const jasmine = new Jasmine({
+        projectBaseDir: 'c:/foo/bar',
+        platform: windows,
+        jasmineCore: this.fakeJasmineCore,
+      });
+      jasmine.loadConfig({
+        spec_dir: 'foo/bar',
+        spec_files: ['baz/qux'],
+        helpers: ['waldo/fred']
+      });
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not warn about backslashes when not running on Windows', function() {
+    spyOn(console, 'warn');
+    const jasmine = new Jasmine({
+      projectBaseDir: 'foo\\bar',
+      platform: () => 'NetWare',
+      jasmineCore: this.fakeJasmineCore,
+    });
+    jasmine.loadConfig({
+      spec_dir: 'foo\\bar',
+      spec_files: ['baz\\qux'],
+      helpers: ['waldo\\fred']
+    });
+    expect(console.warn).not.toHaveBeenCalled();
+  });
 });
