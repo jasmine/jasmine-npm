@@ -87,7 +87,8 @@ describe('Jasmine', function() {
 
     function hasCommonFileGlobBehavior(method, destProp) {
       it('adds a file with an absolute path', function() {
-        const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+        const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js')
+          .replace(/\\/g, '/');
         expect(this.testJasmine[destProp]).toEqual([]);
         this.testJasmine[method]([aFile]);
         expect(this.testJasmine[destProp]).toEqual([slash(aFile)]);
