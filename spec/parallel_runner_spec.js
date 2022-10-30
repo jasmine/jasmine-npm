@@ -711,6 +711,13 @@ describe('ParallelRunner', function() {
         expect(console.error).not.toHaveBeenCalled();
       });
     });
+
+    it('rejects if called more than once', async function() {
+      this.testJasmine.execute();
+      await expectAsync(this.testJasmine.execute()).toBeRejectedWithError(
+        'Parallel runner instance can only be executed once'
+      );
+    });
   });
 
   describe('#configureEnv', function() {
