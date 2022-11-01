@@ -2,6 +2,7 @@ const path = require('path');
 const EventEmitter = require('node:events');
 const sharedRunnerBehaviors = require('./shared_runner_behaviors');
 const ParallelRunner = require("../lib/parallel_runner");
+const {ConsoleReporter} = require("../lib/jasmine");
 
 describe('ParallelRunner', function() {
   const forwardedReporterEvents = ['suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
@@ -96,10 +97,57 @@ describe('ParallelRunner', function() {
     spyOn(this.testJasmine.reportDispatcher_, 'clearReporters');
     this.testJasmine.clearReporters();
     expect(this.testJasmine.reportDispatcher_.clearReporters).toHaveBeenCalled();
-    const reporter = {someProperty: 'some value'};
+    const reporter = {
+      someProperty: 'some value',
+      reporterCapabilities: {parallel: true}
+    };
     this.testJasmine.addReporter(reporter);
     expect(this.testJasmine.reportDispatcher_.addReporter)
       .toHaveBeenCalledWith(jasmine.is(reporter));
+  });
+
+  describe('Reporter validation', function() {
+    it('rejects reporters that do not declare parallel support', function () {
+      const expectedMsg = "Can't use this reporter because it doesn't support " +
+        'parallel mode. (Add reporterCapabilities: {parallel: true} if ' +
+        'the reporter meets the requirements for parallel mode.)';
+      spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
+
+      const reporter = {someProperty: 'some value'};
+      expect(() => this.testJasmine.addReporter(reporter))
+        .withContext('no reporterCapabilities')
+        .toThrowError(expectedMsg);
+
+      reporter.reporterCapabilities = {};
+      expect(() => this.testJasmine.addReporter(reporter))
+        .withContext('no reporterCapabilities.parallel')
+        .toThrowError(expectedMsg);
+
+      reporter.reporterCapabilities.parallel = false;
+      expect(() => this.testJasmine.addReporter(reporter))
+        .withContext('reporterCapabilities.parallel = false')
+        .toThrowError(expectedMsg);
+
+      expect(this.testJasmine.reportDispatcher_.addReporter).not.toHaveBeenCalled();
+    });
+
+    it('provides additional context when the reporter is in the config file', function() {
+      expect(() => {
+        this.testJasmine.loadConfig({
+          reporters: [
+            {reporterCapabilities: {parallel: true}},
+            {}
+          ]
+        });
+      }).toThrowError("Can't use the reporter in position 1 of " +
+        "the configuration's reporters array because it doesn't support " +
+        'parallel mode. (Add reporterCapabilities: {parallel: true} if ' +
+        'the reporter meets the requirements for parallel mode.)');
+    });
+
+    it('accepts the built-in console reporter', function() {
+      this.testJasmine.addReporter(new ConsoleReporter());
+    });
   });
 
   it('can tell jasmine-core to stop spec on no expectations');
@@ -541,6 +589,7 @@ describe('ParallelRunner', function() {
       for (const eventName of forwardedReporterEvents) {
         it(`forwards the ${eventName} event to reporters`, async function() {
           const reporter = jasmine.createSpyObj('reporter', [eventName]);
+          reporter.reporterCapabilities = {parallel: true};
           this.testJasmine.addReporter(reporter);
 
           const payload = 'arbitrary event payload';
@@ -555,6 +604,7 @@ describe('ParallelRunner', function() {
       for (const eventName of nonForwardedReporterEvents) {
         it(`does not forward the ${eventName} event to reporters`, async function() {
           const reporter = jasmine.createSpyObj('reporter', [eventName]);
+          reporter.reporterCapabilities = {parallel: true};
           this.testJasmine.addReporter(reporter);
 
           this.cluster.workers[0].emit(
@@ -739,7 +789,10 @@ describe('ParallelRunner', function() {
 
   describe('Loading configuration', function() {
     it('adds specified reporters', function () {
-      const reporters = [{id: 'reporter1'}, {id: 'reporter2'}];
+      const reporters = [
+        {id: 'reporter1', reporterCapabilities: {parallel: true}},
+        {id: 'reporter2', reporterCapabilities: {parallel: true}},
+      ];
       spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
 
       this.testJasmine.loadConfig({reporters});
