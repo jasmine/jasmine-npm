@@ -420,6 +420,57 @@ describe('Integration', function () {
       expect(output).toContain('2 specs, 2 failures');
     });
   });
+
+  describe('Global setup and teardown', function() {
+    const scenarios = [['parallel', ['--num-workers=2']], ['non-parallel', []]];
+    for (const [description, extraArgs] of scenarios) {
+      describe(description, function() {
+        it('runs globalSetup', async function() {
+          const {exitCode, output} = await runJasmine(
+            'spec/fixtures/global_setup_success',
+            'jasmine.js',
+            extraArgs
+          );
+
+          expect(exitCode).toEqual(0);
+          expect(output).toContain('in globalSetup');
+        });
+
+        it('runs globalTeardown', async function() {
+          const {exitCode, output} = await runJasmine(
+            'spec/fixtures/global_teardown_success',
+            'jasmine.js',
+            extraArgs
+          );
+
+          expect(exitCode).toEqual(0);
+          expect(output).toContain('in globalTeardown');
+        });
+
+        it('fails if globalSetup fails', async function() {
+          const {exitCode, output} = await runJasmine(
+            'spec/fixtures/global_setup_failure',
+            'jasmine.js',
+            extraArgs
+          );
+
+          expect(exitCode).toEqual(1);
+          expect(output).toContain('oops');
+        });
+
+        it('fails if globalTeardown fails', async function() {
+          const {exitCode, output} = await runJasmine(
+            'spec/fixtures/global_teardown_failure',
+            'jasmine.js',
+            extraArgs
+          );
+
+          expect(exitCode).toEqual(1);
+          expect(output).toContain('oops');
+        });
+      });
+    }
+  });
 });
 
 async function runJasmine(cwd, config="jasmine.json", extraArgs = []) {

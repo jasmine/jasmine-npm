@@ -3,6 +3,7 @@ const EventEmitter = require('node:events');
 const sharedRunnerBehaviors = require('./shared_runner_behaviors');
 const ParallelRunner = require("../lib/parallel_runner");
 const {ConsoleReporter} = require("../lib/jasmine");
+const {poll, shortPoll} = require('./poll');
 
 describe('ParallelRunner', function() {
   const forwardedReporterEvents = ['suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
@@ -37,9 +38,13 @@ describe('ParallelRunner', function() {
     this.ConsoleReporter = function() {
       return consoleReporter;
     };
+    this.globalSetupOrTeardownRunner = jasmine.createSpyObj(
+      'globalSetupOrTeardownRunner', ['run']
+    );
     this.testJasmine = new ParallelRunner({
       cluster: this.cluster,
       ConsoleReporter: this.ConsoleReporter,
+      globalSetupOrTeardownRunner: this.globalSetupOrTeardownRunner
     });
     this.testJasmine.exit = dontExit;
 
@@ -47,7 +52,12 @@ describe('ParallelRunner', function() {
 
     this.emitBooted = worker => worker.emit('message', {type: 'booted'});
 
-    this.emitAllBooted = () => {
+    this.emitAllBooted = async () => {
+      await shortPoll(
+        () => Object.values(this.cluster.workers).length > 0,
+        'workers to be created'
+      );
+
       for (const worker of Object.values(this.cluster.workers)) {
         this.emitBooted(worker);
       }
@@ -194,7 +204,7 @@ describe('ParallelRunner', function() {
   });
 
   describe('#execute', function() {
-    it('creates the configured number of worker processes', function() {
+    it('creates the configured number of worker processes', async function () {
       this.testJasmine = new ParallelRunner({
         cluster: this.cluster,
         numWorkers: 17,
@@ -202,15 +212,18 @@ describe('ParallelRunner', function() {
       });
       this.testJasmine.exit = dontExit;
       this.testJasmine.execute();
+      await shortPoll(
+        () => this.cluster.fork.calls.any(),
+        'cluster.fork to have been called'
+      );
       const expectedPath = path.join(__dirname, '../bin/worker.js');
       expect(this.cluster.setupPrimary).toHaveBeenCalledWith({
         exec: expectedPath,
-        // TODO: probably windowsHide: true
       });
       expect(this.cluster.fork).toHaveBeenCalledTimes(17);
     });
 
-    it('configures the workers and waits for them to acknowledge', async function() {
+    it('configures the workers and waits for them to acknowledge', async function () {
       this.testJasmine.numWorkers = 2;
       const envConfig = {
         stopSpecOnExpectationFailure: true,
@@ -224,9 +237,14 @@ describe('ParallelRunner', function() {
       });
       this.testJasmine.addSpecFile('aSpec.js');
       spyOn(this.testJasmine, 'runSpecFiles_')
-        .and.returnValue(new Promise(() => {}));
+        .and.returnValue(new Promise(() => {
+      }));
       this.testJasmine.execute(null, 'myFilterString');
 
+      await shortPoll(
+        () => this.cluster.fork.calls.any(),
+        'cluster.fork to have been called'
+      );
       const workers = this.cluster.fork.calls.all().map(c => c.returnValue);
       const expectedConfig = {
         filter: 'myFilterString',
@@ -254,7 +272,7 @@ describe('ParallelRunner', function() {
       expect(this.testJasmine.runSpecFiles_).toHaveBeenCalled();
     });
 
-    it('initially assigns one spec file to each process', async function() {
+    it('initially assigns one spec file to each process', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
@@ -266,11 +284,15 @@ describe('ParallelRunner', function() {
       }
 
       this.testJasmine.execute();
-      this.emitAllBooted();
-      await new Promise(resolve => setTimeout(resolve));
+      await this.emitAllBooted();
+      await new Promise(resolve => {
+        this.cluster.workers[0].send
+          .withArgs(jasmine.objectContaining({type: 'runSpecFile'}))
+          .and.callFake(() => resolve());
+      });
 
       expect(this.cluster.workers[0].send).toHaveBeenCalledWith(
-        {type: 'runSpecFile', filePath: jasmine.any(String) }
+        {type: 'runSpecFile', filePath: jasmine.any(String)}
       );
       expect(this.cluster.workers[1].send).toHaveBeenCalledWith(
         {type: 'runSpecFile', filePath: jasmine.any(String)}
@@ -283,8 +305,8 @@ describe('ParallelRunner', function() {
       }
     });
 
-    describe('When a worker finishes processing a spec file', function() {
-      it('assigns another spec file', async function() {
+    describe('When a worker finishes processing a spec file', function () {
+      it('assigns another spec file', async function () {
         this.testJasmine.numWorkers = 2;
         this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
@@ -296,7 +318,7 @@ describe('ParallelRunner', function() {
         }
 
         this.testJasmine.execute();
-        this.emitAllBooted();
+        await this.emitAllBooted();
         await new Promise(resolve => setTimeout(resolve));
 
         const alreadyRanSpecs = getSpecFilesRan(this.cluster.workers);
@@ -309,7 +331,7 @@ describe('ParallelRunner', function() {
         );
       });
 
-      it('finishes when all workers are idle', async function() {
+      it('finishes when all workers are idle', async function () {
         this.testJasmine.numWorkers = 2;
         this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
@@ -318,7 +340,7 @@ describe('ParallelRunner', function() {
         this.testJasmine.addSpecFile('spec2.js');
         this.testJasmine.addSpecFile('spec3.js');
         const executePromise = this.testJasmine.execute();
-        this.emitAllBooted();
+        await this.emitAllBooted();
 
         await new Promise(resolve => setTimeout(resolve));
         this.emitFileDone(this.cluster.workers[0]);
@@ -334,21 +356,21 @@ describe('ParallelRunner', function() {
     it('handles worker crashes');
     it('handles worker exec failures');
 
-    it('dispatches an empty jasmineStarted event at the start of execution', async function() {
+    it('dispatches an empty jasmineStarted event at the start of execution', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       this.testJasmine.addSpecFile('spec1.js');
       this.testJasmine.execute();
-      this.emitAllBooted();
+      await this.emitAllBooted();
       await new Promise(resolve => setTimeout(resolve));
 
       expect(this.consoleReporter.jasmineStarted).toHaveBeenCalledWith({});
     });
 
-    describe('When all workers are idle', function() {
-      beforeEach(async function() {
+    describe('When all workers are idle', function () {
+      beforeEach(async function () {
         this.testJasmine.numWorkers = 2;
         this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
@@ -357,7 +379,7 @@ describe('ParallelRunner', function() {
         this.testJasmine.addSpecFile('spec2.js');
         this.testJasmine.addSpecFile('spec3.js');
         this.executePromise = this.testJasmine.execute();
-        this.emitAllBooted();
+        await this.emitAllBooted();
 
         await new Promise(resolve => setTimeout(resolve));
         this.emitSpecDone(this.cluster.workers[0], {status: 'passed'});
@@ -377,20 +399,20 @@ describe('ParallelRunner', function() {
         };
       });
 
-      it('dispatches a jasmineDone event', async function() {
+      it('dispatches a jasmineDone event', async function () {
         await this.executePromise;
         expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith(
           this.expectedJasmineDoneEvent);
       });
 
-      it('resolves the returned promise to the jasmineDone event', async function() {
+      it('resolves the returned promise to the jasmineDone event', async function () {
         await expectAsync(this.executePromise).toBeResolvedTo(
           this.expectedJasmineDoneEvent
         );
       });
     });
 
-    it('sets the jasmineDone event status to failed when there are spec failures', async function() {
+    it('sets the jasmineDone event status to failed when there are spec failures', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
@@ -398,7 +420,7 @@ describe('ParallelRunner', function() {
       this.testJasmine.addSpecFile('spec1.js');
       this.testJasmine.addSpecFile('spec2.js');
       const executePromise = this.testJasmine.execute();
-      this.emitAllBooted();
+      await this.emitAllBooted();
 
       await new Promise(resolve => setTimeout(resolve));
       this.emitSpecDone(this.cluster.workers[0], {status: 'passed'});
@@ -416,7 +438,7 @@ describe('ParallelRunner', function() {
       );
     });
 
-    it('sets the jasmineDone event status to failed when there are suite failures', async function() {
+    it('sets the jasmineDone event status to failed when there are suite failures', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
@@ -424,7 +446,7 @@ describe('ParallelRunner', function() {
       this.testJasmine.addSpecFile('spec1.js');
       this.testJasmine.addSpecFile('spec2.js');
       const executePromise = this.testJasmine.execute();
-      this.emitAllBooted();
+      await this.emitAllBooted();
 
       await new Promise(resolve => setTimeout(resolve));
       this.emitSuiteDone(this.cluster.workers[0], {status: 'passed'});
@@ -442,7 +464,7 @@ describe('ParallelRunner', function() {
       );
     });
 
-    it('sets the jasmineDone event status to incomplete when there are focused runables', async function() {
+    it('sets the jasmineDone event status to incomplete when there are focused runables', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
@@ -450,7 +472,7 @@ describe('ParallelRunner', function() {
       this.testJasmine.addSpecFile('spec1.js');
       this.testJasmine.addSpecFile('spec2.js');
       const executePromise = this.testJasmine.execute();
-      this.emitAllBooted();
+      await this.emitAllBooted();
 
       await new Promise(resolve => setTimeout(resolve));
       this.emitFileDone(this.cluster.workers[0], {
@@ -471,7 +493,7 @@ describe('ParallelRunner', function() {
       );
     });
 
-    it('sets the jasmineDone event status to incomplete when there are no specs', async function() {
+    it('sets the jasmineDone event status to incomplete when there are no specs', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
@@ -479,7 +501,7 @@ describe('ParallelRunner', function() {
       this.testJasmine.addSpecFile('spec1.js');
       this.testJasmine.addSpecFile('spec2.js');
       const executePromise = this.testJasmine.execute();
-      this.emitAllBooted();
+      await this.emitAllBooted();
 
       await new Promise(resolve => setTimeout(resolve));
       this.emitFileDone(this.cluster.workers[0], {
@@ -502,7 +524,7 @@ describe('ParallelRunner', function() {
       );
     });
 
-    it('does not set the jasmineDone event status to incomplete when one file has no specs', async function() {
+    it('does not set the jasmineDone event status to incomplete when one file has no specs', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
@@ -510,7 +532,7 @@ describe('ParallelRunner', function() {
       this.testJasmine.addSpecFile('spec1.js');
       this.testJasmine.addSpecFile('spec2.js');
       const executePromise = this.testJasmine.execute();
-      this.emitAllBooted();
+      await this.emitAllBooted();
 
       await new Promise(resolve => setTimeout(resolve));
       this.emitFileDone(this.cluster.workers[0], {
@@ -528,7 +550,7 @@ describe('ParallelRunner', function() {
       );
     });
 
-    it('merges top level failedExpectations and deprecationWarnings from workers', async function() {
+    it('merges top level failedExpectations and deprecationWarnings from workers', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
@@ -537,7 +559,7 @@ describe('ParallelRunner', function() {
       this.testJasmine.addSpecFile('spec2.js');
       this.testJasmine.addSpecFile('spec3.js');
       const executePromise = this.testJasmine.execute();
-      this.emitAllBooted();
+      await this.emitAllBooted();
 
       await new Promise(resolve => setTimeout(resolve));
       this.emitFileDone(this.cluster.workers[0], {
@@ -573,21 +595,21 @@ describe('ParallelRunner', function() {
       );
     });
 
-    describe('Handling reporter events from workers', function() {
-      beforeEach(async function() {
+    describe('Handling reporter events from workers', function () {
+      beforeEach(async function () {
         this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         this.testJasmine.addSpecFile('spec1.js');
         this.testJasmine.execute();
-        this.emitAllBooted();
+        await this.emitAllBooted();
         await poll(() => {
           return this.cluster.workers[0].listeners('message').length > 0;
         });
       });
 
       for (const eventName of forwardedReporterEvents) {
-        it(`forwards the ${eventName} event to reporters`, async function() {
+        it(`forwards the ${eventName} event to reporters`, async function () {
           const reporter = jasmine.createSpyObj('reporter', [eventName]);
           reporter.reporterCapabilities = {parallel: true};
           this.testJasmine.addReporter(reporter);
@@ -602,7 +624,7 @@ describe('ParallelRunner', function() {
       }
 
       for (const eventName of nonForwardedReporterEvents) {
-        it(`does not forward the ${eventName} event to reporters`, async function() {
+        it(`does not forward the ${eventName} event to reporters`, async function () {
           const reporter = jasmine.createSpyObj('reporter', [eventName]);
           reporter.reporterCapabilities = {parallel: true};
           this.testJasmine.addReporter(reporter);
@@ -617,8 +639,8 @@ describe('ParallelRunner', function() {
       }
     });
 
-    describe('When stopSpecOnExpectationFailure is true', function() {
-      beforeEach(async function() {
+    describe('When stopSpecOnExpectationFailure is true', function () {
+      beforeEach(async function () {
         this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir',
           stopOnSpecFailure: true,
@@ -629,14 +651,14 @@ describe('ParallelRunner', function() {
         this.testJasmine.addSpecFile('spec4.js');
         this.executePromise = this.testJasmine.execute();
 
-        this.emitAllBooted();
+        await this.emitAllBooted();
         await poll(() => {
           return numRunSpecFileCalls(this.cluster.workers[0]) === 1
             && numRunSpecFileCalls(this.cluster.workers[1]) === 1;
         });
       });
 
-      it('makes a best effort to stop after a spec failure', async function() {
+      it('makes a best effort to stop after a spec failure', async function () {
         this.emitSpecDone(this.cluster.workers[0], {status: 'failed'});
         this.emitFileDone(this.cluster.workers[0]);
         this.emitFileDone(this.cluster.workers[1]);
@@ -647,7 +669,7 @@ describe('ParallelRunner', function() {
         expect(numRunSpecFileCalls(this.cluster.workers[1])).toEqual(1);
       });
 
-      it('makes a best effort to stop after a suite failure', async function() {
+      it('makes a best effort to stop after a suite failure', async function () {
         this.emitSuiteDone(this.cluster.workers[0], {status: 'failed'});
         this.emitFileDone(this.cluster.workers[0]);
         this.emitFileDone(this.cluster.workers[1]);
@@ -665,8 +687,8 @@ describe('ParallelRunner', function() {
       }
     });
 
-    describe('When a worker reports a fatal error', function() {
-      it('fails', async function() {
+    describe('When a worker reports a fatal error', function () {
+      it('fails', async function () {
         spyOn(console, 'error');
         spyOn(this.testJasmine, 'exit');
         this.testJasmine.numWorkers = 2;
@@ -676,7 +698,7 @@ describe('ParallelRunner', function() {
         this.testJasmine.addSpecFile('spec1.js');
 
         const executePromise = this.testJasmine.execute();
-        this.emitAllBooted();
+        await this.emitAllBooted();
         await new Promise(resolve => setTimeout(resolve));
         this.cluster.workers[0].emit('message', {
           type: 'fatalError',
@@ -689,7 +711,7 @@ describe('ParallelRunner', function() {
         expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
       });
 
-      it('does not send additional runSpecFile messages after a fatal error', async function() {
+      it('does not send additional runSpecFile messages after a fatal error', async function () {
         spyOn(console, 'error');
         this.testJasmine.numWorkers = 2;
         this.testJasmine.loadConfig({
@@ -700,7 +722,7 @@ describe('ParallelRunner', function() {
         this.testJasmine.addSpecFile('spec3.js');
 
         const executePromise = this.testJasmine.execute();
-        this.emitAllBooted();
+        await this.emitAllBooted();
         await new Promise(resolve => setTimeout(resolve));
         this.cluster.workers[0].emit('message', {
           type: 'fatalError',
@@ -718,8 +740,8 @@ describe('ParallelRunner', function() {
       });
     });
 
-    describe('Handling worker exit', function() {
-      it('fails if the worker exits before the suite is finished', async function() {
+    describe('Handling worker exit', function () {
+      it('fails if the worker exits before the suite is finished', async function () {
         spyOn(console, 'error');
         spyOn(this.testJasmine, 'exit');
         this.testJasmine.numWorkers = 2;
@@ -729,7 +751,7 @@ describe('ParallelRunner', function() {
         this.testJasmine.addSpecFile('spec1.js');
 
         const executePromise = this.testJasmine.execute();
-        this.emitAllBooted();
+        await this.emitAllBooted();
         await new Promise(resolve => setTimeout(resolve));
         this.cluster.workers[0].emit('exit', {});
 
@@ -739,7 +761,7 @@ describe('ParallelRunner', function() {
         expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
       });
 
-      it('does not fail when the worker exits after the suite is finished', async function() {
+      it('does not fail when the worker exits after the suite is finished', async function () {
         spyOn(console, 'error');
         spyOn(this.testJasmine, 'exit');
         this.testJasmine.numWorkers = 2;
@@ -750,7 +772,7 @@ describe('ParallelRunner', function() {
         this.testJasmine.addSpecFile('spec2.js');
 
         const executePromise = this.testJasmine.execute();
-        this.emitAllBooted();
+        await this.emitAllBooted();
         await new Promise(resolve => setTimeout(resolve));
         this.emitFileDone(this.cluster.workers[0]);
         this.emitFileDone(this.cluster.workers[1]);
@@ -762,11 +784,135 @@ describe('ParallelRunner', function() {
       });
     });
 
-    it('rejects if called more than once', async function() {
+    it('rejects if called more than once', async function () {
       this.testJasmine.execute();
       await expectAsync(this.testJasmine.execute()).toBeRejectedWithError(
         'Parallel runner instance can only be executed once'
       );
+    });
+
+    describe('when a globalSetup is configured', function () {
+      it('waits for globalSetup to complete before creating workers', async function () {
+        let resolve;
+        this.globalSetupOrTeardownRunner.run.and.returnValue(
+          new Promise(res => resolve = res)
+        );
+        function globalSetup() {}
+        this.testJasmine.loadConfig({globalSetup});
+        this.testJasmine.execute();
+        await new Promise(res => setTimeout(res));
+        expect(this.cluster.fork).not.toHaveBeenCalled();
+        expect(this.globalSetupOrTeardownRunner.run).toHaveBeenCalledWith(
+          'globalSetup', globalSetup, undefined
+        );
+        resolve();
+        await poll(() => this.cluster.fork.calls.any());
+      });
+
+      it('fails if globalSetup fails', async function() {
+        this.globalSetupOrTeardownRunner.run.and.rejectWith(new Error('nope'));
+        this.testJasmine.loadConfig({
+          globalSetup() {}
+        });
+
+        await expectAsync(this.testJasmine.execute()).toBeRejectedWithError('nope');
+      });
+
+      it('uses a configured timeout', function() {
+        this.globalSetupOrTeardownRunner.run.and.returnValue(
+          new Promise(() => {})
+        );
+        function globalSetup() {}
+        this.testJasmine.loadConfig({
+          globalSetup,
+          globalSetupTimeout: 17
+        });
+        this.testJasmine.execute();
+
+        expect(this.globalSetupOrTeardownRunner.run).toHaveBeenCalledWith(
+          'globalSetup', globalSetup, 17
+        );
+      });
+    });
+
+    describe('when a globalTeardown is configured', function () {
+      it('waits for globalTeardown to complete after execution finishes', async function () {
+        let reportedDone = false;
+        let resolveTeardown;
+        this.globalSetupOrTeardownRunner.run.and.callFake(function() {
+          return new Promise(function(res) {
+            resolveTeardown = res;
+            expect(reportedDone).toBeTrue();
+          });
+        });
+        function globalTeardown() {}
+        this.testJasmine.loadConfig({
+          globalTeardown,
+          reporters: [{
+            jasmineDone() {
+              reportedDone = true;
+            },
+            reporterCapabilities: {parallel: true}
+          }]
+        });
+        const executePromise = this.testJasmine.execute();
+        await this.emitAllBooted();
+        expect(this.globalSetupOrTeardownRunner.run).not.toHaveBeenCalled();
+        await new Promise(res => setTimeout(res));
+        expect(this.globalSetupOrTeardownRunner.run).toHaveBeenCalledWith(
+          'globalTeardown', globalTeardown, undefined
+        );
+        await new Promise(res => setTimeout(res));
+        await expectAsync(executePromise).toBePending();
+        resolveTeardown();
+        await executePromise;
+      });
+
+      it('fails if globalTeardown fails', async function() {
+        this.globalSetupOrTeardownRunner.run.and.rejectWith(new Error('nope'));
+        this.testJasmine.loadConfig({
+          globalTeardown() {}
+        });
+        const executePromise = this.testJasmine.execute();
+        await this.emitAllBooted();
+        await expectAsync(executePromise).toBeRejectedWithError('nope');
+      });
+
+      it('runs globalTeardown even if execution fails', async function() {
+        spyOn(this.testJasmine, 'runSpecFiles_')
+          .and.rejectWith(new Error('spec running failed'));
+        this.globalSetupOrTeardownRunner.run.and.resolveTo();
+        this.testJasmine.loadConfig({
+          globalTeardown() {}
+        });
+        const executePromise = this.testJasmine.execute();
+        await this.emitAllBooted();
+        await expectAsync(executePromise)
+          .toBeRejectedWithError('spec running failed');
+        expect(this.globalSetupOrTeardownRunner.run).toHaveBeenCalled();
+      });
+
+
+      it('uses a configured timeout', async function() {
+        this.globalSetupOrTeardownRunner.run.and.returnValue(
+          new Promise(() => {})
+        );
+        function globalTeardown() {}
+        this.testJasmine.loadConfig({
+          globalTeardown,
+          globalTeardownTimeout: 17
+        });
+        this.testJasmine.execute();
+        await this.emitAllBooted();
+        await shortPoll(
+          () => this.globalSetupOrTeardownRunner.run.calls.any(),
+          'globalTeardown to have been run'
+        );
+
+        expect(this.globalSetupOrTeardownRunner.run).toHaveBeenCalledWith(
+          'globalTeardown', globalTeardown, 17
+        );
+      });
     });
   });
 
@@ -804,24 +950,6 @@ describe('ParallelRunner', function() {
     });
   });
 });
-
-async function poll(predicate) {
-  return new Promise(function(resolve, reject) {
-    function check() {
-      try {
-        if (predicate()) {
-          resolve();
-        } else {
-          setTimeout(check);
-        }
-      } catch (e) {
-        reject(e);
-      }
-    }
-
-    check();
-  });
-}
 
 async function execute(options = {}) {
   if (options.overallStatus) {

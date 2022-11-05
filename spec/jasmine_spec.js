@@ -1,5 +1,6 @@
 const Jasmine = require('../lib/jasmine');
 const sharedRunnerBehaviors = require('./shared_runner_behaviors');
+const {poll, shortPoll} = require('./poll');
 
 describe('Jasmine', function() {
   beforeEach(function() {
@@ -10,8 +11,8 @@ describe('Jasmine', function() {
         addMatchers: jasmine.createSpy('addMatchers'),
         provideFallbackReporter: jasmine.createSpy('provideFallbackReporter'),
         execute: jasmine.createSpy('execute')
-          .and.callFake(function(ignored, callback) {
-            callback();
+          .and.callFake(function() {
+            return Promise.reject(new Error('Unconfigured call to Env#execute'));
           }),
         configure: jasmine.createSpy('configure')
       }),
@@ -25,7 +26,13 @@ describe('Jasmine', function() {
       }
     };
 
-    this.testJasmine = new Jasmine({ jasmineCore: this.fakeJasmineCore });
+    this.globalSetupOrTeardownRunner = jasmine.createSpyObj(
+      'globalSetupOrTeardownRunner', ['run']
+    );
+    this.testJasmine = new Jasmine({
+      jasmineCore: this.fakeJasmineCore,
+      globalSetupOrTeardownRunner: this.globalSetupOrTeardownRunner
+    });
     this.testJasmine.exit = function() {
       // Don't actually exit the node process
     };
@@ -247,6 +254,134 @@ describe('Jasmine', function() {
 
         await expectAsync(this.execute({overallStatus: 'incomplete'}))
           .toBeResolvedTo(jasmine.objectContaining({overallStatus: 'incomplete'}));
+      });
+    });
+
+    describe('when a globalSetup is configured', function () {
+      beforeEach(function() {
+        this.bootedJasmine.getEnv().execute.and.returnValue(
+          new Promise(() => {})
+        );
+      });
+
+      it('waits for globalSetup to complete before running specs', async function () {
+        let resolve;
+        this.globalSetupOrTeardownRunner.run.and.returnValue(
+          new Promise(res => resolve = res)
+        );
+        function globalSetup() {}
+        this.testJasmine.loadConfig({globalSetup});
+        this.testJasmine.execute();
+        await shortPoll(
+          () => this.globalSetupOrTeardownRunner.run.calls.any(),
+          'globalSetupOrTeardownRunner.run to be called'
+        );
+        expect(this.bootedJasmine.getEnv().execute).not.toHaveBeenCalled();
+        resolve();
+        await poll(() => this.bootedJasmine.getEnv().execute());
+      });
+
+      it('fails if globalSetup fails', async function() {
+        this.globalSetupOrTeardownRunner.run.and.rejectWith(new Error('nope'));
+        this.testJasmine.loadConfig({
+          globalSetup() {}
+        });
+
+        await expectAsync(this.testJasmine.execute()).toBeRejectedWithError('nope');
+      });
+
+      it('uses a configured timeout', async function() {
+        this.globalSetupOrTeardownRunner.run.and.returnValue(
+          new Promise(() => {})
+        );
+        function globalSetup() {}
+        this.testJasmine.loadConfig({
+          globalSetup,
+          globalSetupTimeout: 17
+        });
+        this.testJasmine.execute();
+
+        await shortPoll(
+          () => this.globalSetupOrTeardownRunner.run.calls.any(),
+          'globalSetupOrTeardownRunner.run to be called'
+        );
+        expect(this.globalSetupOrTeardownRunner.run).toHaveBeenCalledWith(
+          'globalSetup', globalSetup, 17
+        );
+      });
+    });
+
+    describe('when a globalTeardown is configured', function () {
+      let resolveEnvExecute;
+      let arbitraryOverallResult;
+
+      beforeEach(function() {
+        const promise = new Promise(res => resolveEnvExecute = res);
+        this.bootedJasmine.getEnv().execute.and.returnValue(promise);
+        arbitraryOverallResult = {overallStatus: 'passed'};
+      });
+
+      it('waits for globalTeardown to complete after execution finishes', async function () {
+        let resolveTeardown;
+        this.globalSetupOrTeardownRunner.run.and.returnValue(
+          new Promise(res => resolveTeardown = res)
+        );
+        function globalTeardown() {}
+        this.testJasmine.loadConfig({globalTeardown});
+        const runnerExecutePromise = this.testJasmine.execute();
+        await new Promise(res => setTimeout(res));
+        expect(this.globalSetupOrTeardownRunner.run).not.toHaveBeenCalled();
+        resolveEnvExecute(arbitraryOverallResult);
+        await new Promise(res => setTimeout(res));
+        await expectAsync(runnerExecutePromise).toBePending();
+        resolveTeardown();
+        await runnerExecutePromise;
+        expect(this.globalSetupOrTeardownRunner.run).toHaveBeenCalledWith(
+          'globalTeardown', globalTeardown, undefined
+        );
+      });
+
+      it('fails if globalTeardown fails', async function() {
+        this.globalSetupOrTeardownRunner.run.and.rejectWith(new Error('nope'));
+        this.testJasmine.loadConfig({
+          globalTeardown() {}
+        });
+        const executePromise = this.testJasmine.execute();
+        resolveEnvExecute(arbitraryOverallResult);
+        await expectAsync(executePromise).toBeRejectedWithError('nope');
+      });
+
+      it('runs globalTeardown even if env execution fails', async function() {
+        this.bootedJasmine.getEnv().execute
+          .and.rejectWith(new Error('env execute failure'));
+        this.globalSetupOrTeardownRunner.run.and.resolveTo();
+        this.testJasmine.loadConfig({
+          globalTeardown() {}
+        });
+        await expectAsync(this.testJasmine.execute())
+          .toBeRejectedWithError('env execute failure');
+        expect(this.globalSetupOrTeardownRunner.run).toHaveBeenCalled();
+      });
+
+      it('uses a configured timeout', async function() {
+        this.globalSetupOrTeardownRunner.run.and.returnValue(
+          new Promise(() => {})
+        );
+        function globalTeardown() {}
+        this.testJasmine.loadConfig({
+          globalTeardown,
+          globalTeardownTimeout: 17
+        });
+        this.testJasmine.execute();
+        resolveEnvExecute();
+        await shortPoll(
+          () => this.globalSetupOrTeardownRunner.run.calls.any(),
+          'globalTeardown to have been run'
+        );
+
+        expect(this.globalSetupOrTeardownRunner.run).toHaveBeenCalledWith(
+          'globalTeardown', globalTeardown, 17
+        );
       });
     });
   });
