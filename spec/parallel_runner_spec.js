@@ -949,6 +949,18 @@ describe('ParallelRunner', function() {
         .toHaveBeenCalledWith(reporters[1]);
     });
   });
+
+  it('does not allow randomization to be disabled', function() {
+    expect(() => this.testJasmine.randomizeTests(false))
+      .toThrowError('Randomization cannot be disabled in parallel mode');
+    expect(() => this.testJasmine.randomizeTests(true))
+      .not.toThrow();
+  });
+
+  it('does not allow random seed to be set', function() {
+    expect(() => this.testJasmine.seed(1234))
+      .toThrowError('Random seed cannot be set in parallel mode');
+  });
 });
 
 async function execute(options = {}) {
