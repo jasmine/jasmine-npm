@@ -193,7 +193,6 @@ describe('Jasmine', function() {
     });
   });
 
-  // TODO: not supported in parallel
   describe('#randomizeTests', function() {
     it('sets the randomizeTests value on the jasmine-core env', function() {
       this.testJasmine.randomizeTests('foobar');

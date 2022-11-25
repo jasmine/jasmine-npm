@@ -95,8 +95,8 @@ function sharedRunnerBehaviors(makeRunner) {
 
     describe('#configureDefaultReporter', function () {
       beforeEach(function () {
-        if (!jasmine.isSpy(this.testJasmine.reporter.setOptions)) {
-          spyOn(this.testJasmine.reporter, 'setOptions');
+        if (!jasmine.isSpy(this.testJasmine.reporter_.setOptions)) {
+          spyOn(this.testJasmine.reporter_, 'setOptions');
         }
       });
 
@@ -113,7 +113,7 @@ function sharedRunnerBehaviors(makeRunner) {
 
         this.testJasmine.configureDefaultReporter(reporterOptions);
 
-        expect(this.testJasmine.reporter.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
+        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
       });
 
       it('creates a reporter with a default option if an option is not specified', function () {
@@ -126,7 +126,7 @@ function sharedRunnerBehaviors(makeRunner) {
           showColors: true,
         };
 
-        expect(this.testJasmine.reporter.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
+        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
       });
     });
 
