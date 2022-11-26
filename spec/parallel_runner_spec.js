@@ -964,12 +964,49 @@ describe('ParallelRunner', function() {
 });
 
 async function execute(options = {}) {
-  if (options.overallStatus) {
-    pending();
+  if (this.testJasmine.specFiles.length === 0) {
+    this.testJasmine.addSpecFile('aSpec.js');
+  } else if (this.testJasmine.specFiles.length > 1) {
+    // The code below could be adapted to work with an arbitrary nonzero number
+    // of spec files, but so far there's been no need.
+    throw new Error('Need exactly one spec file');
   }
 
   const executeArgs = options.executeArgs || [];
-  return this.testJasmine.execute.apply(this.testJasmine, executeArgs);
+  const promise = this.testJasmine.execute.apply(this.testJasmine, executeArgs);
+  await this.emitAllBooted();
+  await shortPoll(
+    () => getSpecFilesRan(this.cluster.workers).length === 1,
+    'spec file to have been started'
+  );
+
+  const msg = {};
+  switch (options.overallStatus) {
+    case undefined:
+    case 'passed':
+      break;
+    case 'failed':
+      msg.failedExpectations = ['a failed expectation 1'];
+      break;
+    case 'incomplete':
+      msg.incompleteCode = 'focused';
+      msg.incompleteReason = 'fit() or fdescribe() was found';
+      break;
+    default:
+      throw new Error(`Unsupported overallStatus ${overallStatus}`);
+  }
+
+  this.emitFileDone(this.cluster.workers[0], msg);
+  await this.disconnect();
+  const result = await promise;
+
+  if (options.overallStatus) {
+    expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith(
+      jasmine.objectContaining({overallStatus: options.overallStatus})
+    );
+  }
+
+  return result;
 }
 
 function dontExit() {

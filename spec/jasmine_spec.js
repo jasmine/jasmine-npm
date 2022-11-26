@@ -1,3 +1,5 @@
+const path = require('path');
+const slash = require("slash");
 const Jasmine = require('../lib/jasmine');
 const sharedRunnerBehaviors = require('./shared_runner_behaviors');
 const {poll, shortPoll} = require('./poll');
@@ -38,6 +40,7 @@ describe('Jasmine', function() {
     };
 
     this.execute = execute;
+    this.finishExecution = async () => {};
   });
 
   sharedRunnerBehaviors(function(options) {
@@ -254,6 +257,21 @@ describe('Jasmine', function() {
         await expectAsync(this.execute({overallStatus: 'incomplete'}))
           .toBeResolvedTo(jasmine.objectContaining({overallStatus: 'incomplete'}));
       });
+    });
+
+    it('can run only specified files', async function() {
+      await this.execute({
+        executeArgs: [['spec/fixtures/sample_project/**/*spec.js']]
+      });
+
+      const relativePaths = this.testJasmine.specFiles.map(function(filePath) {
+        return slash(path.relative(__dirname, filePath));
+      });
+
+      expect(relativePaths).toEqual([
+        'fixtures/sample_project/spec/fixture_spec.js',
+        'fixtures/sample_project/spec/other_fixture_spec.js'
+      ]);
     });
 
     describe('when a globalSetup is configured', function () {

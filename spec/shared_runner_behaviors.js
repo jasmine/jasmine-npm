@@ -8,7 +8,10 @@ const Loader = require("../lib/loader");
   - this.testJasmine.exit is a spy
   - this.execute is a function that executes the env and returns a promise
     that resolves when it's done
-  - probably more
+
+    Not all shared behaviors are tested here. Many are separately tested in
+    jasmine_spec.js and parallel_runner_spec.js because the code resulting
+    from de-duplication would be excessively complex.
  */
 function sharedRunnerBehaviors(makeRunner) {
   describe('Shared runner behaviors', function () {
@@ -287,84 +290,72 @@ function sharedRunnerBehaviors(makeRunner) {
       });
     });
 
-    // describe('#execute', function() {
-    //   it('uses the default console reporter if no reporters were added', async function () {
-    //     spyOn(this.testJasmine, 'configureDefaultReporter');
-    //
-    //     await this.execute();
-    //
-    //     expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-    //       showColors: true,
-    //       alwaysListPendingSpecs: true
-    //     });
-    //   });
-    //
-    //   it('configures the default console reporter with the right color settings', async function() {
-    //     spyOn(this.testJasmine, 'configureDefaultReporter');
-    //     this.testJasmine.showColors(false);
-    //     this.testJasmine.alwaysListPendingSpecs(false);
-    //
-    //     await this.execute();
-    //
-    //     expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-    //       showColors: false,
-    //       alwaysListPendingSpecs: false
-    //     });
-    //   });
-    //
-    //   it('does not configure the default reporter if this was already done', async function() {
-    //     this.testJasmine.configureDefaultReporter({showColors: false});
-    //
-    //     spyOn(this.testJasmine, 'configureDefaultReporter');
-    //
-    //     await this.execute();
-    //
-    //     expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
-    //   });
-    //
-    //   it('can run only specified files', async function() {
-    //     await this.execute({
-    //       executeArgs: [['spec/fixtures/sample_project/**/*spec.js']]
-    //     });
-    //
-    //     const relativePaths = this.testJasmine.specFiles.map(function(filePath) {
-    //       return slash(path.relative(__dirname, filePath));
-    //     });
-    //
-    //     expect(relativePaths).toEqual(['fixtures/sample_project/spec/fixture_spec.js', 'fixtures/sample_project/spec/other_fixture_spec.js']);
-    //   });
-    //
-    //   describe('completion behavior', function() {
-    //     beforeEach(function() {
-    //       spyOn(this.testJasmine, 'exit');
-    //     });
-    //
-    //     describe('default', function() {
-    //       it('exits successfully when the whole suite is green', async function () {
-    //         await this.execute({overallStatus: 'passed'});
-    //         expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
-    //       });
-    //
-    //       it('exits with a distinct status code when anything in the suite is not green', async function () {
-    //         await this.execute({overallStatus: 'failed'});
-    //         expect(this.testJasmine.exit).toHaveBeenCalledWith(3);
-    //       });
-    //
-    //       it('exits with a distinct status code when anything in the suite is focused', async function() {
-    //         await this.execute({overallStatus: 'incomplete'});
-    //         expect(this.testJasmine.exit).toHaveBeenCalledWith(2);
-    //       });
-    //     });
-    //
-    //     describe('When exitOnCompletion is set to false', function() {
-    //       it('does not exit', async function() {
-    //         this.testJasmine.exitOnCompletion = false;
-    //         await this.execute();
-    //         expect(this.testJasmine.exit).not.toHaveBeenCalled();
-    //       });
-    //     });
-    //   });
-    // });
+    describe('#execute', function() {
+      it('uses the default console reporter if no reporters were added', async function () {
+        spyOn(this.testJasmine, 'configureDefaultReporter');
+
+        await this.execute();
+
+        expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
+          showColors: true,
+          alwaysListPendingSpecs: true
+        });
+      });
+
+      it('configures the default console reporter with the right color settings', async function() {
+        spyOn(this.testJasmine, 'configureDefaultReporter');
+        this.testJasmine.showColors(false);
+        this.testJasmine.alwaysListPendingSpecs(false);
+
+        await this.execute();
+
+        expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
+          showColors: false,
+          alwaysListPendingSpecs: false
+        });
+      });
+
+      it('does not configure the default reporter if this was already done', async function() {
+        this.testJasmine.configureDefaultReporter({showColors: false});
+
+        spyOn(this.testJasmine, 'configureDefaultReporter');
+
+        await this.execute();
+
+        expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
+      });
+
+      describe('completion behavior', function() {
+        beforeEach(function() {
+          spyOn(this.testJasmine, 'exit');
+        });
+
+        describe('default', function() {
+          it('exits successfully when the whole suite is green', async function () {
+            await this.execute({overallStatus: 'passed'});
+            expect(this.testJasmine.exit).toHaveBeenCalledWith(0);
+          });
+
+          it('exits with a distinct status code when anything in the suite is not green', async function () {
+            await this.execute({overallStatus: 'failed'});
+            expect(this.testJasmine.exit).toHaveBeenCalledWith(3);
+          });
+
+          it('exits with a distinct status code when anything in the suite is focused', async function() {
+            await this.execute({overallStatus: 'incomplete'});
+            expect(this.testJasmine.exit).toHaveBeenCalledWith(2);
+          });
+        });
+
+        describe('When exitOnCompletion is set to false', function() {
+          it('does not exit', async function() {
+            this.testJasmine.exitOnCompletion = false;
+            await this.execute();
+            expect(this.testJasmine.exit).not.toHaveBeenCalled();
+          });
+        });
+      });
+    });
   });
 }
 
