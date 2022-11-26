@@ -688,27 +688,56 @@ describe('ParallelRunner', function() {
     });
 
     describe('When a worker reports a fatal error', function () {
-      it('fails', async function () {
-        spyOn(console, 'error');
-        spyOn(this.testJasmine, 'exit');
-        this.testJasmine.numWorkers = 2;
-        this.testJasmine.loadConfig({
-          spec_dir: 'some/spec/dir'
-        });
-        this.testJasmine.addSpecFile('spec1.js');
+      describe('When exitOnCompletion is true', function() {
+        it('exits', async function () {
+          spyOn(console, 'error');
+          spyOn(this.testJasmine, 'exit');
+          expect(this.testJasmine.exitOnCompletion).toBeTrue();
+          this.testJasmine.numWorkers = 2;
+          this.testJasmine.loadConfig({
+            spec_dir: 'some/spec/dir'
+          });
+          this.testJasmine.addSpecFile('spec1.js');
 
-        const executePromise = this.testJasmine.execute();
-        await this.emitAllBooted();
-        await new Promise(resolve => setTimeout(resolve));
-        this.cluster.workers[0].emit('message', {
-          type: 'fatalError',
-          error: new Error('nope'),
-        });
+          const executePromise = this.testJasmine.execute();
+          await this.emitAllBooted();
+          await new Promise(resolve => setTimeout(resolve));
+          this.cluster.workers[0].emit('message', {
+            type: 'fatalError',
+            error: new Error('nope'),
+          });
 
-        await expectAsync(executePromise).toBeRejectedWithError(
-          /Fatal error in Jasmine worker process/
-        );
-        expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+          await expectAsync(executePromise).toBeRejectedWithError(
+            /Fatal error in Jasmine worker process/
+          );
+          expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+        });
+      });
+
+      describe('When exitOnCompletion is false', function() {
+        it('fails without exiting', async function () {
+          spyOn(console, 'error');
+          spyOn(this.testJasmine, 'exit');
+          this.testJasmine.exitOnCompletion = false;
+          this.testJasmine.numWorkers = 2;
+          this.testJasmine.loadConfig({
+            spec_dir: 'some/spec/dir'
+          });
+          this.testJasmine.addSpecFile('spec1.js');
+
+          const executePromise = this.testJasmine.execute();
+          await this.emitAllBooted();
+          await new Promise(resolve => setTimeout(resolve));
+          this.cluster.workers[0].emit('message', {
+            type: 'fatalError',
+            error: new Error('nope'),
+          });
+
+          await expectAsync(executePromise).toBeRejectedWithError(
+            /Fatal error in Jasmine worker process/
+          );
+          expect(this.testJasmine.exit).not.toHaveBeenCalled();
+        });
       });
 
       it('does not send additional runSpecFile messages after a fatal error', async function () {
