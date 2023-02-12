@@ -164,9 +164,27 @@ describe('Integration', function () {
     });
   });
 
-  it('exits with status 4 when exit() is called before the suite finishes', async function() {
-    const {exitCode} = await runCommand('node', ['spec/fixtures/prematureExit.js']);
-    expect(exitCode).toEqual(4);
+  describe('When exit() is called before the suite finishes', function() {
+    describe('in normal mode', function () {
+      it('exits with status 4', async function () {
+        const {exitCode} = await runJasmine(
+          'spec/fixtures/premature_exit',
+          'jasmine.json'
+        );
+        expect(exitCode).toEqual(4);
+      });
+    });
+
+    describe('in parallel mode', function () {
+      it('exits with status 4', async function () {
+        const {exitCode} = await runJasmine(
+          'spec/fixtures/premature_exit',
+          'jasmine.json',
+          ['--num-workers=2']
+        );
+        expect(exitCode).toEqual(4);
+      });
+    });
   });
 
   it('does not create globals when the globals option is false', async function() {
@@ -396,7 +414,7 @@ describe('Integration', function () {
       expect(exitCode).toEqual(0);
     });
 
-    it('passes the jsLoader config setting to workers', async function() {
+    it('passes, the jsLoader config setting to workers', async function() {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_jsLoader',
         'jasmine.json',

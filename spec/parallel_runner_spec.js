@@ -787,7 +787,7 @@ describe('ParallelRunner', function() {
         await expectAsync(executePromise).toBeRejectedWithError(
           /Fatal error in Jasmine worker process/
         );
-        expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+        expect(this.testJasmine.exit).toHaveBeenCalledWith(4);
       });
 
       it('does not fail when the worker exits after the suite is finished', async function () {
