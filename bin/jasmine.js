@@ -8,9 +8,7 @@ const Jasmine = require('../lib/jasmine');
 let projectBaseDir = path.resolve();
 
 if (os.platform() === 'win32') {
-  // Future versions of glob will interpret backslashes as escape sequences on
-  // all platforms, and Jasmine warns about them. Convert to slashes to avoid
-  // the warning and future behavior change.
+  // glob interprets backslashes as escape sequences, not directory separators.
   projectBaseDir = projectBaseDir.replace(/\\/g, '/');
 }
 
