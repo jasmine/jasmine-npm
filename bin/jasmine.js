@@ -10,6 +10,7 @@ let projectBaseDir = path.resolve();
 if (os.platform() === 'win32') {
   // glob interprets backslashes as escape sequences, not directory separators.
   projectBaseDir = projectBaseDir.replace(/\\/g, '/');
+  console.log('on win, basedir is now', projectBaseDir);
 }
 
 const jasmine = new Jasmine({ projectBaseDir });
