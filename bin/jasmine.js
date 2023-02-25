@@ -5,15 +5,7 @@ const os = require('os');
 const Command = require('../lib/command');
 const Jasmine = require('../lib/jasmine');
 
-let projectBaseDir = path.resolve();
-
-if (os.platform() === 'win32') {
-  // glob interprets backslashes as escape sequences, not directory separators.
-  projectBaseDir = projectBaseDir.replace(/\\/g, '/');
-  console.log('on win, basedir is now', projectBaseDir);
-}
-
-const jasmine = new Jasmine({ projectBaseDir });
+const jasmine = new Jasmine({ projectBaseDir: path.resolve() });
 const examplesDir = path.join(path.dirname(require.resolve('jasmine-core')), 'jasmine-core', 'example', 'node_example');
 const command = new Command(path.resolve(), examplesDir, {
   print: console.log,

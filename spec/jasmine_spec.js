@@ -56,7 +56,9 @@ describe('Jasmine', function() {
 
   describe('constructor options', function() {
     it('have defaults', function() {
-      expect(this.testJasmine.projectBaseDir).toEqual(path.resolve());
+      expect(this.testJasmine.projectBaseDir).toEqual(
+        path.resolve().replace(/\\/g, '/')
+      );
     });
   });
 
@@ -119,7 +121,12 @@ describe('Jasmine', function() {
       });
 
       it('adds new files to existing files', function() {
-        const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+        // Don't use path.join because glob needs forward slashes even on Windows
+        const aFile = [
+          this.testJasmine.projectBaseDir,
+          this.testJasmine.specDir,
+          'spec/command_spec.js',
+        ].join('/');
         this.testJasmine[destProp] = [aFile, 'b'];
         this.testJasmine[method](['spec/fixtures/jasmine_spec/*.js']);
         expect(this.testJasmine[destProp].map(basename)).toEqual([
@@ -629,6 +636,21 @@ describe('Jasmine', function() {
         await expectAsync(this.execute({overallStatus: 'incomplete'}))
           .toBeResolvedTo(jasmine.objectContaining({overallStatus: 'incomplete'}));
       });
+    });
+  });
+  
+  describe('When running on Windows', function() {
+    function windows() {
+      return 'win32';
+    }
+    
+    it('converts backslashes in the project base dir to slashes, for compatibility with glob', function() {
+      const subject = new Jasmine({
+        projectBaseDir: 'c:\\foo\\bar',
+        platform: windows,
+        jasmineCore: this.fakeJasmineCore,
+      });
+      expect(subject.projectBaseDir).toEqual('c:/foo/bar');
     });
   });
 });
