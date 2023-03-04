@@ -356,7 +356,7 @@ describe('ParallelRunner', function() {
     it('handles worker crashes');
     it('handles worker exec failures');
 
-    it('dispatches an empty jasmineStarted event at the start of execution', async function () {
+    it('dispatches a jasmineStarted event at the start of execution', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
@@ -366,7 +366,9 @@ describe('ParallelRunner', function() {
       await this.emitAllBooted();
       await new Promise(resolve => setTimeout(resolve));
 
-      expect(this.consoleReporter.jasmineStarted).toHaveBeenCalledWith({});
+      expect(this.consoleReporter.jasmineStarted).toHaveBeenCalledWith({
+        parallel: true
+      });
     });
 
     describe('When all workers are idle', function () {
