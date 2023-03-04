@@ -160,8 +160,6 @@ describe('ParallelRunner', function() {
     });
   });
 
-  it('can tell jasmine-core to stop spec on no expectations');
-
   it('can use a caller-specified jasmine-core', async function() {
     const jasmineCorePath = 'my-custom-jasmine-core.js';
     const bootedCore = jasmine.createSpyObj('bootedCore', [
