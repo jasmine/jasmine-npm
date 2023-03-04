@@ -400,6 +400,33 @@ describe('command', function() {
       expect(this.parallelRunner.execute).toHaveBeenCalled();
     });
 
+    it('shows usage if --num-workers is not a number', async function() {
+      this.command.run(['node', 'bin/jasmine.js', '--num-workers=twelve']);
+      expect(this.out.getOutput()).toContain(
+        'Argument to --num-workers= must be a positive integer'
+      );
+      expect(this.out.getOutput()).toContain('Usage');
+      expect(process.exitCode).toBe(1);
+    });
+
+    it('shows usage if --num-workers is not an integer', async function() {
+      this.command.run(['node', 'bin/jasmine.js', '--num-workers=1.23']);
+      expect(this.out.getOutput()).toContain(
+        'Argument to --num-workers= must be a positive integer'
+      );
+      expect(this.out.getOutput()).toContain('Usage');
+      expect(process.exitCode).toBe(1);
+    });
+
+    it('shows usage if --num-workers is not positive', async function() {
+      this.command.run(['node', 'bin/jasmine.js', '--num-workers=0']);
+      expect(this.out.getOutput()).toContain(
+        'Argument to --num-workers= must be a positive integer'
+      );
+      expect(this.out.getOutput()).toContain('Usage');
+      expect(process.exitCode).toBe(1);
+    });
+
     describe('In normal mode', function () {
       beforeEach(function() {
         this.runner = this.fakeJasmine;

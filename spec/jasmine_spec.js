@@ -104,7 +104,6 @@ describe('Jasmine', function() {
         };
       });
 
-      // TODO move these to shared
       it('can tell jasmine-core to stop spec on no expectations', function () {
         this.fixtureJasmine.loadConfig({failSpecWithNoExpectations: true});
 
