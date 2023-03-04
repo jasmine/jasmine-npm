@@ -16,7 +16,9 @@ const Loader = require("../lib/loader");
 function sharedRunnerBehaviors(makeRunner) {
   describe('Shared runner behaviors', function () {
     it('sets projectBaseDir to the cwd by default', function () {
-      expect(this.testJasmine.projectBaseDir).toEqual(path.resolve());
+      expect(this.testJasmine.projectBaseDir).toEqual(
+        path.resolve().replace(/\\/g, '/')
+      );
     });
 
     describe('#addSpecFile', function () {
@@ -46,7 +48,8 @@ function sharedRunnerBehaviors(makeRunner) {
 
       function hasCommonFileGlobBehavior(method, destProp) {
         it('adds a file with an absolute path', function () {
-          const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+          const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js')
+            .replace(/\\/g, '/');
           expect(this.testJasmine[destProp]).toEqual([]);
           this.testJasmine[method]([aFile]);
           expect(this.testJasmine[destProp]).toEqual([slash(aFile)]);
@@ -77,7 +80,13 @@ function sharedRunnerBehaviors(makeRunner) {
         });
 
         it('adds new files to existing files', function () {
-          const aFile = path.join(this.testJasmine.projectBaseDir, this.testJasmine.specDir, 'spec/command_spec.js');
+          // Don't use path.join because glob needs forward slashes
+          // even on Windows
+          const aFile = [
+            this.testJasmine.projectBaseDir,
+            this.testJasmine.specDir,
+            'spec/command_spec.js',
+          ].join('/');
           this.testJasmine[destProp] = [aFile, 'b'];
           this.testJasmine[method](['spec/fixtures/jasmine_spec/*.js']);
           expect(this.testJasmine[destProp].map(basename)).toEqual([

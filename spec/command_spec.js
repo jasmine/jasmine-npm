@@ -79,7 +79,8 @@ describe('command', function() {
     this.command = new Command(projectBaseDir, examplesDir, {
       print: this.out.print,
       Jasmine: this.Jasmine,
-      ParallelRunner: this.ParallelRunner
+      ParallelRunner: this.ParallelRunner,
+      platform: () => 'Oberon'
     });
   });
 
@@ -207,7 +208,7 @@ describe('command', function() {
         delete process.env.JASMINE_CONFIG_PATH;
       }
     });
-    
+
     function sharedRunBehavior(extraArg) {
       beforeEach(function() {
         this.run = async function(args) {
@@ -403,7 +404,7 @@ describe('command', function() {
       beforeEach(function() {
         this.runner = this.fakeJasmine;
       });
-      
+
       sharedRunBehavior();
 
       it('uses jasmine-core defaults if random is unspecified', async function () {
@@ -460,6 +461,54 @@ describe('command', function() {
       it('does not allow the random seed to be set');
 
       it('does not allow randomization to be disabled');
+    });
+  });
+
+  describe('Path handling', function() {
+    describe('On Windows', function () {
+      beforeEach(function() {
+        this.deps = {
+          print: this.out.print,
+          platform: () => 'win32',
+          Jasmine: this.Jasmine,
+          ParallelRunner: this.ParallelRunner,
+        };
+      });
+
+      it('replaces backslashes in the project base dir with slashes', function() {
+        const subject = new Command('foo\\bar', '', this.deps);
+        expect(subject.projectBaseDir).toEqual('foo/bar');
+        expect(subject.specDir).toEqual('foo/bar/spec');
+      });
+
+      it('replaces backslashes in spec file paths from the command line', async function() {
+        const subject = new Command('arbitrary', '', this.deps);
+        await subject.run(['somedir\\somespec.js']);
+        expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['somedir/somespec.js'], undefined);
+      });
+    });
+
+    describe('On non-Windows systems', function () {
+      beforeEach(function() {
+        this.deps = {
+          print: this.out.print,
+          platform: () => 'BeOS',
+          Jasmine: this.Jasmine,
+          ParallelRunner: this.ParallelRunner,
+        };
+      });
+
+      it('does not replace backslashes in the project base dir', function() {
+        const subject = new Command('foo\\bar', '', this.deps);
+        expect(subject.projectBaseDir).toEqual('foo\\bar');
+        expect(subject.specDir).toEqual('foo\\bar/spec');
+      });
+
+      it('does not replace backslashes in spec file paths from the command line', async function() {
+        const subject = new Command('arbitrary', '', this.deps);
+        await subject.run(['somedir\\somespec.js']);
+        expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['somedir\\somespec.js'], undefined);
+      });
     });
   });
 });

@@ -990,6 +990,21 @@ describe('ParallelRunner', function() {
     expect(() => this.testJasmine.seed(1234))
       .toThrowError('Random seed cannot be set in parallel mode');
   });
+
+  describe('When running on Windows', function () {
+    function windows() {
+      return 'win32';
+    }
+
+    it('converts backslashes in the project base dir to slashes, for compatibility with glob', function () {
+      const subject = new ParallelRunner({
+        projectBaseDir: 'c:\\foo\\bar',
+        platform: windows,
+        cluster: this.cluster,
+      });
+      expect(subject.projectBaseDir).toEqual('c:/foo/bar');
+    });
+  });
 });
 
 async function execute(options = {}) {
