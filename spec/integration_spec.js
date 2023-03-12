@@ -486,6 +486,18 @@ describe('Integration', function () {
           expect(exitCode).toEqual(1);
           expect(output).toContain('oops');
         });
+
+        it('fails if there is an unhandled exception during globalTeardown', async function() {
+          const {exitCode, output} = await runJasmine(
+            'spec/fixtures/global_teardown_unhandled',
+            'jasmine.js',
+            extraArgs
+          );
+
+          expect(exitCode).toEqual(1);
+          expect(output).toContain('Unhandled exception during globalTeardown');
+          expect(output).toContain('oops');
+        });
       });
     }
   });
