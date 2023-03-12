@@ -3,17 +3,18 @@
 version: 2.1
 
 orbs:
-  win: circleci/windows@4.1.1
+  win: circleci/windows@5.0.0
   node: circleci/node@5.0.2
 
 executors:
   node18:
     docker:
-      - image: cimg/node:18.0.0 # Latest 18.x
+      - image: cimg/node:18.0.0
     working_directory: ~/workspace
   node16:
     docker:
-      - image: cimg/node:16.14.2 # Latest 16.x
+      # Oldest version with reliable support for error cause property
+      - image: cimg/node:16.14.0
     working_directory: ~/workspace
 
 jobs:
@@ -44,7 +45,7 @@ jobs:
           # 16.3.2 is possibly the newest Node 16.x version that's compatible
           # with nvm for windows:
           # See <https://stackoverflow.com/questions/70958371/unexpected-token-when-trying-to-run-npm-install>.
-          command: nvm install 16.13.2 && nvm use 16.13.2
+          command: nvm install 16.14.0 && nvm use 16.14.0
       - run:
           name: Report Node and NPM versions
           command: echo "Using Node $(node --version) and NPM $(npm --version)"
