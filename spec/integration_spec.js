@@ -180,7 +180,7 @@ describe('Integration', function () {
         const {exitCode} = await runJasmine(
           'spec/fixtures/premature_exit',
           'jasmine.json',
-          ['--num-workers=2']
+          ['--parallel=2']
         );
         expect(exitCode).toEqual(4);
       });
@@ -208,7 +208,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_pass',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(0);
@@ -219,7 +219,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_suite_incomplete',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(2);
@@ -247,7 +247,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_spec_fail',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(3);
@@ -280,7 +280,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_suite_fail',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(3);
@@ -305,7 +305,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_no_specs',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(2);
@@ -327,7 +327,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_helpers',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(0);
@@ -338,7 +338,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_spec_load_exception',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(1);
@@ -350,7 +350,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_helper_load_exception',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(1);
@@ -370,7 +370,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_invalid_beforeEach',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(1);
@@ -382,7 +382,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_invalid_afterEach',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(1);
@@ -394,7 +394,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_before_after',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(0);
@@ -408,7 +408,7 @@ describe('Integration', function () {
       const {exitCode} = await runJasmine(
         'spec/fixtures/parallel_requires',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(0);
@@ -418,7 +418,7 @@ describe('Integration', function () {
       const {exitCode, output} = await runJasmine(
         'spec/fixtures/parallel_jsLoader',
         'jasmine.json',
-        ['--num-workers=2']
+        ['--parallel=2']
       );
 
       expect(exitCode).toEqual(0);
@@ -429,7 +429,7 @@ describe('Integration', function () {
       const {output} = await runJasmine(
         'spec/fixtures/parallel_filter',
         'jasmine.json',
-        ['--num-workers=2', '--filter=foo']
+        ['--parallel=2', '--filter=foo']
       );
 
       expect(output).toContain('suite 1 foo');
@@ -440,7 +440,7 @@ describe('Integration', function () {
   });
 
   describe('Global setup and teardown', function() {
-    const scenarios = [['parallel', ['--num-workers=2']], ['non-parallel', []]];
+    const scenarios = [['parallel', ['--parallel=2']], ['non-parallel', []]];
     for (const [description, extraArgs] of scenarios) {
       describe(description, function() {
         it('runs globalSetup', async function() {
