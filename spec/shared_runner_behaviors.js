@@ -52,7 +52,9 @@ function sharedRunnerBehaviors(makeRunner) {
           expect(this.testJasmine[destProp]).toEqual([]);
           this.testJasmine[method]([aFile]);
           const expectedPath = aFile.replace(/\\/g, '/');
-          expect(this.testJasmine[destProp]).toEqual([expectedPath]);
+          expect(this.testJasmine[destProp]).toEqual([
+            pathEndingWith(expectedPath)
+          ]);
         });
 
         it('adds files that match a glob pattern', function () {
@@ -164,10 +166,12 @@ function sharedRunnerBehaviors(makeRunner) {
             helpers: ["helper.js"]
           });
           expect(this.fixtureJasmine.specFiles).toEqual([
-            'spec/fixtures/sample_project/spec/fixture_spec.js',
-            'spec/fixtures/sample_project/spec/other_fixture_spec.js'
+            pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js'),
+            pathEndingWith('spec/fixtures/sample_project/spec/other_fixture_spec.js')
           ]);
-          expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+          expect(this.fixtureJasmine.helperFiles).toEqual([
+            pathEndingWith('spec/fixtures/sample_project/spec/helper.js'
+          )]);
         });
 
         it('sets the spec dir to the provided value', function() {
@@ -221,42 +225,50 @@ function sharedRunnerBehaviors(makeRunner) {
       describe('from a file', function () {
         it('adds unique spec files', async function() {
           await this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.json');
-          expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+          expect(this.fixtureJasmine.helperFiles).toEqual([
+            pathEndingWith('spec/fixtures/sample_project/spec/helper.js')
+          ]);
           expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
           expect(this.fixtureJasmine.specFiles).toEqual([
-            'spec/fixtures/sample_project/spec/fixture_spec.js',
-            'spec/fixtures/sample_project/spec/other_fixture_spec.js'
+            pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js'),
+            pathEndingWith('spec/fixtures/sample_project/spec/other_fixture_spec.js')
           ]);
         });
 
         it('can use an ES module', async function() {
           await this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.mjs');
-          expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+          expect(this.fixtureJasmine.helperFiles).toEqual([
+            pathEndingWith('spec/fixtures/sample_project/spec/helper.js')
+          ]);
           expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
           expect(this.fixtureJasmine.specFiles).toEqual([
-            'spec/fixtures/sample_project/spec/fixture_spec.js',
-            'spec/fixtures/sample_project/spec/other_fixture_spec.js'
+            pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js'),
+            pathEndingWith('spec/fixtures/sample_project/spec/other_fixture_spec.js')
           ]);
         });
 
         it('can use a CommonJS module', async function() {
           await this.fixtureJasmine.loadConfigFile('spec/support/jasmine_alternate.cjs');
-          expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+          expect(this.fixtureJasmine.helperFiles).toEqual([
+            pathEndingWith('spec/fixtures/sample_project/spec/helper.js')
+          ]);
           expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
           expect(this.fixtureJasmine.specFiles).toEqual([
-            'spec/fixtures/sample_project/spec/fixture_spec.js',
-            'spec/fixtures/sample_project/spec/other_fixture_spec.js'
+            pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js'),
+            pathEndingWith('spec/fixtures/sample_project/spec/other_fixture_spec.js')
           ]);
         });
 
         it('loads the specified configuration file from an absolute path', async function() {
           const absoluteConfigPath = path.join(__dirname, 'fixtures/sample_project/spec/support/jasmine_alternate.json');
           await this.fixtureJasmine.loadConfigFile(absoluteConfigPath);
-          expect(this.fixtureJasmine.helperFiles).toEqual(['spec/fixtures/sample_project/spec/helper.js']);
+          expect(this.fixtureJasmine.helperFiles).toEqual([
+            pathEndingWith('spec/fixtures/sample_project/spec/helper.js')
+          ]);
           expect(this.fixtureJasmine.requires).toEqual(['ts-node/register']);
           expect(this.fixtureJasmine.specFiles).toEqual([
-            'spec/fixtures/sample_project/spec/fixture_spec.js',
-            'spec/fixtures/sample_project/spec/other_fixture_spec.js'
+            pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js'),
+            pathEndingWith('spec/fixtures/sample_project/spec/other_fixture_spec.js')
           ]);
         });
 
@@ -272,7 +284,7 @@ function sharedRunnerBehaviors(makeRunner) {
         it('loads the default .json configuration file', async function() {
           await this.fixtureJasmine.loadConfigFile();
           expect(this.fixtureJasmine.specFiles).toEqual([
-            jasmine.stringMatching('^spec[\\/]fixtures[\\/]sample_project[\\/]spec[\\/]fixture_spec.js$')
+            pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js')
           ]);
         });
 
@@ -293,7 +305,7 @@ function sharedRunnerBehaviors(makeRunner) {
             'jasmine\.js$'
           ));
           expect(this.fixtureJasmine.specFiles).toEqual([
-            'spec/fixtures/sample_project/spec/fixture_spec.js'
+            pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js')
           ]);
         });
       });
@@ -368,4 +380,10 @@ function sharedRunnerBehaviors(makeRunner) {
   });
 }
 
-module.exports = sharedRunnerBehaviors;
+function pathEndingWith(suffix) {
+  // Match glob output from either Windows or other OSes.
+  const pattern = '(^|[\\/\\\\])' + suffix.replace(/\//g, '[\\/\\\\]') + '$';
+  return jasmine.stringMatching(new RegExp(pattern));
+}
+
+module.exports = {sharedRunnerBehaviors, pathEndingWith};

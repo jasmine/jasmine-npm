@@ -1,6 +1,6 @@
 const path = require('path');
 const Jasmine = require('../lib/jasmine');
-const sharedRunnerBehaviors = require('./shared_runner_behaviors');
+const {sharedRunnerBehaviors} = require('./shared_runner_behaviors');
 const {poll, shortPoll} = require('./poll');
 
 describe('Jasmine', function() {
