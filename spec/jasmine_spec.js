@@ -1,5 +1,4 @@
 const path = require('path');
-const slash = require("slash");
 const Jasmine = require('../lib/jasmine');
 const sharedRunnerBehaviors = require('./shared_runner_behaviors');
 const {poll, shortPoll} = require('./poll');
@@ -265,7 +264,7 @@ describe('Jasmine', function() {
       });
 
       const relativePaths = this.testJasmine.specFiles.map(function (filePath) {
-        return slash(path.relative(__dirname, filePath));
+        return path.relative(__dirname, filePath).replace(/\\/g, '/');
       });
 
       expect(relativePaths).toEqual([

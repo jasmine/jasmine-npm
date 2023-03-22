@@ -1,5 +1,4 @@
 const path = require('path');
-const slash = require("slash");
 const Loader = require("../lib/loader");
 
 /*
@@ -52,7 +51,8 @@ function sharedRunnerBehaviors(makeRunner) {
             .replace(/\\/g, '/');
           expect(this.testJasmine[destProp]).toEqual([]);
           this.testJasmine[method]([aFile]);
-          expect(this.testJasmine[destProp]).toEqual([slash(aFile)]);
+          const expectedPath = aFile.replace(/\\/g, '/');
+          expect(this.testJasmine[destProp]).toEqual([expectedPath]);
         });
 
         it('adds files that match a glob pattern', function () {

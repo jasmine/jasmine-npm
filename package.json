@@ -37,9 +37,8 @@
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
   "devDependencies": {
-    "eslint": "^6.8.0",
+    "eslint": "^8.36.0",
     "shelljs": "^0.8.3",
-    "slash": "^3.0.0",
     "temp": "^0.9.4"
   },
   "eslintConfig": {
