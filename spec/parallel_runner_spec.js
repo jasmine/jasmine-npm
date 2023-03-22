@@ -1,6 +1,6 @@
 const path = require('path');
 const EventEmitter = require('node:events');
-const sharedRunnerBehaviors = require('./shared_runner_behaviors');
+const {sharedRunnerBehaviors, pathEndingWith} = require('./shared_runner_behaviors');
 const ParallelRunner = require("../lib/parallel_runner");
 const {ConsoleReporter} = require("../lib/jasmine");
 const {poll, shortPoll} = require('./poll');
@@ -249,7 +249,7 @@ describe('ParallelRunner', function() {
         jsLoader: 'require',
         spec_dir: 'spec/fixtures/parallel_helpers',
         helpers: [
-          jasmine.stringMatching(/spec\/fixtures\/parallel_helpers\/helper1\.js$/)
+          pathEndingWith('spec/fixtures/parallel_helpers/helper1.js')
         ],
         requires: ['require1', 'require2'],
         env: envConfig,
