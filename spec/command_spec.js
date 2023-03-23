@@ -160,8 +160,12 @@ describe('command', function() {
     });
 
     it('displays unknown options and usage', function() {
-      this.command.run(['node', 'bin/jasmine.js', '--some-option', '--no-color', '--another-option']);
-      expect(this.out.getOutput()).toContain('Unknown options: --some-option, --another-option');
+      this.command.run(['node', 'bin/jasmine.js',
+        '--some-option', '--no-color', '--another-option', '--another=option'
+      ]);
+      expect(this.out.getOutput()).toContain(
+        'Unknown options: --some-option, --another-option, --another=option'
+      );
       expect(this.out.getOutput()).toContain('Usage');
       expect(process.exitCode).toBe(1);
     });
