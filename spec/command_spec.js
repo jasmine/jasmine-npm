@@ -378,19 +378,13 @@ describe('command', function() {
       });
     }
 
-    it('runs in normal mode if --num-workers is not specified', async function() {
+    it('runs in normal mode if --parallel is not specified', async function() {
       await this.command.run(['node', 'bin/jasmine.js']);
       expect(this.fakeJasmine.execute).toHaveBeenCalled();
       expect(this.ParallelRunner).not.toHaveBeenCalled();
     });
 
-    it('runs in normal mode if --num-workers is 1', async function() {
-      await this.command.run(['node', 'bin/jasmine.js', '--parallel=1']);
-      expect(this.fakeJasmine.execute).toHaveBeenCalled();
-      expect(this.ParallelRunner).not.toHaveBeenCalled();
-    });
-
-    it('runs in parallel mode if --num-workers is >1', async function() {
+    it('runs in parallel mode if --parallel is >1', async function() {
       await this.command.run(['node', 'bin/jasmine.js', '--parallel=2']);
       expect(this.fakeJasmine.execute).not.toHaveBeenCalled();
       expect(this.ParallelRunner).toHaveBeenCalledWith({
@@ -400,28 +394,37 @@ describe('command', function() {
       expect(this.parallelRunner.execute).toHaveBeenCalled();
     });
 
-    it('shows usage if --num-workers is not a number', async function() {
+    it('shows usage if --parallel is not a number', async function() {
       this.command.run(['node', 'bin/jasmine.js', '--parallel=twelve']);
       expect(this.out.getOutput()).toContain(
-        'Argument to --parallel= must be a positive integer'
+        'Argument to --parallel= must be an integer greater than 1'
       );
       expect(this.out.getOutput()).toContain('Usage');
       expect(process.exitCode).toBe(1);
     });
 
-    it('shows usage if --num-workers is not an integer', async function() {
+    it('shows usage if --parallel is not an integer', async function() {
       this.command.run(['node', 'bin/jasmine.js', '--parallel=1.23']);
       expect(this.out.getOutput()).toContain(
-        'Argument to --parallel= must be a positive integer'
+        'Argument to --parallel= must be an integer greater than 1'
       );
       expect(this.out.getOutput()).toContain('Usage');
       expect(process.exitCode).toBe(1);
     });
 
-    it('shows usage if --num-workers is not positive', async function() {
+    it('shows usage if --parallel is 1', async function() {
+      await this.command.run(['node', 'bin/jasmine.js', '--parallel=1']);
+      expect(this.out.getOutput()).toContain(
+        'Argument to --parallel= must be an integer greater than 1'
+      );
+      expect(this.out.getOutput()).toContain('Usage');
+      expect(process.exitCode).toBe(1);
+    });
+
+    it('shows usage if --parallel is not positive', async function() {
       this.command.run(['node', 'bin/jasmine.js', '--parallel=0']);
       expect(this.out.getOutput()).toContain(
-        'Argument to --parallel= must be a positive integer'
+        'Argument to --parallel= must be an integer greater than 1'
       );
       expect(this.out.getOutput()).toContain('Usage');
       expect(process.exitCode).toBe(1);
