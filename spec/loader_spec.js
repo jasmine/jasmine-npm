@@ -20,7 +20,7 @@ describe('loader', function() {
         esModuleSharedExamples('js', true);
       });
 
-      describe('When the extnesion is not supported by import()', function() {
+      describe('When the extension is not supported by import()', function() {
         it('falls back to require()', async function() {
           const error = new TypeError();
           error.code = 'ERR_UNKNOWN_FILE_EXTENSION';
@@ -155,9 +155,15 @@ function esModuleSharedExamples(extension, alwaysImport) {
     const underlyingError = new SyntaxError('some details but no filename, not even in the stack trace');
     const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
-    await expectAsync(loader.load(`foo.${extension}`, alwaysImport)).toBeRejectedWithError(
-      `While loading foo.${extension}: SyntaxError: some details but no filename, not even in the stack trace`
-    );
+    try {
+      await loader.load(`foo.${extension}`, alwaysImport);
+      fail('Expected loader to throw but it did not');
+    } catch (thrown) {
+      expect(thrown.message).toEqual(
+        `While loading foo.${extension}: SyntaxError: some details but no filename, not even in the stack trace`
+      );
+      expect(thrown.cause).toBe(underlyingError);
+    }
   });
 
   it('does not modify errors that are not SyntaxError instances', async function() {
