@@ -4,6 +4,7 @@ const {sharedRunnerBehaviors, pathEndingWith} = require('./shared_runner_behavio
 const ParallelRunner = require("../lib/parallel_runner");
 const {ConsoleReporter} = require("../lib/jasmine");
 const {poll, shortPoll} = require('./poll');
+const realBootedJasmineCore = require('jasmine-core').boot();
 
 describe('ParallelRunner', function() {
   const forwardedReporterEvents = ['suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
@@ -41,9 +42,19 @@ describe('ParallelRunner', function() {
     this.globalSetupOrTeardownRunner = jasmine.createSpyObj(
       'globalSetupOrTeardownRunner', ['run']
     );
+    // Use the real ParallelReportDispatcher but prevent it from overriding
+    // global error handling so that we don't accidentally ignore errors in
+    // the specs
+    function ParallelReportDispatcher(onError) {
+      return new realBootedJasmineCore.ParallelReportDispatcher(
+        onError,
+        {globalErrors: new StubGlobalErrors()}
+      );
+    }
     this.testJasmine = new ParallelRunner({
       cluster: this.cluster,
       ConsoleReporter: this.ConsoleReporter,
+      ParallelReportDispatcher,
       globalSetupOrTeardownRunner: this.globalSetupOrTeardownRunner
     });
     this.testJasmine.exit = dontExit;
@@ -163,10 +174,10 @@ describe('ParallelRunner', function() {
   it('can use a caller-specified jasmine-core', async function() {
     const jasmineCorePath = 'my-custom-jasmine-core.js';
     const bootedCore = jasmine.createSpyObj('bootedCore', [
-      'ReportDispatcher',
+      'ParallelReportDispatcher',
       'Timer',
     ]);
-    bootedCore.ReportDispatcher.and.returnValue({
+    bootedCore.ParallelReportDispatcher.and.returnValue({
       addReporter() {}
     });
     bootedCore.Timer.and.returnValue({
@@ -185,7 +196,7 @@ describe('ParallelRunner', function() {
     });
     this.testJasmine.exit = dontExit;
 
-    expect(bootedCore.ReportDispatcher).toHaveBeenCalled();
+    expect(bootedCore.ParallelReportDispatcher).toHaveBeenCalled();
     expect(bootedCore.Timer).toHaveBeenCalled();
 
     this.testJasmine.execute();
@@ -206,7 +217,8 @@ describe('ParallelRunner', function() {
       this.testJasmine = new ParallelRunner({
         cluster: this.cluster,
         numWorkers: 17,
-        ConsoleReporter: this.ConsoleReporter
+        ConsoleReporter: this.ConsoleReporter,
+        ParallelReportDispatcher: StubParallelReportDispatcher
       });
       this.testJasmine.exit = dontExit;
       this.testJasmine.execute();
@@ -639,6 +651,40 @@ describe('ParallelRunner', function() {
       }
     });
 
+    it('handles errors from reporters', async function() {
+      const reportDispatcher = new StubParallelReportDispatcher();
+      spyOn(reportDispatcher, 'installGlobalErrors');
+      spyOn(reportDispatcher, 'uninstallGlobalErrors');
+      let reportDispatcherOnError;
+      this.testJasmine = new ParallelRunner({
+        cluster: this.cluster,
+        ParallelReportDispatcher: function(onError) {
+          reportDispatcherOnError = onError;
+          return reportDispatcher;
+        }
+      });
+      spyOn(this.testJasmine, 'exit');
+
+      spyOn(this.testJasmine, 'runSpecFiles_').and.callFake(function() {
+        expect(reportDispatcher.installGlobalErrors).toHaveBeenCalled();
+        expect(reportDispatcher.uninstallGlobalErrors).not.toHaveBeenCalled();
+        reportDispatcherOnError(new Error('nope'));
+        return Promise.resolve();
+      });
+
+      spyOn(console, 'error');
+      const executePromise = this.testJasmine.execute();
+      await this.emitAllBooted();
+      await expectAsync(executePromise).toBeRejectedWithError(
+        'Unhandled exceptions, unhandled promise rejections, or reporter ' +
+        'errors were encountered during execution'
+      );
+
+      expect(console.error).toHaveBeenCalledWith(new Error('nope'));
+      expect(this.testJasmine.exit).toHaveBeenCalledWith(1);
+      expect(reportDispatcher.uninstallGlobalErrors).toHaveBeenCalled();
+    });
+
     describe('When stopSpecOnExpectationFailure is true', function () {
       beforeEach(async function () {
         this.testJasmine.loadConfig({
@@ -1062,4 +1108,25 @@ function getSpecFilesRan(workers) {
     .map(args => args[0])
     .filter(msg => msg.type === 'runSpecFile')
     .map(msg => msg.filePath);
+}
+
+class StubParallelReportDispatcher {
+  installGlobalErrors() {}
+  uninstallGlobalErrors() {}
+  addReporter() {}
+  clearReporters() {}
+  jasmineStarted() {}
+  jasmineDone() {}
+  suiteStarted() {}
+  suiteDone() {}
+  specStarted() {}
+  specDone() {}
+}
+
+class StubGlobalErrors {
+  install() {
+    this.uninstall = function() {};
+  }
+  pushListener() {}
+  popListener() {}
 }
