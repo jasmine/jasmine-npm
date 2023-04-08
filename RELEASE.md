@@ -9,7 +9,7 @@ When ready to release - specs are all green and the stories are done:
 3. In `package.json`, update both the package version and the `jasmine-core`
    dependency version. This package should depend on the same major and minor
    version of `jasmine-core`. For instance, 4.1.1 should depend on
-   `"jasmine-core": "^4.1.0"`.
+   `"jasmine-core": "~4.1.0"`.
 4. Commit and push.
 5. Wait for Circle CI to go green again.
 
