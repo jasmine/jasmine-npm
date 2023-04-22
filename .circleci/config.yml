@@ -7,17 +7,21 @@ orbs:
   node: circleci/node@5.0.2
 
 executors:
+  node20:
+    docker:
+      - image: cimg/node:20.0.0
+    working_directory: ~/workspace
   node18:
     docker:
-      - image: cimg/node:18.0.0 # Latest 18.x
+      - image: cimg/node:18.0.0
     working_directory: ~/workspace
   node16:
     docker:
-      - image: cimg/node:16.14.2 # Latest 16.x
+      - image: cimg/node:16.14.2
     working_directory: ~/workspace
   node14_latest:
     docker:
-      - image: cimg/node:14.17.4 # Latest 14.x
+      - image: cimg/node:14.21.3
     working_directory: ~/workspace
   # 14.8 is the first version with top level await in ES modules.
   node14_8:
@@ -31,7 +35,7 @@ executors:
     working_directory: ~/workspace
   node12_latest:
     docker:
-    - image: cimg/node:12.22.10 # Latest 12.x
+    - image: cimg/node:12.22.12
     working_directory: ~/workspace
   # 12.17 is the first version with dynamic import() of commonjs modules
   node12_17:
@@ -81,6 +85,7 @@ workflows:
           matrix:
             parameters:
               executor:
+                - node20
                 - node18
                 - node16
                 - node14_latest
