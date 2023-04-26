@@ -32,7 +32,7 @@ describe('ParallelWorker', function() {
       expect(core.boot).toHaveBeenCalledWith(jasmine.is(core));
     });
 
-    it('can use the default jasmine-core', async function () {
+    it('boots jasmine-core normally if globals is undefined', async function () {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
       spyOn(core, 'boot').and.callThrough();
@@ -42,6 +42,48 @@ describe('ParallelWorker', function() {
       this.clusterWorker.emit('message', {
         type: 'configure',
         configuration: {
+          helpers: [],
+        }
+      });
+      await Promise.resolve();
+
+      expect(loader.load).toHaveBeenCalledWith('jasmine-core');
+      expect(core.boot).toHaveBeenCalledWith(jasmine.is(core));
+    });
+
+    it('disables globals if globals is false', async function() {
+      const loader = jasmine.createSpyObj('loader', ['load']);
+      const core = dummyCore();
+      spyOn(core, 'noGlobals').and.callThrough();
+      spyOn(core, 'boot').and.callThrough();
+      loader.load.and.returnValue(Promise.resolve(core));
+      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {
+          globals: false,
+          helpers: [],
+        }
+      });
+      await Promise.resolve();
+
+      expect(loader.load).toHaveBeenCalledWith('jasmine-core');
+      expect(core.noGlobals).toHaveBeenCalledWith();
+      expect(core.boot).not.toHaveBeenCalled();
+    });
+
+    it('boots jasmine-core normally if globals is true', async function() {
+      const loader = jasmine.createSpyObj('loader', ['load']);
+      const core = dummyCore();
+      spyOn(core, 'boot').and.callThrough();
+      loader.load.and.returnValue(Promise.resolve(core));
+      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {
+          globals: true,
           helpers: [],
         }
       });
@@ -531,16 +573,21 @@ function dispatchRepoterEvent(env, eventName, payload) {
 
 
 function dummyCore(env) {
+  function getEnv() {
+    return env || {
+      addReporter() {},
+      parallelReset() {},
+      setParallelLoadingState() {},
+    };
+  }
+
   return {
     boot: function() {
+      return {getEnv};
+    },
+    noGlobals: function() {
       return {
-        getEnv: function() {
-          return env || {
-            addReporter() {},
-            parallelReset() {},
-            setParallelLoadingState() {},
-          };
-        },
+        jasmine: {getEnv},
       };
     }
   };

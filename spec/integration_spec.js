@@ -437,6 +437,13 @@ describe('Integration', function () {
       expect(output).toContain('Ran 2 of 4 specs');
       expect(output).toContain('2 specs, 2 failures');
     });
+
+    it('does not create globals when the globals option is false', async function() {
+      const {exitCode, output} = await runCommand('node', ['runner.js'], 'spec/fixtures/no-globals-parallel');
+
+      expect(exitCode).toEqual(0);
+      expect(output).toContain('2 specs, 0 failures');
+    });
   });
 
   describe('Global setup and teardown', function() {

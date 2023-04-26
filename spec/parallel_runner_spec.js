@@ -234,7 +234,13 @@ describe('ParallelRunner', function() {
     });
 
     it('configures the workers and waits for them to acknowledge', async function () {
-      this.testJasmine.numWorkers = 2;
+      this.testJasmine = new ParallelRunner({
+        cluster: this.cluster,
+        ConsoleReporter: this.ConsoleReporter,
+        ParallelReportDispatcher: StubParallelReportDispatcher,
+        numWorkers: 2,
+        globals: false,
+      });
       const envConfig = {
         stopSpecOnExpectationFailure: true,
       };
@@ -264,6 +270,7 @@ describe('ParallelRunner', function() {
           pathEndingWith('spec/fixtures/parallel_helpers/helper1.js')
         ],
         requires: ['require1', 'require2'],
+        globals: false,
         env: envConfig,
       };
       expect(workers[0].send).toHaveBeenCalledWith(
