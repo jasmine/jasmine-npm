@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const Command = require('../lib/command');
 const Loader = require("../lib/loader");
 
@@ -394,6 +395,16 @@ describe('command', function() {
       expect(this.ParallelRunner).toHaveBeenCalledWith({
         projectBaseDir,
         numWorkers: 2
+      });
+      expect(this.parallelRunner.execute).toHaveBeenCalled();
+    });
+
+    it('sets the number of workers to 1 less than CPUs if --paralell is auto', async function() {
+      await this.command.run(['node', 'bin/jasmine.js', '--parallel=auto']);
+      expect(this.fakeJasmine.execute).not.toHaveBeenCalled();
+      expect(this.ParallelRunner).toHaveBeenCalledWith({
+        projectBaseDir,
+        numWorkers: os.cpus().length - 1
       });
       expect(this.parallelRunner.execute).toHaveBeenCalled();
     });
