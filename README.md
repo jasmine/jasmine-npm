@@ -50,7 +50,7 @@ Jasmine is compatible with both ES modules and CommonJS modules. See the
 
 ## Node version compatibility
 
-Jasmine supports Node 18.
+Jasmine supports Node 18 and 20.
 
 ## Support
 
