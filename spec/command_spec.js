@@ -502,10 +502,6 @@ describe('command', function() {
       });
 
       sharedRunBehavior('--parallel=2');
-
-      it('does not allow the random seed to be set');
-
-      it('does not allow randomization to be disabled');
     });
   });
 

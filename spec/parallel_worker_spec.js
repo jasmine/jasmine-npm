@@ -93,7 +93,31 @@ describe('ParallelWorker', function() {
       expect(core.boot).toHaveBeenCalledWith(jasmine.is(core));
     });
 
-    it('does something reasonable when the core module fails to load');
+    it('sends a fatalError message when the core module fails to load', async function() {
+      const error = new Error('core loading failed');
+      const loader = {
+        load() {
+          return Promise.reject(error);
+        }
+      };
+      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+
+      this.clusterWorker.emit('message', {
+        type: 'configure',
+        configuration: {}
+      });
+      await new Promise(res => setTimeout(res));
+
+      expect(this.clusterWorker.send).toHaveBeenCalledWith(
+        {
+          type: 'fatalError',
+          error: {
+            message: error.message,
+            stack: error.stack
+          },
+        }
+      );
+    });
 
     it('creates and configures an env', async function() {
       const env = jasmine.createSpyObj('env', [
@@ -555,9 +579,6 @@ describe('ParallelWorker', function() {
       });
     }
   });
-
-
-  it('exits on disconnect');
 });
 
 function dispatchRepoterEvent(env, eventName, payload) {

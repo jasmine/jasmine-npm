@@ -370,9 +370,6 @@ describe('ParallelRunner', function() {
       });
     });
 
-    it('handles worker crashes');
-    it('handles worker exec failures');
-
     it('dispatches a jasmineStarted event at the start of execution', async function () {
       this.testJasmine.numWorkers = 2;
       this.testJasmine.loadConfig({
