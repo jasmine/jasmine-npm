@@ -16,7 +16,11 @@ describe('ParallelWorker', function() {
       const core = dummyCore();
       spyOn(core, 'boot').and.callThrough();
       loader.load.and.returnValue(Promise.resolve(core));
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
 
       this.clusterWorker.emit('message', {
         type: 'configure',
@@ -37,7 +41,11 @@ describe('ParallelWorker', function() {
       const core = dummyCore();
       spyOn(core, 'boot').and.callThrough();
       loader.load.and.returnValue(Promise.resolve(core));
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
 
       this.clusterWorker.emit('message', {
         type: 'configure',
@@ -57,7 +65,11 @@ describe('ParallelWorker', function() {
       spyOn(core, 'noGlobals').and.callThrough();
       spyOn(core, 'boot').and.callThrough();
       loader.load.and.returnValue(Promise.resolve(core));
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
 
       this.clusterWorker.emit('message', {
         type: 'configure',
@@ -78,7 +90,11 @@ describe('ParallelWorker', function() {
       const core = dummyCore();
       spyOn(core, 'boot').and.callThrough();
       loader.load.and.returnValue(Promise.resolve(core));
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
 
       this.clusterWorker.emit('message', {
         type: 'configure',
@@ -100,7 +116,11 @@ describe('ParallelWorker', function() {
           return Promise.reject(error);
         }
       };
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
 
       this.clusterWorker.emit('message', {
         type: 'configure',
@@ -128,7 +148,11 @@ describe('ParallelWorker', function() {
           return Promise.resolve(dummyCore(env));
         }
       };
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
       const envConfig = {
         stopSpecOnExpectationFailure: true,
       };
@@ -151,7 +175,11 @@ describe('ParallelWorker', function() {
           return Promise.resolve(dummyCore());
         }
       };
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
       this.clusterWorker.emit('message', {
         type: 'configure',
         configuration: {
@@ -169,7 +197,11 @@ describe('ParallelWorker', function() {
           return Promise.resolve(dummyCore());
         }
       };
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
       this.clusterWorker.emit('message', {
         type: 'configure',
         configuration: {}
@@ -195,7 +227,11 @@ describe('ParallelWorker', function() {
           return Promise.resolve(dummyCore(env));
         }
       };
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
 
       this.clusterWorker.emit('message', {
         type: 'configure',
@@ -228,7 +264,11 @@ describe('ParallelWorker', function() {
         .and.returnValue(helperPromises[0]);
       loader.load.withArgs('/some/dir/helper1.js')
         .and.returnValue(helperPromises[1]);
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
 
       this.clusterWorker.emit('message', {
         type: 'configure',
@@ -274,7 +314,11 @@ describe('ParallelWorker', function() {
       loader.load.withArgs('/some/dir/helper.js')
         .and.returnValue(new Promise(() => {}));
 
-      new ParallelWorker({loader, clusterWorker: this.clusterWorker});
+      new ParallelWorker({
+        loader,
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
+      });
 
       this.clusterWorker.emit('message', {
         type: 'configure',
@@ -313,7 +357,8 @@ describe('ParallelWorker', function() {
         .and.returnValue(Promise.resolve(this.core));
       this.jasmineWorker = new ParallelWorker({
         loader: this.loader,
-        clusterWorker: this.clusterWorker
+        clusterWorker: this.clusterWorker,
+        process: stubProcess()
       });
 
       this.configure = async () => {
@@ -513,7 +558,8 @@ describe('ParallelWorker', function() {
         this.clusterWorker.id = 17;
         const jasmineWorker = new ParallelWorker({
           loader,
-          clusterWorker: this.clusterWorker
+          clusterWorker: this.clusterWorker,
+          process: stubProcess()
         });
 
         this.clusterWorker.emit('message', {
@@ -561,7 +607,8 @@ describe('ParallelWorker', function() {
           .and.returnValue(Promise.resolve(dummyCore(env)));
         const jasmineWorker = new ParallelWorker({
           loader,
-          clusterWorker: this.clusterWorker
+          clusterWorker: this.clusterWorker,
+          process: stubProcess()
         });
 
         this.clusterWorker.emit('message', {
@@ -578,6 +625,112 @@ describe('ParallelWorker', function() {
         expect(this.clusterWorker.send).toHaveBeenCalledOnceWith({type: 'booted'});
       });
     }
+  });
+
+  it('reports unhandled exceptions that occur between batches', async function() {
+    const process = jasmine.createSpyObj('process', ['on']);
+    new ParallelWorker({
+      process,
+      loader: { load() {} },
+      clusterWorker: this.clusterWorker
+    });
+
+    expect(process.on).toHaveBeenCalledWith(
+      'uncaughtException',
+      jasmine.any(Function)
+    );
+    const onCall = process.on.calls.all()
+      .filter(c => c.args[0] === 'uncaughtException')
+      [0];
+
+    const error = new Error('nope');
+    onCall.args[1](error);
+
+    expect(this.clusterWorker.send).toHaveBeenCalledWith({
+      type: 'uncaughtException',
+      error: {
+        message: error.message,
+        stack: error.stack
+      }
+    });
+  });
+
+  it('reports unhandled promise rejections that occur between batches', async function() {
+    const process = jasmine.createSpyObj('process', ['on']);
+    new ParallelWorker({
+      process,
+      loader: { load() {} },
+      clusterWorker: this.clusterWorker
+    });
+
+    expect(process.on).toHaveBeenCalledWith(
+      'unhandledRejection',
+      jasmine.any(Function)
+    );
+    const onCall = process.on.calls.all()
+      .filter(c => c.args[0] === 'unhandledRejection')
+      [0];
+
+    const error = new Error('nope');
+    onCall.args[1](error);
+
+    expect(this.clusterWorker.send).toHaveBeenCalledWith({
+      type: 'unhandledRejection',
+      error: {
+        message: error.message,
+        stack: error.stack
+      }
+    });
+  });
+
+  it('does not try to report unhandled exceptions if disconnected', async function() {
+    const process = jasmine.createSpyObj('process', ['on']);
+    new ParallelWorker({
+      process,
+      loader: { load() {} },
+      clusterWorker: this.clusterWorker
+    });
+
+    expect(process.on).toHaveBeenCalledWith(
+      'uncaughtException',
+      jasmine.any(Function)
+    );
+    const onCall = process.on.calls.all()
+      .filter(c => c.args[0] === 'uncaughtException')
+      [0];
+
+    this.clusterWorker.isConnected.and.returnValue(false);
+    spyOn(console, 'error');
+    this.clusterWorker.send.calls.reset();
+    const error = new Error('nope');
+    onCall.args[1](error);
+
+    expect(this.clusterWorker.send).not.toHaveBeenCalled();
+  });
+
+  it('does not try to report unhandled rejections if disconnected', async function() {
+    const process = jasmine.createSpyObj('process', ['on']);
+    new ParallelWorker({
+      process,
+      loader: { load() {} },
+      clusterWorker: this.clusterWorker
+    });
+
+    expect(process.on).toHaveBeenCalledWith(
+      'unhandledRejection',
+      jasmine.any(Function)
+    );
+    const onCall = process.on.calls.all()
+      .filter(c => c.args[0] === 'unhandledRejection')
+      [0];
+
+    this.clusterWorker.isConnected.and.returnValue(false);
+    spyOn(console, 'error');
+    this.clusterWorker.send.calls.reset();
+    const error = new Error('nope');
+    onCall.args[1](error);
+
+    expect(this.clusterWorker.send).not.toHaveBeenCalled();
   });
 });
 
@@ -630,4 +783,11 @@ async function poll(predicate) {
 
     check();
   });
+}
+
+function stubProcess() {
+  return {
+    on() {
+    }
+  };
 }

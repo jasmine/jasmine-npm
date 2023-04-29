@@ -655,6 +655,74 @@ describe('ParallelRunner', function() {
       }
     });
 
+    it('reports unhandled exceptions and promise rejections from workers', async function() {
+      this.testJasmine.numWorkers = 2;
+      this.testJasmine.loadConfig({
+        spec_dir: 'some/spec/dir'
+      });
+      this.testJasmine.addSpecFile('spec1.js');
+      this.testJasmine.addSpecFile('spec2.js');
+      const executePromise = this.testJasmine.execute();
+      await this.emitAllBooted();
+
+      await new Promise(resolve => setTimeout(resolve));
+      this.emitFileDone(this.cluster.workers[0], {
+        failedExpectations: ['failed expectation 1'],
+        deprecationWarnings: [],
+      });
+      this.cluster.workers[0].emit('message', {
+        type: 'uncaughtException',
+        error: {
+          message: 'not caught',
+          stack: 'it happened here'
+        },
+      });
+      this.cluster.workers[0].emit('message', {
+        type: 'unhandledRejection',
+        error: {
+          message: 'not handled',
+          stack: 'it happened there'
+        },
+      });
+      this.emitFileDone(this.cluster.workers[1], {
+        failedExpectations: ['failed expectation 2'],
+        deprecationWarnings: [''],
+      });
+
+      await this.disconnect();
+      await executePromise;
+
+      expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          overallStatus: 'failed',
+          failedExpectations: [
+            'failed expectation 1',
+            // We don't just pass these through from jasmine-core,
+            // so verify the actual output format.
+            {
+              actual: '',
+              expected: '',
+              globalErrorType: 'lateError',
+              matcherName: '',
+              message: 'Uncaught exception in worker process: not caught',
+              passed: false,
+              stack: 'it happened here',
+            },
+            {
+              actual: '',
+              expected: '',
+              globalErrorType: 'lateError',
+              matcherName: '',
+              message: 'Unhandled promise rejection in worker process: not handled',
+              passed: false,
+              stack: 'it happened there',
+            },
+            'failed expectation 2',
+          ],
+        })
+      );
+    });
+
     it('handles errors from reporters', async function() {
       const reportDispatcher = new StubParallelReportDispatcher();
       spyOn(reportDispatcher, 'installGlobalErrors');
