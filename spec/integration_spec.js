@@ -508,6 +508,16 @@ describe('Integration', function () {
       });
     }
   });
+
+  it('supports --require', async function() {
+    const {exitCode, output} = await runJasmine(
+      'spec/fixtures/sample_project',
+      'spec/support/jasmine.json',
+      ['--require=../noisy_require.js']
+    );
+    expect(exitCode).toEqual(2); // because no specs
+    expect(output).toContain('noisy require was loaded');
+  });
 });
 
 async function runJasmine(cwd, config="jasmine.json", extraArgs = []) {
