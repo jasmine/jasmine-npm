@@ -10,7 +10,7 @@
     "bdd"
   ],
   "license": "MIT",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/jasmine/jasmine-npm"
