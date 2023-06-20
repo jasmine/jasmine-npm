@@ -55,6 +55,21 @@ describe('loader', function() {
         expect(importShim).toHaveBeenCalledWith('some-module');
       });
 
+      it('imports namespaced modules', async function() {
+        const payload = {default: {}};
+        const requireShim = jasmine.createSpy('requireShim');
+        const importShim = jasmine.createSpy('importShim')
+          .and.returnValue(Promise.resolve(payload));
+        const loader = new Loader({requireShim, importShim});
+        loader.alwaysImport = true;
+
+        const result = await loader.load('@namespace/some-module');
+
+        expect(result).toBe(payload.default);
+        expect(requireShim).not.toHaveBeenCalled();
+        expect(importShim).toHaveBeenCalledWith('@namespace/some-module');
+      });
+
       it('uses require to load JSON files', async function() {
         const requireShim = jasmine.createSpy('requireShim')
           .and.returnValue(Promise.resolve());
@@ -101,6 +116,19 @@ describe('loader', function() {
           expect(importShim).not.toHaveBeenCalled();
         });
 
+        it('loads namespaced commonjs module', async function () {
+          const requireShim = jasmine.createSpy('requireShim')
+            .and.returnValue(Promise.resolve());
+          const importShim = jasmine.createSpy('importShim');
+          const loader = new Loader({requireShim, importShim});
+          loader.alwaysImport = false;
+
+          await expectAsync(loader.load('@namespace/some-module')).toBeResolved();
+
+          expect(requireShim).toHaveBeenCalledWith('@namespace/some-module');
+          expect(importShim).not.toHaveBeenCalled();
+        });
+
         it('propagates the error when import fails', async function () {
           const underlyingError = new Error('nope');
           const requireShim = jasmine.createSpy('requireShim')
@@ -142,11 +170,11 @@ function esModuleSharedExamples(extension, alwaysImport) {
 
     await expectAsync(loaderPromise).toBeResolved();
   }
-  
+
   it('loads the file as an es module', async function () {
     await testBasicEsModuleLoading(path.sep);
   });
-  
+
   it('supports /-separated paths', async function() {
     await testBasicEsModuleLoading('/');
   });
