@@ -1,4 +1,5 @@
 const path = require('path');
+const url = require('url');
 const Loader = require('../lib/loader');
 
 describe('loader', function() {
@@ -163,7 +164,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
 
     expect(requireShim).not.toHaveBeenCalled();
     expect(resolvePath).toHaveBeenCalledWith(requestedPath);
-    expect(importShim).toHaveBeenCalledWith('file:///the/path/to/the/module');
+    expect(importShim).toHaveBeenCalledWith(url.pathToFileURL('/the/path/to/the/module').toString());
     await expectAsync(loaderPromise).toBePending();
 
     resolve({});
