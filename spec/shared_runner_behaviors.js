@@ -308,6 +308,27 @@ function sharedRunnerBehaviors(makeRunner) {
             pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js')
           ]);
         });
+
+        it('warns if both default config files are found', async function() {
+          spyOn(Loader.prototype, 'load').and.callFake(function (path) {
+            if (path.endsWith('jasmine.js') || path.endsWith('jasmine.json')) {
+              return Promise.resolve({});
+            } else {
+              const e = new Error(`Module not found: ${path}`);
+              e.code = 'MODULE_NOT_FOUND';
+              return Promise.reject(e);
+            }
+          });
+          spyOn(console, 'warn');
+
+          await this.fixtureJasmine.loadConfigFile();
+
+          expect(console.warn).toHaveBeenCalledWith(
+            'Deprecation warning: Jasmine found and loaded both jasmine.js ' +
+            'and jasmine.json\nconfig files. In a future version, only the ' +
+            'first file found will be loaded.'
+          );
+        });
       });
     });
 
