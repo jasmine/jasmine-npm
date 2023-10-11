@@ -52,7 +52,7 @@ describe('npm package', function() {
     const files = fs.readdirSync(path.resolve(this.tmpDir, 'package'));
     files.sort();
     expect(files).toEqual([
-      'MIT.LICENSE',
+      'LICENSE',
       'README.md',
       'bin',
       'lib',
