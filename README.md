@@ -1,16 +1,16 @@
 [![Build Status](https://circleci.com/gh/jasmine/jasmine-npm.svg?style=shield)](https://circleci.com/gh/jasmine/jasmine-npm)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm?ref=badge_shield)
 
-# The Jasmine Module
+# The Jasmine Package
 
-The `jasmine` module is a command line interface and supporting code for running
+The `jasmine` package is a command line interface and supporting code for running
 [Jasmine](https://github.com/jasmine/jasmine) specs under Node.
 
 The core of jasmine lives at https://github.com/jasmine/jasmine and is `jasmine-core` in npm.
 
 ## Contents
 
-This module allows you to run Jasmine specs for your Node.js code. The output will be displayed in your terminal by default.
+This package allows you to run Jasmine specs for your Node.js code. The output will be displayed in your terminal by default.
 
 ## Documentation
 
