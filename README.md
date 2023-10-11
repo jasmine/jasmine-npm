@@ -1,6 +1,3 @@
-[![Build Status](https://circleci.com/gh/jasmine/jasmine-npm.svg?style=shield)](https://circleci.com/gh/jasmine/jasmine-npm)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm?ref=badge_shield)
-
 # The Jasmine Package
 
 The `jasmine` package is a command line interface and supporting code for running
@@ -55,10 +52,7 @@ Jasmine supports Node 18 and 20.
 ## Support
 
 Documentation: [jasmine.github.io](https://jasmine.github.io)
-Jasmine Mailing list: [jasmine-js@googlegroups.com](mailto:jasmine-js@googlegroups.com)
-Twitter: [@jasminebdd](http://twitter.com/jasminebdd)
-
-Please file issues here at Github
+Please file issues here at GitHub.
 
 Copyright (c) 2014-2019 Pivotal Labs
 Copyright (c) 2014-2023 The Jasmine developers
