@@ -60,7 +60,9 @@ Twitter: [@jasminebdd](http://twitter.com/jasminebdd)
 
 Please file issues here at Github
 
-Copyright (c) 2008-2017 Pivotal Labs. This software is licensed under the MIT License.
+Copyright (c) 2014-2019 Pivotal Labs
+Copyright (c) 2014-2023 The Jasmine developers
+This software is licensed under the MIT License.
 
 
 ## License
