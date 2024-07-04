@@ -341,8 +341,8 @@ describe('Integration', function () {
         ['--parallel=2']
       );
 
-      expect(exitCode).toEqual(1);
-      expect(output).toContain('Fatal error in worker: nope\n');
+      expect(exitCode).toEqual(3);
+      expect(output).toMatch(/Error loading .*\/spec\/fixtures\/parallel_spec_load_exception\/spec.js: nope/);
       expect(output).toMatch(/at Object\.<anonymous> .*spec[\\\/]fixtures[\\\/]parallel_spec_load_exception[\\\/]spec\.js/);
     });
 
@@ -373,8 +373,8 @@ describe('Integration', function () {
         ['--parallel=2']
       );
 
-      expect(exitCode).toEqual(1);
-      expect(output).toContain('Fatal error in worker: In parallel mode, ' +
+      expect(exitCode).toEqual(3);
+      expect(output).toContain('In parallel mode, ' +
         'beforeEach must be in a describe block or in a helper file');
     });
 
@@ -385,9 +385,10 @@ describe('Integration', function () {
         ['--parallel=2']
       );
 
-      expect(exitCode).toEqual(1);
-      expect(output).toContain('Fatal error in worker: In parallel mode, ' +
-        'afterEach must be in a describe block or in a helper file');
+      expect(exitCode).toEqual(3);
+      expect(output).toMatch(
+        /Error loading .*\/spec\/fixtures\/parallel_invalid_afterEach\/spec.js: In parallel mode, afterEach must be in a describe block or in a helper file/
+      );
     });
 
     it('allows beforeEach and afterEach in helpers and in describe in parallel', async function() {

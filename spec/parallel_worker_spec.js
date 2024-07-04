@@ -425,7 +425,8 @@ describe('ParallelWorker', function() {
 
         expect(this.clusterWorker.send).toHaveBeenCalledWith(
           {
-            type: 'fatalError',
+            type: 'specFileLoadError',
+            filePath: 'aSpec.js',
             error: {
               message: error.message,
               stack: error.stack

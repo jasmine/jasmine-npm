@@ -723,6 +723,124 @@ describe('ParallelRunner', function() {
       );
     });
 
+    describe('When a spec file fails to load', function() {
+      function captor(valueCb) {
+        return {
+          asymmetricMatch(v) {
+            valueCb(v);
+            return true;
+          },
+          jasmineToString() {
+            return '<captor>';
+          }
+        };
+      }
+
+      it('moves on to the next file', async function() {
+        this.testJasmine.numWorkers = 2;
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        const specFiles = ['spec1.js', 'spec2.js', 'spec3.js'];
+
+        for (const f of specFiles) {
+          this.testJasmine.addSpecFile(f);
+        }
+
+        this.testJasmine.execute();
+        await this.emitAllBooted();
+
+        await new Promise(resolve => setTimeout(resolve));
+        let worker0SpecFile, worker1SpecFile;
+        expect(this.cluster.workers[0].send).toHaveBeenCalledWith(
+          jasmine.objectContaining({
+            type: 'runSpecFile',
+            filePath: captor(v => worker0SpecFile = v)
+          })
+        );
+        expect(this.cluster.workers[1].send).toHaveBeenCalledWith(
+          jasmine.objectContaining({
+            type: 'runSpecFile',
+            filePath: captor(v => worker1SpecFile = v)
+          })
+        );
+        this.cluster.workers[0].send.calls.reset();
+        const remainingSpecFile = specFiles
+          .filter(f => f !== worker0SpecFile && f !== worker1SpecFile)[0];
+        this.cluster.workers[0].emit('message',
+          {
+            type: 'specFileLoadError',
+            filePath: worker0SpecFile,
+            error: {
+              message: 'not caught',
+              stack: 'it happened here'
+            },
+          }
+        );
+
+        expect(this.cluster.workers[0].send).toHaveBeenCalledWith(
+          {type: 'runSpecFile', filePath: remainingSpecFile}
+        );
+      });
+
+      it('reports the error', async function () {
+        this.testJasmine.numWorkers = 2;
+        this.testJasmine.loadConfig({
+          spec_dir: 'some/spec/dir'
+        });
+        this.testJasmine.addSpecFile('spec1.js');
+        this.testJasmine.addSpecFile('spec2.js');
+        const executePromise = this.testJasmine.execute();
+        await this.emitAllBooted();
+
+        await new Promise(resolve => setTimeout(resolve));
+        let worker1SpecFile;
+        expect(this.cluster.workers[1].send).toHaveBeenCalledWith(
+          jasmine.objectContaining({
+            type: 'runSpecFile',
+            filePath: captor(v => worker1SpecFile = v)
+          })
+        );
+        this.emitFileDone(this.cluster.workers[0], {
+          failedExpectations: ['failed expectation 1'],
+          deprecationWarnings: [],
+        });
+        this.cluster.workers[1].emit('message',
+          {
+            type: 'specFileLoadError',
+            filePath: worker1SpecFile,
+            error: {
+              message: 'not caught',
+              stack: 'it happened here'
+            },
+          }
+        );
+
+        await this.disconnect();
+        await executePromise;
+
+        expect(this.consoleReporter.jasmineDone).toHaveBeenCalledWith(
+          jasmine.objectContaining({
+            overallStatus: 'failed',
+            failedExpectations: [
+              'failed expectation 1',
+              // We don't just pass this through from jasmine-core,
+              // so verify the actual output format.
+              {
+                actual: '',
+                expected: '',
+                globalErrorType: 'load',
+                matcherName: '',
+                message: `Error loading ${worker1SpecFile}: not caught`,
+                passed: false,
+                stack: 'it happened here',
+              }
+            ],
+          })
+        );
+      });
+    });
+
     it('handles errors from reporters', async function() {
       const reportDispatcher = new StubParallelReportDispatcher();
       spyOn(reportDispatcher, 'installGlobalErrors');
