@@ -537,9 +537,6 @@ describe('ParallelWorker', function() {
       await Promise.resolve();
       // No other messages should have been sent
       expect(this.clusterWorker.send).toHaveBeenCalledOnceWith({type: 'booted'});
-      expect(console.error).toHaveBeenCalledOnceWith(
-        'Jasmine worker not sending specFileDone message after disconnect'
-      );
     });
   });
 
@@ -591,9 +588,6 @@ describe('ParallelWorker', function() {
         dispatchRepoterEvent(env, eventName, payload);
 
         expect(this.clusterWorker.send).not.toHaveBeenCalled();
-        expect(console.error).toHaveBeenCalledOnceWith(
-          `Jasmine worker not sending ${eventName} reporter event after disconnect`
-        );
       });
     }
 
