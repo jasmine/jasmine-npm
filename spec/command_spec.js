@@ -56,6 +56,7 @@ describe('command', function() {
       'loadConfigFile',
       'execute',
       'showColors',
+      'verbose',
       'coreVersion',
       'clearReporters',
       'addReporter',
@@ -264,6 +265,18 @@ describe('command', function() {
           await this.run(['node', 'bin/jasmine.js', '--color']);
           expect(this.runner.showColors).toHaveBeenCalledWith(true);
         }.bind(this));
+      });
+
+      it('does not enable verbose mode by default', async function() {
+        await this.run(['node', 'bin/jasmine.js']);
+        expect(this.runner.verbose).toHaveBeenCalledWith(false);
+        expect(this.runner.verbose).toHaveBeenCalledBefore(this.runner.loadConfigFile);
+      });
+
+      it('can enable verbose mode', async function() {
+        await this.run(['node', 'bin/jasmine.js', '--verbose']);
+        expect(this.runner.verbose).toHaveBeenCalledWith(true);
+        expect(this.runner.verbose).toHaveBeenCalledBefore(this.runner.loadConfigFile);
       });
 
       it('should execute the jasmine suite', async function () {
