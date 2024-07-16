@@ -44,7 +44,7 @@ describe('command', function() {
       let output = "";
       return {
         print: function(str) {
-          output += str;
+          output += str + '\n';
         },
         getOutput: function() {
           return output;
@@ -563,6 +563,52 @@ describe('command', function() {
         await subject.run(['somedir\\somespec.js']);
         expect(this.fakeJasmine.execute).toHaveBeenCalledWith(['somedir\\somespec.js'], undefined);
       });
+    });
+  });
+
+  describe('help', function() {
+    it('wraps text to the terminal width', async function() {
+      this.command = new Command(projectBaseDir, '', {
+        print: this.out.print,
+        terminalColumns: 50,
+        platform() {
+          return 'arbitrary';
+        }
+      });
+
+      await this.command.run(['help']);
+
+      const output = this.out.getOutput();
+      expect(output).toContain('version,-v    show jasmine and jasmine-core\n' +
+        '              versions\n');
+      expect(output).toContain('   --parallel=auto    Run in parallel with an\n' +
+        '                      automatically chosen number\n' +
+        '                      of workers\n' +
+        '        --no-color    turn off color in spec\n' +
+        '                      output\n' +
+        '           --color    force turn on color in spec\n' +
+        '                      output\n');
+      expect(output).toContain('The given arguments take precedence over options\n' +
+        'in your jasmine.json.\n' +
+        'The path to your optional jasmine.json can also be\n' +
+        'configured by setting the JASMINE_CONFIG_PATH\n' +
+        'environment variable.\n');
+    });
+
+    it('wraps text to 80 columns when the terminal width is unknown', function() {
+      this.command = new Command(projectBaseDir, '', {
+        print: this.out.print,
+        terminalColumns: undefined,
+        platform() {
+          return 'arbitrary';
+        }
+      });
+
+      this.command.run(['help']);
+
+      const output = this.out.getOutput();
+      expect(output).toContain('   --parallel=auto    Run in parallel with an automatically chosen number of\n' +
+        '                      workers\n');
     });
   });
 });
