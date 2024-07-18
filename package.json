@@ -40,31 +40,5 @@
     "eslint": "^8.36.0",
     "shelljs": "^0.8.3",
     "temp": "^0.9.4"
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "ecmaVersion": 11
-    },
-    "rules": {
-      "no-unused-vars": [
-        "error",
-        {
-          "args": "none"
-        }
-      ],
-      "block-spacing": "error",
-      "func-call-spacing": [
-        "error",
-        "never"
-      ],
-      "key-spacing": "error",
-      "no-tabs": "error",
-      "no-whitespace-before-property": "error",
-      "semi": [
-        "error",
-        "always"
-      ],
-      "space-before-blocks": "error"
-    }
   }
 }
