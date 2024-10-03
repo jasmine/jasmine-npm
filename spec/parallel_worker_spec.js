@@ -620,6 +620,50 @@ describe('ParallelWorker', function() {
         expect(this.clusterWorker.send).toHaveBeenCalledOnceWith({type: 'booted'});
       });
     }
+
+    for (const eventName of ['specDone', 'suiteDone']) {
+      it(`handles non-serializable expected values in ${eventName}`, async function() {
+        const env = jasmine.createSpyObj(
+          'env', ['execute', 'parallelReset', 'addReporter']
+        );
+        const loader = jasmine.createSpyObj('loader', ['load']);
+        loader.load.withArgs('jasmine-core')
+          .and.returnValue(Promise.resolve(dummyCore(env)));
+        const jasmineWorker = new ParallelWorker({
+          loader,
+          clusterWorker: this.clusterWorker,
+          process: stubProcess()
+        });
+
+        this.clusterWorker.emit('message', {
+          type: 'configure',
+          configuration: {
+            helpers: [],
+          }
+        });
+        await jasmineWorker.envPromise_;
+
+        this.clusterWorker.send.calls.reset();
+        this.clusterWorker.send.and.callFake(function(msg) {
+          // Throw if msg is not serializable
+          JSON.stringify(msg);
+        });
+        const notSerializable = BigInt(0);
+        dispatchRepoterEvent(env, eventName, {
+          failedExpectations: [{expected: 'ok', actual: notSerializable}],
+          passedExpectations: [{expected: notSerializable, actual: 'ok'}],
+        });
+
+        expect(this.clusterWorker.send).toHaveBeenCalledWith({
+          type: 'reporterEvent',
+          eventName,
+          payload: jasmine.objectContaining({
+            failedExpectations: [{expected: 'ok', actual: '<not serializable>'}],
+            passedExpectations: [{expected: '<not serializable>', actual: 'ok'}],
+          })
+        });
+      });
+    }
   });
 
   it('reports unhandled exceptions that occur between batches', async function() {
