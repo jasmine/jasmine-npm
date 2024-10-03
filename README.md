@@ -57,7 +57,3 @@ Please file issues here at GitHub.
 Copyright (c) 2014-2019 Pivotal Labs
 Copyright (c) 2014-2023 The Jasmine developers
 This software is licensed under the MIT License.
-
-
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjasmine%2Fjasmine-npm?ref=badge_large)
