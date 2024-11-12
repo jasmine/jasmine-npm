@@ -8,6 +8,7 @@
   ],
   "env": {
     "stopSpecOnExpectationFailure": false,
-    "random": true
+    "random": true,
+    "forbidDuplicateNames": true
   }
 }
