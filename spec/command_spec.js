@@ -110,12 +110,12 @@ describe('command', function() {
     });
 
     it('creates setup folders and files for specs', function() {
-      expect(fs.existsSync(path.join(spec, 'support/', 'jasmine.json'))).toBe(true);
+      expect(fs.existsSync(path.join(spec, 'support/', 'jasmine.mjs'))).toBe(true);
     });
 
-    it('writes default settings to jasmine.json', function() {
-      const realJson = fs.readFileSync(path.join(spec, 'support/', 'jasmine.json'), 'utf-8');
-      const fixtureJson = fs.readFileSync(path.join(__dirname, '../', 'lib/', 'examples/', 'jasmine.json'), 'utf-8');
+    it('writes default settings to jasmine.mjs', function() {
+      const realJson = fs.readFileSync(path.join(spec, 'support/', 'jasmine.mjs'), 'utf-8');
+      const fixtureJson = fs.readFileSync(path.join(__dirname, '../', 'lib/', 'examples/', 'jasmine.mjs'), 'utf-8');
       expect(realJson).toEqual(fixtureJson);
     });
   });

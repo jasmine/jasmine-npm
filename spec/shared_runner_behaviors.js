@@ -281,53 +281,88 @@ function sharedRunnerBehaviors(makeRunner) {
           await expectAsync(this.fixtureJasmine.loadConfigFile()).toBeResolved();
         });
 
-        it('loads the default .json configuration file', async function() {
-          await this.fixtureJasmine.loadConfigFile();
-          expect(this.fixtureJasmine.specFiles).toEqual([
-            pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js')
-          ]);
-        });
+        describe('When the default .mjs configuration file exists', function() {
+          it('loads the default .mjs configuration file', async function() {
+            const config = require('./fixtures/sample_project/spec/support/jasmine.json');
+            spyOn(Loader.prototype, 'load')
+              .withArgs(jasmine.stringMatching(/jasmine\.mjs$/))
+              .and.returnValue(Promise.resolve(config));
 
-        it('loads the default .js configuration file', async function() {
-          const config = require('./fixtures/sample_project/spec/support/jasmine.json');
-          spyOn(Loader.prototype, 'load').and.callFake(function(path) {
-            if (path.endsWith('jasmine.js')) {
-              return Promise.resolve(config);
-            } else {
-              const e = new Error(`Module not found: ${path}`);
-              e.code = 'MODULE_NOT_FOUND';
-              return Promise.reject(e);
-            }
+            await this.fixtureJasmine.loadConfigFile();
+
+            expect(Loader.prototype.load).toHaveBeenCalledWith(jasmine.stringMatching(
+              'jasmine\.mjs$'
+            ));
+            expect(this.fixtureJasmine.specFiles).toEqual([
+              pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js')
+            ]);
           });
 
-          await this.fixtureJasmine.loadConfigFile();
-          expect(Loader.prototype.load).toHaveBeenCalledWith(jasmine.stringMatching(
-            'jasmine\.js$'
-          ));
-          expect(this.fixtureJasmine.specFiles).toEqual([
-            pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js')
-          ]);
+          it('does not also load the default .js or .json configuration files', async function() {
+            spyOn(Loader.prototype, 'load')
+              .withArgs(jasmine.stringMatching(/jasmine\.mjs$/))
+              .and.returnValue(Promise.resolve({}));
+
+            await this.fixtureJasmine.loadConfigFile();
+
+            expect(Loader.prototype.load).not.toHaveBeenCalledWith(jasmine.stringMatching(
+              'jasmine\.js$'
+            ));
+            expect(Loader.prototype.load).not.toHaveBeenCalledWith(jasmine.stringMatching(
+              'jasmine\.json$'
+            ));
+          });
         });
 
-        it('warns if both default config files are found', async function() {
-          spyOn(Loader.prototype, 'load').and.callFake(function (path) {
-            if (path.endsWith('jasmine.js') || path.endsWith('jasmine.json')) {
-              return Promise.resolve({});
-            } else {
-              const e = new Error(`Module not found: ${path}`);
-              e.code = 'MODULE_NOT_FOUND';
-              return Promise.reject(e);
-            }
+        describe('When the default .mjs configuration file does not exist', function() {
+          it('loads the default .json configuration file', async function () {
+            await this.fixtureJasmine.loadConfigFile();
+            expect(this.fixtureJasmine.specFiles).toEqual([
+              pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js')
+            ]);
           });
-          spyOn(console, 'warn');
 
-          await this.fixtureJasmine.loadConfigFile();
+          it('loads the default .js configuration file', async function () {
+            const config = require('./fixtures/sample_project/spec/support/jasmine.json');
+            spyOn(Loader.prototype, 'load').and.callFake(function (path) {
+              if (path.endsWith('jasmine.js')) {
+                return Promise.resolve(config);
+              } else {
+                const e = new Error(`Module not found: ${path}`);
+                e.code = 'MODULE_NOT_FOUND';
+                return Promise.reject(e);
+              }
+            });
 
-          expect(console.warn).toHaveBeenCalledWith(
-            'Deprecation warning: Jasmine found and loaded both jasmine.js ' +
-            'and jasmine.json\nconfig files. In a future version, only the ' +
-            'first file found will be loaded.'
-          );
+            await this.fixtureJasmine.loadConfigFile();
+            expect(Loader.prototype.load).toHaveBeenCalledWith(jasmine.stringMatching(
+              'jasmine\.js$'
+            ));
+            expect(this.fixtureJasmine.specFiles).toEqual([
+              pathEndingWith('spec/fixtures/sample_project/spec/fixture_spec.js')
+            ]);
+          });
+
+          it('warns if default .js and .json config files are both found', async function () {
+            spyOn(Loader.prototype, 'load').and.callFake(function (path) {
+              if (path.endsWith('jasmine.js') || path.endsWith('jasmine.json')) {
+                return Promise.resolve({});
+              } else {
+                const e = new Error(`Module not found: ${path}`);
+                e.code = 'MODULE_NOT_FOUND';
+                return Promise.reject(e);
+              }
+            });
+            spyOn(console, 'warn');
+
+            await this.fixtureJasmine.loadConfigFile();
+
+            expect(console.warn).toHaveBeenCalledWith(
+              'Deprecation warning: Jasmine found and loaded both jasmine.js ' +
+              'and jasmine.json\nconfig files. In a future version, only the ' +
+              'first file found will be loaded.'
+            );
+          });
         });
       });
     });
