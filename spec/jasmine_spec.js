@@ -229,12 +229,33 @@ describe('Jasmine', function() {
       expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalled();
     });
 
-    it('should add spec filter if filterString is provided', async function () {
-      await this.execute({
-        executeArgs: [['spec/fixtures/example/*spec.js'], 'interesting spec']
-      });
+    describe('When a filter string is provided', function() {
+      it('installs a matching spec filter', async function() {
+        let specFilter;
+        this.testJasmine.env.configure.and.callFake(function(config) {
+          if (config.specFilter) {
+            specFilter = config.specFilter;
+          }
+        });
 
-      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({specFilter: jasmine.any(Function)});
+        await this.execute({
+          executeArgs: [['spec/fixtures/example/*spec.js'], 'interesting spec']
+        });
+
+        expect(specFilter).toBeTruthy();
+        const matchingSpec = {
+          getFullName() {
+            return 'this is an interesting spec that should match';
+          }
+        };
+        const nonMatchingSpec = {
+          getFullName() {
+            return 'but this one is not';
+          }
+        };
+        expect(specFilter(matchingSpec)).toBeTrue();
+        expect(specFilter(nonMatchingSpec)).toBeFalse();
+      });
     });
 
     it('loads specs', async function () {
