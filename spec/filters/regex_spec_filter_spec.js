@@ -1,30 +1,25 @@
-const RegexSpecFilter = require('../../lib/filters/regex_spec_filter');
+const regexSpecFilter = require('../../lib/filters/regex_spec_filter');
 
-describe("RegexSpecFilter", function() {
-
+describe("regexSpecFilter", function() {
   it("should match when no string is provided", function() {
-    const specFilter = new RegexSpecFilter();
+    const specFilter = regexSpecFilter();
 
-    expect(specFilter.matches("foo")).toBe(true);
-    expect(specFilter.matches("*bar")).toBe(true);
+    expect(specFilter({ getFullName: () => "foo" })).toBe(true);
+    expect(specFilter({ getFullName: () => "*bar" })).toBe(true);
   });
 
   it("should match the provided string", function() {
-    const specFilter = new RegexSpecFilter({
-      filterString: "foo"
-    });
+    const specFilter = regexSpecFilter("foo");
 
-    expect(specFilter.matches("foo")).toBe(true);
-    expect(specFilter.matches("bar")).toBe(false);
+    expect(specFilter({ getFullName: () => "foo"})).toBe(true);
+    expect(specFilter({ getFullName: () => "bar"})).toBe(false);
   });
 
   it("should match by part of spec name", function() {
-    const specFilter = new RegexSpecFilter({
-      filterString: "ba"
-    });
+    const specFilter = regexSpecFilter("ba");
 
-    expect(specFilter.matches("foo")).toBe(false);
-    expect(specFilter.matches("bar")).toBe(true);
-    expect(specFilter.matches("baz")).toBe(true);
+    expect(specFilter({ getFullName: () => "foo"})).toBe(false);
+    expect(specFilter({ getFullName: () => "bar"})).toBe(true);
+    expect(specFilter({ getFullName: () => "baz"})).toBe(true);
   });
 });
