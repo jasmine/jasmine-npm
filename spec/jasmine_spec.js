@@ -15,7 +15,8 @@ describe('Jasmine', function() {
           .and.callFake(function () {
             return Promise.reject(new Error('Unconfigured call to Env#execute'));
           }),
-        configure: jasmine.createSpy('configure')
+        configure: jasmine.createSpy('configure'),
+        topSuite: jasmine.createSpy('topSuite'),
       }),
       Timer: jasmine.createSpy('Timer')
     };
@@ -417,6 +418,62 @@ describe('Jasmine', function() {
           'globalTeardown', globalTeardown, 17
         );
       });
+    });
+  });
+
+  describe('#enumerate', function() {
+    it('does not run global setup');
+
+    it('loads requires, helpers, and specs', async function() {
+      const loadRequires = spyOn(this.testJasmine, 'loadRequires');
+      const loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
+      const loadSpecs = spyOn(this.testJasmine, 'loadSpecs');
+      this.bootedJasmine.getEnv().topSuite
+        .and.returnValue({children: []});
+
+      await this.testJasmine.enumerate();
+
+      expect(loadRequires).toHaveBeenCalledBefore(loadHelpers);
+      expect(loadHelpers).toHaveBeenCalledBefore(loadSpecs);
+      expect(loadSpecs).toHaveBeenCalledBefore(
+        this.bootedJasmine.getEnv().topSuite);
+    });
+
+    it('returns a serializable, id-less suite tree', async function() {
+      const topSuite = {
+        id: 'a',
+        description: 'Jasmine__TopLevel__Suite',
+        children: [{
+          id: 'b',
+          description: 'parent',
+          children: [{
+            id: 'c',
+            description: 'nested',
+            children: [{
+              id: 'd',
+              description: 'a spec'
+            }]
+          }]
+        }]
+      };
+      topSuite.children[0].parentSuite = topSuite;
+      topSuite.children[0].children[0].parentSuite = topSuite.children[0];
+      this.bootedJasmine.getEnv().topSuite.and.returnValue(topSuite);
+
+      const result = await this.testJasmine.enumerate();
+
+      expect(JSON.parse(JSON.stringify(result))).toEqual([{
+        type: 'suite',
+        description: 'parent',
+        children: [{
+          type: 'suite',
+          description: 'nested',
+          children: [{
+            type: 'spec',
+            description: 'a spec'
+          }]
+        }]
+      }]);
     });
   });
 

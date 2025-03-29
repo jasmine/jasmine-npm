@@ -65,7 +65,7 @@ describe('command', function() {
     ];
     this.fakeJasmine = jasmine.createSpyObj(
       'jasmine',
-      [...commonMethods, 'seed', 'randomizeTests', 'configureEnv']
+      [...commonMethods, 'seed', 'randomizeTests', 'configureEnv', 'enumerate']
     );
     this.fakeJasmine.loader = new Loader();
     this.Jasmine = jasmine.createSpy('Jasmine')
@@ -515,6 +515,15 @@ describe('command', function() {
       });
 
       sharedRunBehavior('--parallel=2');
+    });
+  });
+
+  describe('enumerate', function() {
+    it('outputs the result of enumerating specs', async function() {
+      const result = [{type: 'spec', description: 'foo'}];
+      this.fakeJasmine.enumerate.and.returnValue(result);
+      await this.command.run(['enumerate']);
+      expect(JSON.parse(this.out.getOutput())).toEqual(result);
     });
   });
 
