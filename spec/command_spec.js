@@ -507,6 +507,26 @@ describe('command', function() {
           stopSpecOnExpectationFailure: true
         });
       });
+
+      describe('Path filtering', function() {
+        it('should be able to filter by path', async function () {
+          await this.run(['--filter-path=["a","b","c"]']);
+          expect(this.runner.execute).toHaveBeenCalledWith(jasmine.any(Array),
+            {path: ['a', 'b', 'c']});
+        });
+
+        it('rejects invalid JSON', async function() {
+          await this.run(['--filter-path=not valid JSON']);
+          const output = this.out.getOutput();
+          expect(output).toContain('Invalid filter path: not valid JSON');
+        });
+
+        it('rejects non-arrays', async function() {
+          await this.run(['--filter-path={}}']);
+          const output = this.out.getOutput();
+          expect(output).toContain('Invalid filter path: {}}');
+        });
+      });
     });
 
     describe('In parallel mode', function() {
@@ -515,6 +535,13 @@ describe('command', function() {
       });
 
       sharedRunBehavior('--parallel=2');
+
+      it('rejects --filter-path', async function() {
+        await this.run(['--filter-path=[]', '--parallel=2']);
+        const output = this.out.getOutput();
+        expect(output).toContain(
+          '--filter-path is not supported in parallel mode.');
+      });
     });
   });
 

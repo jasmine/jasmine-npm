@@ -229,32 +229,61 @@ describe('Jasmine', function() {
       expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalled();
     });
 
-    describe('When a filter string is provided', function() {
-      it('installs a matching spec filter', async function() {
-        let specFilter;
-        this.testJasmine.env.configure.and.callFake(function(config) {
+    describe('Filtering', function() {
+      let specFilter;
+
+      beforeEach(function() {
+        this.testJasmine.env.configure.and.callFake(function (config) {
           if (config.specFilter) {
             specFilter = config.specFilter;
           }
         });
+      });
 
-        await this.execute({
-          executeArgs: [['spec/fixtures/example/*spec.js'], 'interesting spec']
+      describe('When a filter string is provided', function () {
+        it('installs a matching spec filter', async function () {
+          await this.execute({
+            executeArgs: [['spec/fixtures/example/*spec.js'], 'interesting spec']
+          });
+
+          expect(specFilter).toBeTruthy();
+          const matchingSpec = {
+            getFullName() {
+              return 'this is an interesting spec that should match';
+            }
+          };
+          const nonMatchingSpec = {
+            getFullName() {
+              return 'but this one is not';
+            }
+          };
+          expect(specFilter(matchingSpec)).toBeTrue();
+          expect(specFilter(nonMatchingSpec)).toBeFalse();
         });
+      });
 
-        expect(specFilter).toBeTruthy();
-        const matchingSpec = {
-          getFullName() {
-            return 'this is an interesting spec that should match';
+      describe('When a path filter specification is provided', function () {
+        it('installs a matching spec filter', async function () {
+          await this.execute({
+            executeArgs: [['spec/fixtures/example/*spec.js'], {
+              path: ['parent', 'child', 'spec']
+            }]
+          });
+
+          function stubSpec(path) {
+            return {
+              getPath() { return path; },
+              // getFullName is required, but plays no role in filtering
+              getFullName() { return ""; }
+            };
           }
-        };
-        const nonMatchingSpec = {
-          getFullName() {
-            return 'but this one is not';
-          }
-        };
-        expect(specFilter(matchingSpec)).toBeTrue();
-        expect(specFilter(nonMatchingSpec)).toBeFalse();
+
+          expect(specFilter).toBeTruthy();
+          expect(specFilter(stubSpec(['parent', 'child', 'spec'])))
+            .toBeTrue();
+          expect(specFilter(stubSpec(['parent', 'other child', 'spec'])))
+            .toBeFalse();
+        });
       });
     });
 
@@ -443,8 +472,6 @@ describe('Jasmine', function() {
   });
 
   describe('#enumerate', function() {
-    it('does not run global setup');
-
     it('loads requires, helpers, and specs', async function() {
       const loadRequires = spyOn(this.testJasmine, 'loadRequires');
       const loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
