@@ -1,14 +1,17 @@
 const path = require('path');
-const temp = require('temp').track();
 const fs = require('fs');
+const os = require('os');
+const shell = require('shelljs');
+const {rimrafSync} = require('rimraf');
 
 describe('npm package', function() {
   beforeAll(function() {
-    const shell = require('shelljs'),
-      pack = shell.exec('npm pack', { silent: true });
+    const prefix = path.join(os.tmpdir(), 'jasmine-npm-package');
+    this.tmpDir = fs.mkdtempSync(prefix);
 
+    const pack = shell.exec('npm pack', { silent: true });
     this.tarball = pack.stdout.split('\n')[0];
-    this.tmpDir = temp.mkdirSync(); // automatically deleted on exit
+    console.log(this.tmpDir);
 
     const untar = shell.exec('tar -xzf ' + this.tarball + ' -C ' + this.tmpDir, {
       silent: true
@@ -33,6 +36,7 @@ describe('npm package', function() {
 
   afterAll(function() {
     fs.unlinkSync(this.tarball);
+    rimrafSync(this.tmpDir);
   });
 
   it('has a jasmine script', function() {
