@@ -11,7 +11,6 @@ describe('npm package', function() {
 
     const pack = shell.exec('npm pack', { silent: true });
     this.tarball = pack.stdout.split('\n')[0];
-    console.log(this.tmpDir);
 
     const untar = shell.exec('tar -xzf ' + this.tarball + ' -C ' + this.tmpDir, {
       silent: true
