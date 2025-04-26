@@ -15,7 +15,8 @@ describe('Jasmine', function() {
           .and.callFake(function () {
             return Promise.reject(new Error('Unconfigured call to Env#execute'));
           }),
-        configure: jasmine.createSpy('configure')
+        configure: jasmine.createSpy('configure'),
+        topSuite: jasmine.createSpy('topSuite'),
       }),
       Timer: jasmine.createSpy('Timer')
     };
@@ -228,12 +229,62 @@ describe('Jasmine', function() {
       expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalled();
     });
 
-    it('should add spec filter if filterString is provided', async function () {
-      await this.execute({
-        executeArgs: [['spec/fixtures/example/*spec.js'], 'interesting spec']
+    describe('Filtering', function() {
+      let specFilter;
+
+      beforeEach(function() {
+        this.testJasmine.env.configure.and.callFake(function (config) {
+          if (config.specFilter) {
+            specFilter = config.specFilter;
+          }
+        });
       });
 
-      expect(this.testJasmine.env.configure).toHaveBeenCalledWith({specFilter: jasmine.any(Function)});
+      describe('When a filter string is provided', function () {
+        it('installs a matching spec filter', async function () {
+          await this.execute({
+            executeArgs: [['spec/fixtures/example/*spec.js'], 'interesting spec']
+          });
+
+          expect(specFilter).toBeTruthy();
+          const matchingSpec = {
+            getFullName() {
+              return 'this is an interesting spec that should match';
+            }
+          };
+          const nonMatchingSpec = {
+            getFullName() {
+              return 'but this one is not';
+            }
+          };
+          expect(specFilter(matchingSpec)).toBeTrue();
+          expect(specFilter(nonMatchingSpec)).toBeFalse();
+        });
+      });
+
+      describe('When a path filter specification is provided', function () {
+        it('installs a matching spec filter', async function () {
+          await this.execute({
+            executeArgs: [['spec/fixtures/example/*spec.js'], {
+              path: ['parent', 'child', 'spec']
+            }]
+          });
+
+          function stubSpec(path) {
+            return {
+              getPath() { return path; },
+              // getFullName is required, but plays no role in filtering
+              getFullName() { return ""; }
+            };
+          }
+
+          expect(specFilter).toBeTruthy();
+          expect(specFilter(stubSpec(['parent', 'child', 'spec'])))
+            .toBeTrue();
+          expect(specFilter(stubSpec(['parent', 'other child', 'spec'])))
+            .toBeFalse();
+        });
+      });
     });
 
     it('loads specs', async function () {
@@ -417,6 +468,60 @@ describe('Jasmine', function() {
           'globalTeardown', globalTeardown, 17
         );
       });
+    });
+  });
+
+  describe('#enumerate', function() {
+    it('loads requires, helpers, and specs', async function() {
+      const loadRequires = spyOn(this.testJasmine, 'loadRequires');
+      const loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
+      const loadSpecs = spyOn(this.testJasmine, 'loadSpecs');
+      this.bootedJasmine.getEnv().topSuite
+        .and.returnValue({children: []});
+
+      await this.testJasmine.enumerate();
+
+      expect(loadRequires).toHaveBeenCalledBefore(loadHelpers);
+      expect(loadHelpers).toHaveBeenCalledBefore(loadSpecs);
+      expect(loadSpecs).toHaveBeenCalledBefore(
+        this.bootedJasmine.getEnv().topSuite);
+    });
+
+    it('returns a serializable, id-less suite tree', async function() {
+      const topSuite = {
+        id: 'a',
+        description: 'Jasmine__TopLevel__Suite',
+        children: [{
+          id: 'b',
+          description: 'parent',
+          children: [{
+            id: 'c',
+            description: 'nested',
+            children: [{
+              id: 'd',
+              description: 'a spec'
+            }]
+          }]
+        }]
+      };
+      topSuite.children[0].parentSuite = topSuite;
+      topSuite.children[0].children[0].parentSuite = topSuite.children[0];
+      this.bootedJasmine.getEnv().topSuite.and.returnValue(topSuite);
+
+      const result = await this.testJasmine.enumerate();
+
+      expect(JSON.parse(JSON.stringify(result))).toEqual([{
+        type: 'suite',
+        description: 'parent',
+        children: [{
+          type: 'suite',
+          description: 'nested',
+          children: [{
+            type: 'spec',
+            description: 'a spec'
+          }]
+        }]
+      }]);
     });
   });
 
