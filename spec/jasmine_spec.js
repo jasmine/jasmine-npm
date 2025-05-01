@@ -262,6 +262,28 @@ describe('Jasmine', function() {
         });
       });
 
+      describe('When a filter regex is provided', function () {
+        it('installs a matching spec filter', async function () {
+          await this.execute({
+            executeArgs: [['spec/fixtures/example/*spec.js'], /interesting spec/]
+          });
+
+          expect(specFilter).toBeTruthy();
+          const matchingSpec = {
+            getFullName() {
+              return 'this is an interesting spec that should match';
+            }
+          };
+          const nonMatchingSpec = {
+            getFullName() {
+              return 'but this one is not';
+            }
+          };
+          expect(specFilter(matchingSpec)).toBeTrue();
+          expect(specFilter(nonMatchingSpec)).toBeFalse();
+        });
+      });
+
       describe('When a path filter specification is provided', function () {
         it('installs a matching spec filter', async function () {
           await this.execute({

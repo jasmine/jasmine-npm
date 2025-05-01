@@ -9,9 +9,18 @@ describe("regexSpecFilter", function() {
   });
 
   it("should match the provided string", function() {
-    const specFilter = regexSpecFilter("foo");
+    const specFilter = regexSpecFilter("foo?");
 
     expect(specFilter({ getFullName: () => "foo"})).toBe(true);
+    expect(specFilter({ getFullName: () => "fo"})).toBe(true);
+    expect(specFilter({ getFullName: () => "bar"})).toBe(false);
+  });
+
+  it("should match the provided regex", function() {
+    const specFilter = regexSpecFilter(/foo?/);
+
+    expect(specFilter({ getFullName: () => "foo"})).toBe(true);
+    expect(specFilter({ getFullName: () => "fo"})).toBe(true);
     expect(specFilter({ getFullName: () => "bar"})).toBe(false);
   });
 
