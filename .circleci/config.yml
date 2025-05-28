@@ -7,6 +7,10 @@ orbs:
   node: circleci/node@5.0.2
 
 executors:
+  node24:
+    docker:
+      - image: cimg/node:24.0.0
+    working_directory: ~/workspace
   node22:
     docker:
       - image: cimg/node:22.0.0
@@ -64,6 +68,7 @@ workflows:
           matrix:
             parameters:
               executor:
+                - node24
                 - node22
                 - node20
                 - node18
