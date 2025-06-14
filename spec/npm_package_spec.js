@@ -2,7 +2,6 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const shell = require('shelljs');
-const {rimrafSync} = require('rimraf');
 
 describe('npm package', function() {
   beforeAll(function() {
@@ -35,7 +34,7 @@ describe('npm package', function() {
 
   afterAll(function() {
     fs.unlinkSync(this.tarball);
-    rimrafSync(this.tmpDir);
+    fs.rmSync(this.tmpDir, {recursive: true});
   });
 
   it('has a jasmine script', function() {
