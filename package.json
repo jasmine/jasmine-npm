@@ -37,7 +37,6 @@
   "bin": "./bin/jasmine.js",
   "main": "./lib/jasmine.js",
   "devDependencies": {
-    "eslint": "^9.24.0",
-    "shelljs": "^0.9.2"
+    "eslint": "^9.24.0"
   }
 }

@@ -1,20 +1,21 @@
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const shell = require('shelljs');
+const child_process = require('child_process');
 
 describe('npm package', function() {
   beforeAll(function() {
     const prefix = path.join(os.tmpdir(), 'jasmine-npm-package');
     this.tmpDir = fs.mkdtempSync(prefix);
 
-    const pack = shell.exec('npm pack', { silent: true });
-    this.tarball = pack.stdout.split('\n')[0];
-
-    const untar = shell.exec('tar -xzf ' + this.tarball + ' -C ' + this.tmpDir, {
-      silent: true
+    const packOutput = child_process.execSync('npm pack', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe']
     });
-    expect(untar.code).toBe(0);
+    this.tarball = packOutput.split('\n')[0];
+    child_process.execSync(`tar -xzf ${this.tarball} -C ${this.tmpDir}`, {
+      encoding: 'utf8'
+    });
   });
 
   beforeEach(function() {
