@@ -537,7 +537,10 @@ describe('ParallelWorker', function() {
       await Promise.resolve();
       await Promise.resolve();
       // No other messages should have been sent
-      expect(this.clusterWorker.send).toHaveBeenCalledOnceWith({type: 'booted'});
+      expect(this.clusterWorker.send.calls.argsFor(0)[0]).toEqual(
+        {type: 'readyForConfig'});
+      expect(this.clusterWorker.send.calls.argsFor(1)[0]).toEqual({type: 'booted'});
+      expect(this.clusterWorker.send).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -617,7 +620,10 @@ describe('ParallelWorker', function() {
         dispatchRepoterEvent(env, eventName, {});
 
         // No other messages should have been sent
-        expect(this.clusterWorker.send).toHaveBeenCalledOnceWith({type: 'booted'});
+        expect(this.clusterWorker.send.calls.argsFor(0)[0]).toEqual(
+          {type: 'readyForConfig'});
+        expect(this.clusterWorker.send.calls.argsFor(1)[0]).toEqual({type: 'booted'});
+        expect(this.clusterWorker.send).toHaveBeenCalledTimes(2);
       });
     }
 

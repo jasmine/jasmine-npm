@@ -62,6 +62,7 @@ describe('ParallelRunner', function() {
     this.execute = execute;
 
     this.emitBooted = worker => worker.emit('message', {type: 'booted'});
+    this.emitReadyForConfig = worker =>  worker.emit('message', {type: 'readyForConfig'});
 
     this.emitAllBooted = async () => {
       await shortPoll(
@@ -203,6 +204,7 @@ describe('ParallelRunner', function() {
     await poll(() => Object.values(this.cluster.workers).length > 0);
 
     for (const worker of Object.values(this.cluster.workers)) {
+      this.emitReadyForConfig(worker);
       expect(worker.send).toHaveBeenCalledWith(
         {
           type: 'configure',
@@ -262,6 +264,9 @@ describe('ParallelRunner', function() {
         'cluster.fork to have been called'
       );
       const workers = this.cluster.fork.calls.all().map(c => c.returnValue);
+      expect(workers[0].send).not.toHaveBeenCalled();
+      expect(workers[1].send).not.toHaveBeenCalled();
+
       const expectedConfig = {
         filter: 'myFilterString',
         jsLoader: 'require',
@@ -273,9 +278,14 @@ describe('ParallelRunner', function() {
         globals: false,
         env: envConfig,
       };
+
+      this.emitReadyForConfig(workers[0]);
       expect(workers[0].send).toHaveBeenCalledWith(
         {type: 'configure', configuration: expectedConfig}
       );
+      expect(workers[1].send).not.toHaveBeenCalled();
+
+      this.emitReadyForConfig(workers[1]);
       expect(workers[1].send).toHaveBeenCalledWith(
         {type: 'configure', configuration: expectedConfig}
       );
