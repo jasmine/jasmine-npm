@@ -3,7 +3,6 @@ const ShardedRunner = require('../lib/sharded_runner');
 
 describe('ShardedRunner', function() {
   beforeEach(function() {
-    // Mock jasmine-core environment
     this.mockEnv = {
       configure: function() {},
       addReporter: function() {},
@@ -36,7 +35,6 @@ describe('ShardedRunner', function() {
       shardCount: 4
     });
 
-    // Mock file system operations without spyOn
     this.originalExistsSync = require('fs').existsSync;
     this.originalReadFileSync = require('fs').readFileSync;
     this.originalGlobSync = require('glob').sync;
@@ -47,7 +45,6 @@ describe('ShardedRunner', function() {
   });
 
   afterEach(function() {
-    // Restore original functions
     require('fs').existsSync = this.originalExistsSync;
     require('fs').readFileSync = this.originalReadFileSync;
     require('glob').sync = this.originalGlobSync;
@@ -87,23 +84,19 @@ describe('ShardedRunner', function() {
         'spec5.js', 'spec6.js', 'spec7.js', 'spec8.js'
       ];
 
-      // Test shard 0 (index 0) of 4 shards - should get files at indices 0, 4
       this.runner.shardIndex = 0;
       this.runner.shardCount = 4;
       const shard0Files = this.runner.filterFilesToShard(files);
       expect(shard0Files).toEqual(['spec1.js', 'spec5.js']);
 
-      // Test shard 1 (index 1) of 4 shards - should get files at indices 1, 5
       this.runner.shardIndex = 1;
       const shard1Files = this.runner.filterFilesToShard(files);
       expect(shard1Files).toEqual(['spec2.js', 'spec6.js']);
 
-      // Test shard 2 (index 2) of 4 shards - should get files at indices 2, 6
       this.runner.shardIndex = 2;
       const shard2Files = this.runner.filterFilesToShard(files);
       expect(shard2Files).toEqual(['spec3.js', 'spec7.js']);
 
-      // Test shard 3 (index 3) of 4 shards - should get files at indices 3, 7
       this.runner.shardIndex = 3;
       const shard3Files = this.runner.filterFilesToShard(files);
       expect(shard3Files).toEqual(['spec4.js', 'spec8.js']);
@@ -114,15 +107,12 @@ describe('ShardedRunner', function() {
 
       this.runner.shardCount = 3;
 
-      // Shard 0 should get files at indices 0, 3
       this.runner.shardIndex = 0;
       expect(this.runner.filterFilesToShard(files)).toEqual(['spec1.js', 'spec4.js']);
 
-      // Shard 1 should get files at indices 1, 4
       this.runner.shardIndex = 1;
       expect(this.runner.filterFilesToShard(files)).toEqual(['spec2.js', 'spec5.js']);
 
-      // Shard 2 should get file at index 2
       this.runner.shardIndex = 2;
       expect(this.runner.filterFilesToShard(files)).toEqual(['spec3.js']);
     });
@@ -142,7 +132,6 @@ describe('ShardedRunner', function() {
       const files = ['spec1.js', 'spec2.js'];
       this.runner.shardCount = 4;
 
-      // Shard 0 gets spec1.js, shard 1 gets spec2.js, shards 2&3 get nothing
       this.runner.shardIndex = 0;
       expect(this.runner.filterFilesToShard(files)).toEqual(['spec1.js']);
 
@@ -204,7 +193,6 @@ describe('ShardedRunner', function() {
 
       require('fs').readFileSync = function() { return JSON.stringify(config); };
       
-      // Mock glob to return different results for different patterns
       require('glob').sync = function(pattern) {
         if (pattern === '*_spec.js') {
           return ['/abs/path/test1_spec.js', '/abs/path/test2_spec.js'];
@@ -219,10 +207,7 @@ describe('ShardedRunner', function() {
 
       await this.runner.loadConfigFile('jasmine.json');
 
-      // Spec files should be filtered by shard (1 of 2 files)
       expect(this.runner.specFiles.length).toBe(1);
-
-      // Helper files should NOT be filtered (all shards get all helpers)
       expect(this.runner.helperFiles.length).toBe(1);
       expect(this.runner.helperFiles[0]).toMatch(/helper\.js$/);
     });
@@ -266,7 +251,6 @@ describe('ShardedRunner', function() {
       
       const files = this.runner.addMatchingFiles(['test1.js', 'test*.js']);
 
-      // Should not have duplicates even though test1.js matches both patterns
       const test1Files = files.filter(f => f.includes('test1.js'));
       expect(test1Files.length).toBe(1);
     });
@@ -274,11 +258,10 @@ describe('ShardedRunner', function() {
 
   describe('execute', function() {
     it('sets up jasmine environment correctly', async function() {
-      this.runner.exitOnCompletion = false; // Don't exit in tests
+      this.runner.exitOnCompletion = false;
 
       const result = await this.runner.execute();
 
-      // Verify it returns the expected result structure
       expect(result).toBeDefined();
       expect(result.overallStatus).toBe('passed');
     });
@@ -288,7 +271,6 @@ describe('ShardedRunner', function() {
 
       await this.runner.execute();
 
-      // Verify global functions are set
       expect(typeof globalThis.describe).toBe('function');
       expect(typeof globalThis.it).toBe('function');
       expect(typeof globalThis.beforeEach).toBe('function');
@@ -298,12 +280,11 @@ describe('ShardedRunner', function() {
     it('handles execution without errors', async function() {
       this.runner.exitOnCompletion = false;
 
-      // Should not throw
       await expectAsync(this.runner.execute()).toBeResolved();
     });
 
     it('handles require files without errors', async function() {
-      this.runner.requireFiles = []; // Empty array to avoid requiring actual modules
+      this.runner.requireFiles = [];
       this.runner.exitOnCompletion = false;
 
       await expectAsync(this.runner.execute()).toBeResolved();
@@ -312,7 +293,6 @@ describe('ShardedRunner', function() {
 
   describe('mathematical distribution correctness', function() {
     it('distributes 108 files across 4 shards correctly', function() {
-      // Create array of 108 files (the example from summary)
       const files = Array.from({length: 108}, (_, i) => `spec${i + 1}.js`);
 
       const results = [];
@@ -323,7 +303,6 @@ describe('ShardedRunner', function() {
         results.push(shardFiles.length);
       }
 
-      // Should be 27 files per shard for perfect distribution
       expect(results).toEqual([27, 27, 27, 27]);
     });
 
@@ -338,7 +317,6 @@ describe('ShardedRunner', function() {
         results.push(shardFiles.length);
       }
 
-      // 108 / 8 = 13.5, so we expect 6 shards with 14 files and 2 with 13
       const expected = [14, 14, 14, 14, 13, 13, 13, 13];
       expect(results).toEqual(expected);
     });
@@ -355,7 +333,6 @@ describe('ShardedRunner', function() {
         allShardFiles.push(...shardFiles);
       }
 
-      // All files should be included exactly once
       expect(allShardFiles.sort()).toEqual(files.sort());
     });
 

@@ -80,7 +80,6 @@ describe('jasmine-sharded CLI', function() {
     it('accepts valid shard format', async function() {
       const result = await runShardedCli(['--shard=1/4'], 'spec/fixtures/sample_project');
 
-      // Should not fail on argument parsing (though may fail on missing specs)
       expect(result.stderr).not.toContain('Invalid shard format');
       expect(result.stderr).not.toContain('Invalid shard index');
     });
@@ -108,7 +107,6 @@ describe('jasmine-sharded CLI', function() {
 
       expect(result.exitCode).toBe(1);
       expect(result.output).toContain('Config file not found');
-      // Should not crash or show stack trace
       expect(result.output).not.toContain('at ');
     });
   });
@@ -117,7 +115,6 @@ describe('jasmine-sharded CLI', function() {
     it('converts 1-based input to 0-based internally', async function() {
       const result = await runShardedCli(['--shard=1/2'], 'spec/fixtures/sample_project');
 
-      // Should not fail on conversion
       expect(result.stdout).toContain('Running shard 1/2');
       expect(result.stdout).toContain('Loaded');
       expect(result.stdout).toContain('spec files for this shard');
@@ -141,18 +138,11 @@ describe('jasmine-sharded CLI', function() {
     });
 
     it('handles empty shard gracefully', async function() {
-      // Use a high shard count to ensure some shards will be empty
       const result = await runShardedCli(['--shard=4/4'], 'spec/fixtures/sample_project');
 
-      if (result.stdout.includes('No spec files to run')) {
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('Running shard 4/4');
-        expect(result.stdout).toContain('No spec files to run in this shard');
-      } else {
-        // If this shard isn't empty, that's also valid
-        expect(result.stdout).toContain('Running shard 4/4');
-        expect(result.stdout).toContain('Loaded');
-      }
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Running shard 4/4');
+      expect(result.stdout).toContain('No spec files to run in this shard');
     });
   });
 });
