@@ -26,6 +26,13 @@ describe('ShardedRunner', function() {
     this.mockJasmineCore = {
       noGlobals: function() {
         return this.mockJasmineInterface;
+      }.bind(this),
+      boot: function() {
+        return {
+          getEnv: function() {
+            return this.mockEnv;
+          }.bind(this)
+        };
       }.bind(this)
     };
 
@@ -288,6 +295,20 @@ describe('ShardedRunner', function() {
       this.runner.exitOnCompletion = false;
 
       await expectAsync(this.runner.execute()).toBeResolved();
+    });
+
+    it('supports globals: false option', async function() {
+      const runner = new ShardedRunner({
+        jasmineCore: this.mockJasmineCore,
+        shardIndex: 0,
+        shardCount: 4,
+        globals: false
+      });
+      runner.exitOnCompletion = false;
+
+      const result = await runner.execute();
+      expect(result).toBeDefined();
+      expect(result.overallStatus).toBe('passed');
     });
   });
 
