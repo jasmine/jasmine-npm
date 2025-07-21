@@ -21,7 +21,8 @@
   },
   "exports": {
     ".": "./lib/jasmine.js",
-    "./parallel": "./lib/parallel_runner.js"
+    "./parallel": "./lib/parallel_runner.js",
+    "./sharded": "./lib/sharded_runner.js"
   },
   "files": [
     "bin",
