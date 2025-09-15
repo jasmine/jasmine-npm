@@ -1,5 +1,5 @@
 for (let i = 1; i <= 5; i++) {
-  it('spec 1', function() {
+  it('spec ' + i, function() {
     console.log('in spec ' + i);
   });
 }
