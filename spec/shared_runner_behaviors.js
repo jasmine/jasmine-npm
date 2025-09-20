@@ -343,9 +343,9 @@ function sharedRunnerBehaviors(makeRunner) {
             ]);
           });
 
-          it('warns if default .js and .json config files are both found', async function () {
+          it('does not load jasmine.js config if jasmine.json config file is found', async function () {
             spyOn(Loader.prototype, 'load').and.callFake(function (path) {
-              if (path.endsWith('jasmine.js') || path.endsWith('jasmine.json')) {
+              if (path.endsWith('jasmine.json')) {
                 return Promise.resolve({});
               } else {
                 const e = new Error(`Module not found: ${path}`);
@@ -353,15 +353,13 @@ function sharedRunnerBehaviors(makeRunner) {
                 return Promise.reject(e);
               }
             });
-            spyOn(console, 'warn');
 
             await this.fixtureJasmine.loadConfigFile();
 
-            expect(console.warn).toHaveBeenCalledWith(
-              'Deprecation warning: Jasmine found and loaded both jasmine.js ' +
-              'and jasmine.json\nconfig files. In a future version, only the ' +
-              'first file found will be loaded.'
-            );
+            expect(Loader.prototype.load)
+              .toHaveBeenCalledWith(jasmine.stringMatching(/jasmine\.json$/));
+            expect(Loader.prototype.load)
+              .not.toHaveBeenCalledWith(jasmine.stringMatching(/jasmine\.js$/));
           });
         });
       });
