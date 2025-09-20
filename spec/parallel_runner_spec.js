@@ -4,7 +4,7 @@ const {sharedRunnerBehaviors, pathEndingWith} = require('./shared_runner_behavio
 const ParallelRunner = require("../lib/parallel_runner");
 const {ConsoleReporter} = require("../lib/jasmine");
 const {poll, shortPoll} = require('./poll');
-const realBootedJasmineCore = require('jasmine-core').boot();
+const realBootedJasmineCore = require('jasmine-core').boot(false);
 
 describe('ParallelRunner', function() {
   const forwardedReporterEvents = ['suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
@@ -52,6 +52,7 @@ describe('ParallelRunner', function() {
       );
     }
     this.testJasmine = new ParallelRunner({
+      jasmineCore: stubCore(),
       cluster: this.cluster,
       ConsoleReporter: this.ConsoleReporter,
       ParallelReportDispatcher,
@@ -105,8 +106,11 @@ describe('ParallelRunner', function() {
     };
   });
 
-  sharedRunnerBehaviors(function(options) {
-    return new ParallelRunner(options);
+  sharedRunnerBehaviors(function (options) {
+    return new ParallelRunner({
+      ...options,
+      jasmineCore: stubCore(),
+    });
   });
 
   it('registers a console reporter upon construction', function() {
@@ -217,10 +221,10 @@ describe('ParallelRunner', function() {
   describe('#execute', function() {
     it('creates the configured number of worker processes', async function () {
       this.testJasmine = new ParallelRunner({
+        jasmineCore: stubCore(),
         cluster: this.cluster,
         numWorkers: 17,
         ConsoleReporter: this.ConsoleReporter,
-        ParallelReportDispatcher: StubParallelReportDispatcher
       });
       this.testJasmine.exit = dontExit;
       this.testJasmine.execute();
@@ -237,9 +241,9 @@ describe('ParallelRunner', function() {
 
     it('configures the workers and waits for them to acknowledge', async function () {
       this.testJasmine = new ParallelRunner({
+        jasmineCore: stubCore(),
         cluster: this.cluster,
         ConsoleReporter: this.ConsoleReporter,
-        ParallelReportDispatcher: StubParallelReportDispatcher,
         numWorkers: 2,
         globals: false,
       });
@@ -857,6 +861,7 @@ describe('ParallelRunner', function() {
       spyOn(reportDispatcher, 'uninstallGlobalErrors');
       let reportDispatcherOnError;
       this.testJasmine = new ParallelRunner({
+        jasmineCore: stubCore(),
         cluster: this.cluster,
         ParallelReportDispatcher: function(onError) {
           reportDispatcherOnError = onError;
@@ -1244,6 +1249,7 @@ describe('ParallelRunner', function() {
 
     it('converts backslashes in the project base dir to slashes, for compatibility with glob', function () {
       const subject = new ParallelRunner({
+        jasmineCore: stubCore(),
         projectBaseDir: 'c:\\foo\\bar',
         platform: windows,
         cluster: this.cluster,
@@ -1308,6 +1314,22 @@ function getSpecFilesRan(workers) {
     .map(args => args[0])
     .filter(msg => msg.type === 'runSpecFile')
     .map(msg => msg.filePath);
+}
+
+function stubCore() {
+  return {
+    boot() {
+      return {Timer, ParallelReportDispatcher: StubParallelReportDispatcher};
+    },
+    files: []
+  };
+}
+
+class Timer {
+  start() {}
+  elapsed() {
+    return 0;
+  }
 }
 
 class StubParallelReportDispatcher {
