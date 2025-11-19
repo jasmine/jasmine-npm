@@ -31,7 +31,7 @@
     "README.md"
   ],
   "dependencies": {
-    "glob": "^10.2.2 || ^11.0.3",
+    "glob": "^10.2.2 || ^11.0.3 || ^12.0.0",
     "jasmine-core": "6.0.0-alpha.2"
   },
   "bin": "./bin/jasmine.js",
