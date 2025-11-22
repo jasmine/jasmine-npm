@@ -131,16 +131,11 @@ function sharedRunnerBehaviors(makeRunner) {
       });
 
       it('creates a reporter with a default option if an option is not specified', function () {
-        const reporterOptions = {};
+        this.testJasmine.configureDefaultReporter({});
 
-        this.testJasmine.configureDefaultReporter(reporterOptions);
-
-        const expectedReporterOptions = {
+        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith({
           print: jasmine.any(Function),
-          color: true,
-        };
-
-        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
+        });
       });
     });
 

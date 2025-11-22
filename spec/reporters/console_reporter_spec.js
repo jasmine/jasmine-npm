@@ -95,7 +95,7 @@ describe("ConsoleReporter", function() {
 
     reporter.specDone({status: "passed"});
 
-    expect(this.out.getOutput()).toEqual(".");
+    expect(this.out.getOutput()).toEqual("\x1B[32m.\x1B[0m");
   });
 
   it("does not report a disabled spec", function() {
@@ -117,7 +117,7 @@ describe("ConsoleReporter", function() {
 
     reporter.specDone({status: "failed"});
 
-    expect(this.out.getOutput()).toEqual("F");
+    expect(this.out.getOutput()).toEqual("\x1B[31mF\x1B[0m");
   });
 
   it("reports a pending spec as a '*'", function() {
@@ -128,7 +128,7 @@ describe("ConsoleReporter", function() {
 
     reporter.specDone({status: "pending"});
 
-    expect(this.out.getOutput()).toEqual("*");
+    expect(this.out.getOutput()).toEqual("\x1B[33m*\x1B[0m");
   });
 
   it("alerts user if there are no specs", function() {
@@ -696,12 +696,12 @@ describe("ConsoleReporter", function() {
     expect(this.out.getOutput()).toMatch(/Suite error: top suite\s+Message:\s+Global Exception/);
   });
 
-  describe("with color", function() {
+  describe("without color", function() {
     it("reports that the suite has started to the console", function() {
       const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
-        color: true
+        color: false
       });
 
       reporter.jasmineStarted();
@@ -713,19 +713,19 @@ describe("ConsoleReporter", function() {
       const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
-        color: true
+        color: false
       });
 
       reporter.specDone({status: "passed"});
 
-      expect(this.out.getOutput()).toEqual("\x1B[32m.\x1B[0m");
+      expect(this.out.getOutput()).toEqual(".");
     });
 
     it("does not report a disabled spec", function() {
       const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
-        color: true
+        color: false
       });
 
       reporter.specDone({status: 'disabled'});
@@ -737,12 +737,24 @@ describe("ConsoleReporter", function() {
       const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
-        color: true
+        color: false
       });
 
       reporter.specDone({status: 'failed'});
 
-      expect(this.out.getOutput()).toEqual("\x1B[31mF\x1B[0m");
+      expect(this.out.getOutput()).toEqual("F");
+    });
+
+    it("reports a pending spec as a '*'", function() {
+      const reporter = new ConsoleReporter();
+      reporter.setOptions({
+        print: this.out.print,
+        color: false
+      });
+
+      reporter.specDone({status: "pending"});
+
+      expect(this.out.getOutput()).toEqual("*");
     });
   });
 });
