@@ -68,7 +68,7 @@ describe("ConsoleReporter", function() {
 
     reporter.setOptions({
       print: this.out.print,
-      showColors: false
+      color: false
     });
 
     reporter.jasmineStarted();
@@ -80,7 +80,7 @@ describe("ConsoleReporter", function() {
 
     // set options that does not include print, should still print with this.out.print
     reporter.setOptions({
-      showColors: true
+      color: true
     });
 
     reporter.jasmineStarted();
@@ -678,7 +678,7 @@ describe("ConsoleReporter", function() {
     const reporter = new ConsoleReporter();
     reporter.setOptions({
       print: this.out.print,
-      showColors: false
+      color: false
     });
 
     reporter.suiteDone({
@@ -701,7 +701,7 @@ describe("ConsoleReporter", function() {
       const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
-        showColors: true
+        color: true
       });
 
       reporter.jasmineStarted();
@@ -713,7 +713,7 @@ describe("ConsoleReporter", function() {
       const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
-        showColors: true
+        color: true
       });
 
       reporter.specDone({status: "passed"});
@@ -725,7 +725,7 @@ describe("ConsoleReporter", function() {
       const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
-        showColors: true
+        color: true
       });
 
       reporter.specDone({status: 'disabled'});
@@ -737,7 +737,7 @@ describe("ConsoleReporter", function() {
       const reporter = new ConsoleReporter();
       reporter.setOptions({
         print: this.out.print,
-        showColors: true
+        color: true
       });
 
       reporter.specDone({status: 'failed'});

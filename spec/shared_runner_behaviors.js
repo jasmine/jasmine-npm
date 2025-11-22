@@ -117,7 +117,7 @@ function sharedRunnerBehaviors(makeRunner) {
       it('sets the options on the console reporter', function () {
         const reporterOptions = {
           print: 'printer',
-          showColors: true,
+          color: true,
         };
 
         const expectedReporterOptions = Object.keys(reporterOptions).reduce(function (options, key) {
@@ -137,7 +137,7 @@ function sharedRunnerBehaviors(makeRunner) {
 
         const expectedReporterOptions = {
           print: jasmine.any(Function),
-          showColors: true,
+          color: true,
         };
 
         expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
@@ -372,7 +372,7 @@ function sharedRunnerBehaviors(makeRunner) {
         await this.execute();
 
         expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-          showColors: true,
+          color: true,
           alwaysListPendingSpecs: true
         });
       });
@@ -385,13 +385,13 @@ function sharedRunnerBehaviors(makeRunner) {
         await this.execute();
 
         expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-          showColors: false,
+          color: false,
           alwaysListPendingSpecs: false
         });
       });
 
       it('does not configure the default reporter if this was already done', async function() {
-        this.testJasmine.configureDefaultReporter({showColors: false});
+        this.testJasmine.configureDefaultReporter({color: false});
 
         spyOn(this.testJasmine, 'configureDefaultReporter');
 
