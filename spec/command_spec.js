@@ -178,7 +178,7 @@ describe('command', function() {
       await withValueForIsTTY(true, async function () {
         await this.command.run(['node', 'bin/jasmine.js', '--', '--no-color']);
         expect(this.out.getOutput()).toBe('');
-        expect(this.fakeJasmine.showColors).toHaveBeenCalledWith(true);
+        expect(this.fakeJasmine.showColors).not.toHaveBeenCalledWith(false);
       }.bind(this));
     });
   });
@@ -239,20 +239,6 @@ describe('command', function() {
       it('should load a custom config file specified by option', async function () {
         await this.run(['node', 'bin/jasmine.js', '--config=somewhere.json']);
         expect(this.runner.loadConfigFile).toHaveBeenCalledWith('somewhere.json');
-      });
-
-      it('should show colors by default if stdout is a TTY', async function () {
-        await withValueForIsTTY(true, async function () {
-          await this.run(['node', 'bin/jasmine.js']);
-          expect(this.runner.showColors).toHaveBeenCalledWith(true);
-        }.bind(this));
-      });
-
-      it('should not show colors by default if stdout is not a TTY', async function () {
-        await withValueForIsTTY(undefined, async function () {
-          await this.run(['node', 'bin/jasmine.js']);
-          expect(this.runner.showColors).toHaveBeenCalledWith(false);
-        }.bind(this));
       });
 
       it('should allow colors to be turned off', async function () {

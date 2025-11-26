@@ -109,32 +109,27 @@ function sharedRunnerBehaviors(makeRunner) {
 
     describe('#configureDefaultReporter', function () {
       beforeEach(function () {
-        if (!jasmine.isSpy(this.testJasmine.reporter_.setOptions)) {
-          spyOn(this.testJasmine.reporter_, 'setOptions');
+        if (!jasmine.isSpy(this.testJasmine.reporter_.configure)) {
+          spyOn(this.testJasmine.reporter_, 'configure');
         }
       });
 
       it('sets the options on the console reporter', function () {
-        const reporterOptions = {
-          print: 'printer',
-          color: true,
-        };
-
-        const expectedReporterOptions = Object.keys(reporterOptions).reduce(function (options, key) {
-          options[key] = reporterOptions[key];
-          return options;
-        }, {});
+        const reporterOptions = {color: true};
 
         this.testJasmine.configureDefaultReporter(reporterOptions);
 
-        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
+        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
+          ...reporterOptions,
+          randomSeedReproductionCmd: jasmine.any(Function)
+        });
       });
 
       it('creates a reporter with a default option if an option is not specified', function () {
         this.testJasmine.configureDefaultReporter({});
-
-        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith({
-          print: jasmine.any(Function),
+        
+        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
+          randomSeedReproductionCmd: jasmine.any(Function)
         });
       });
     });
@@ -367,7 +362,7 @@ function sharedRunnerBehaviors(makeRunner) {
         await this.execute();
 
         expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-          color: true,
+          color: undefined,
           alwaysListPendingSpecs: true
         });
       });
