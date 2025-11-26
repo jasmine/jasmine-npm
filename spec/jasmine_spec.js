@@ -1,4 +1,5 @@
 const path = require('path');
+const ConsoleReporter = require('@jasminejs/reporters/console');
 const Jasmine = require('../lib/jasmine');
 const {sharedRunnerBehaviors} = require('./shared_runner_behaviors');
 const {poll, shortPoll} = require('./poll');
@@ -59,7 +60,19 @@ describe('Jasmine', function() {
   it('registers a console reporter upon construction', function () {
     const testJasmine = new Jasmine({jasmineCore: this.fakeJasmineCore});
 
-    expect(testJasmine.env.addReporter).toHaveBeenCalledWith(jasmine.any(Jasmine.ConsoleReporter));
+    expect(testJasmine.env.addReporter).toHaveBeenCalledWith(jasmine.any(ConsoleReporter));
+  });
+
+  it('reports how to reproduce the random seed', function() {
+    const testJasmine = new Jasmine({jasmineCore: this.fakeJasmineCore});
+    const print = jasmine.createSpy('print');
+    testJasmine.configureDefaultReporter({print});
+    const reporter = testJasmine.env.addReporter.calls.mostRecent().args[0];
+
+    reporter.jasmineDone({order: {random: true, seed: 12345}});
+
+    expect(print).toHaveBeenCalledWith(jasmine.stringContaining(
+      '(jasmine --random=true --seed=12345)'));
   });
 
   it('can add and clear reporters', function () {

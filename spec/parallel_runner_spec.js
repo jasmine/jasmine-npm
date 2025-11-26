@@ -1,8 +1,8 @@
 const path = require('path');
 const EventEmitter = require('node:events');
+const ConsoleReporter = require('@jasminejs/reporters/console');
 const {sharedRunnerBehaviors, pathEndingWith} = require('./shared_runner_behaviors');
 const ParallelRunner = require("../lib/parallel_runner");
-const {ConsoleReporter} = require("../lib/jasmine");
 const {poll, shortPoll} = require('./poll');
 const realBootedJasmineCore = require('jasmine-core').boot(false);
 

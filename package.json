@@ -31,6 +31,7 @@
     "README.md"
   ],
   "dependencies": {
+    "@jasminejs/reporters": "file:../reporters",
     "glob": "^10.2.2 || ^11.0.3 || ^12.0.0 || ^13.0.0",
     "jasmine-core": "6.0.0-alpha.2"
   },

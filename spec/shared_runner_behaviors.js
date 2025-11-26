@@ -115,19 +115,14 @@ function sharedRunnerBehaviors(makeRunner) {
       });
 
       it('sets the options on the console reporter', function () {
-        const reporterOptions = {
-          print: 'printer',
-          color: true,
-        };
-
-        const expectedReporterOptions = Object.keys(reporterOptions).reduce(function (options, key) {
-          options[key] = reporterOptions[key];
-          return options;
-        }, {});
+        const reporterOptions = {color: true};
 
         this.testJasmine.configureDefaultReporter(reporterOptions);
 
-        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
+        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith({
+          ...reporterOptions,
+          randomSeedReproductionCmd: jasmine.any(Function)
+        });
       });
 
       it('creates a reporter with a default option if an option is not specified', function () {
@@ -135,12 +130,10 @@ function sharedRunnerBehaviors(makeRunner) {
 
         this.testJasmine.configureDefaultReporter(reporterOptions);
 
-        const expectedReporterOptions = {
-          print: jasmine.any(Function),
+        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith({
           color: true,
-        };
-
-        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
+          randomSeedReproductionCmd: jasmine.any(Function)
+        });
       });
     });
 
