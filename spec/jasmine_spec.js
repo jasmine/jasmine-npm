@@ -217,7 +217,7 @@ describe('Jasmine', function() {
   });
 
   it("showing colors can be configured", function () {
-    expect(this.testJasmine.showingColors).toBe(true);
+    expect(this.testJasmine.showingColors).toBeUndefined();
 
     this.testJasmine.showColors(false);
 

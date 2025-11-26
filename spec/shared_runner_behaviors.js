@@ -109,8 +109,8 @@ function sharedRunnerBehaviors(makeRunner) {
 
     describe('#configureDefaultReporter', function () {
       beforeEach(function () {
-        if (!jasmine.isSpy(this.testJasmine.reporter_.setOptions)) {
-          spyOn(this.testJasmine.reporter_, 'setOptions');
+        if (!jasmine.isSpy(this.testJasmine.reporter_.configure)) {
+          spyOn(this.testJasmine.reporter_, 'configure');
         }
       });
 
@@ -119,7 +119,7 @@ function sharedRunnerBehaviors(makeRunner) {
 
         this.testJasmine.configureDefaultReporter(reporterOptions);
 
-        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith({
+        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
           ...reporterOptions,
           randomSeedReproductionCmd: jasmine.any(Function)
         });
@@ -130,8 +130,7 @@ function sharedRunnerBehaviors(makeRunner) {
 
         this.testJasmine.configureDefaultReporter(reporterOptions);
 
-        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith({
-          color: true,
+        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
           randomSeedReproductionCmd: jasmine.any(Function)
         });
       });
@@ -365,7 +364,7 @@ function sharedRunnerBehaviors(makeRunner) {
         await this.execute();
 
         expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-          color: true,
+          color: undefined,
           alwaysListPendingSpecs: true
         });
       });

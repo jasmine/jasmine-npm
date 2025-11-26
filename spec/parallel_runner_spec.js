@@ -30,7 +30,7 @@ describe('ParallelRunner', function() {
     this.consoleReporter = jasmine.createSpyObj(
       'consoleReporter',
       [
-        'setOptions',
+        'configure',
         ...forwardedReporterEvents,
         ...nonForwardedReporterEvents
       ]
