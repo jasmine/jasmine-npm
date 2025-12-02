@@ -109,38 +109,28 @@ function sharedRunnerBehaviors(makeRunner) {
 
     describe('#configureDefaultReporter', function () {
       beforeEach(function () {
-        if (!jasmine.isSpy(this.testJasmine.reporter_.setOptions)) {
-          spyOn(this.testJasmine.reporter_, 'setOptions');
+        if (!jasmine.isSpy(this.testJasmine.reporter_.configure)) {
+          spyOn(this.testJasmine.reporter_, 'configure');
         }
       });
 
       it('sets the options on the console reporter', function () {
-        const reporterOptions = {
-          print: 'printer',
-          showColors: true,
-        };
-
-        const expectedReporterOptions = Object.keys(reporterOptions).reduce(function (options, key) {
-          options[key] = reporterOptions[key];
-          return options;
-        }, {});
+        const reporterOptions = {color: true};
 
         this.testJasmine.configureDefaultReporter(reporterOptions);
 
-        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
+        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
+          ...reporterOptions,
+          randomSeedReproductionCmd: jasmine.any(Function)
+        });
       });
 
       it('creates a reporter with a default option if an option is not specified', function () {
-        const reporterOptions = {};
-
-        this.testJasmine.configureDefaultReporter(reporterOptions);
-
-        const expectedReporterOptions = {
-          print: jasmine.any(Function),
-          showColors: true,
-        };
-
-        expect(this.testJasmine.reporter_.setOptions).toHaveBeenCalledWith(expectedReporterOptions);
+        this.testJasmine.configureDefaultReporter({});
+        
+        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
+          randomSeedReproductionCmd: jasmine.any(Function)
+        });
       });
     });
 
@@ -343,9 +333,9 @@ function sharedRunnerBehaviors(makeRunner) {
             ]);
           });
 
-          it('warns if default .js and .json config files are both found', async function () {
+          it('does not load jasmine.js config if jasmine.json config file is found', async function () {
             spyOn(Loader.prototype, 'load').and.callFake(function (path) {
-              if (path.endsWith('jasmine.js') || path.endsWith('jasmine.json')) {
+              if (path.endsWith('jasmine.json')) {
                 return Promise.resolve({});
               } else {
                 const e = new Error(`Module not found: ${path}`);
@@ -353,15 +343,13 @@ function sharedRunnerBehaviors(makeRunner) {
                 return Promise.reject(e);
               }
             });
-            spyOn(console, 'warn');
 
             await this.fixtureJasmine.loadConfigFile();
 
-            expect(console.warn).toHaveBeenCalledWith(
-              'Deprecation warning: Jasmine found and loaded both jasmine.js ' +
-              'and jasmine.json\nconfig files. In a future version, only the ' +
-              'first file found will be loaded.'
-            );
+            expect(Loader.prototype.load)
+              .toHaveBeenCalledWith(jasmine.stringMatching(/jasmine\.json$/));
+            expect(Loader.prototype.load)
+              .not.toHaveBeenCalledWith(jasmine.stringMatching(/jasmine\.js$/));
           });
         });
       });
@@ -374,7 +362,7 @@ function sharedRunnerBehaviors(makeRunner) {
         await this.execute();
 
         expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-          showColors: true,
+          color: undefined,
           alwaysListPendingSpecs: true
         });
       });
@@ -387,13 +375,13 @@ function sharedRunnerBehaviors(makeRunner) {
         await this.execute();
 
         expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-          showColors: false,
+          color: false,
           alwaysListPendingSpecs: false
         });
       });
 
       it('does not configure the default reporter if this was already done', async function() {
-        this.testJasmine.configureDefaultReporter({showColors: false});
+        this.testJasmine.configureDefaultReporter({color: false});
 
         spyOn(this.testJasmine, 'configureDefaultReporter');
 

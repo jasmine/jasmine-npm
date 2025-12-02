@@ -19,10 +19,6 @@ executors:
     docker:
       - image: cimg/node:20.0.0
     working_directory: ~/workspace
-  node18:
-    docker:
-      - image: cimg/node:18.20.5
-    working_directory: ~/workspace
 
 jobs:
   test:
@@ -49,7 +45,7 @@ jobs:
       - checkout
       - run:
           name: Install Node.js
-          command: nvm install 18.0.0 && nvm use 18.0.0
+          command: nvm install 20.0.0 && nvm use 20.0.0
       - run:
           name: Report Node and NPM versions
           command: echo "Using Node $(node --version) and NPM $(npm --version)"
@@ -71,7 +67,6 @@ workflows:
                 - node24
                 - node22
                 - node20
-                - node18
       - test_win
   cron:
     <<: *push_workflow

@@ -33,7 +33,7 @@ describe('ParallelWorker', function() {
 
       expect(loader.load).toHaveBeenCalledWith('./path/to/jasmine-core.js');
       expect(loader.load).not.toHaveBeenCalledWith('jasmine-core');
-      expect(core.boot).toHaveBeenCalledWith(true);
+      expect(core.boot).toHaveBeenCalledWith();
     });
 
     it('boots jasmine-core normally if globals is undefined', async function () {
@@ -56,7 +56,7 @@ describe('ParallelWorker', function() {
       await Promise.resolve();
 
       expect(loader.load).toHaveBeenCalledWith('jasmine-core');
-      expect(core.boot).toHaveBeenCalledWith(true);
+      expect(core.boot).toHaveBeenCalledWith();
     });
 
     it('disables globals if globals is false', async function() {
@@ -106,7 +106,7 @@ describe('ParallelWorker', function() {
       await Promise.resolve();
 
       expect(loader.load).toHaveBeenCalledWith('jasmine-core');
-      expect(core.boot).toHaveBeenCalledWith(true);
+      expect(core.boot).toHaveBeenCalledWith();
     });
 
     it('sends a fatalError message when the core module fails to load', async function() {
