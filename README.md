@@ -59,5 +59,5 @@ Documentation: [jasmine.github.io](https://jasmine.github.io)<br>
 Please file issues here at GitHub.
 
 Copyright (c) 2014-2019 Pivotal Labs<br>
-Copyright (c) 2014-2025 The Jasmine developers<br>
+Copyright (c) 2014-2026 The Jasmine developers<br>
 This software is licensed under the MIT License.
