@@ -1,4 +1,4 @@
-const jasmineInterface = require('jasmine-core').noGlobals();
+const jasmineInterface = require('jasmine-core');
 const {it, expect} = jasmineInterface;
 
 it('can use equality testers defined in a different file', function() {

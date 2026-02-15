@@ -4,7 +4,7 @@ const ConsoleReporter = require('@jasminejs/reporters/console');
 const {sharedRunnerBehaviors, pathEndingWith} = require('./shared_runner_behaviors');
 const ParallelRunner = require("../lib/parallel_runner");
 const {poll, shortPoll} = require('./poll');
-const realBootedJasmineCore = require('jasmine-core').boot(false);
+const realJasmineCore = require('jasmine-core');
 
 describe('ParallelRunner', function() {
   const forwardedReporterEvents = ['suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
@@ -46,7 +46,7 @@ describe('ParallelRunner', function() {
     // global error handling so that we don't accidentally ignore errors in
     // the specs
     function ParallelReportDispatcher(onError) {
-      return new realBootedJasmineCore.ParallelReportDispatcher(
+      return new realJasmineCore.jasmine.ParallelReportDispatcher(
         onError,
         {globalErrors: new StubGlobalErrors()}
       );
@@ -178,31 +178,30 @@ describe('ParallelRunner', function() {
 
   it('can use a caller-specified jasmine-core', async function() {
     const jasmineCorePath = 'my-custom-jasmine-core.js';
-    const bootedCore = jasmine.createSpyObj('bootedCore', [
-      'ParallelReportDispatcher',
-      'Timer',
-    ]);
-    bootedCore.ParallelReportDispatcher.and.returnValue({
-      addReporter() {}
-    });
-    bootedCore.Timer.and.returnValue({
-      start() {}
-    });
-    const jasmineCore = {
-      boot: () => bootedCore,
+    const callerSpecifiedCore = {
+      jasmine: jasmine.createSpyObj('callerSpecifiedCore.jasmine', [
+        'ParallelReportDispatcher',
+        'Timer',
+      ]),
       files: {
         self: jasmineCorePath
       }
     };
+    callerSpecifiedCore.jasmine.ParallelReportDispatcher.and.returnValue({
+      addReporter() {}
+    });
+    callerSpecifiedCore.jasmine.Timer.and.returnValue({
+      start() {}
+    });
     this.testJasmine = new ParallelRunner({
-      jasmineCore,
+      jasmineCore: callerSpecifiedCore,
       cluster: this.cluster,
       ConsoleReporter: this.ConsoleReporter,
     });
     this.testJasmine.exit = dontExit;
 
-    expect(bootedCore.ParallelReportDispatcher).toHaveBeenCalled();
-    expect(bootedCore.Timer).toHaveBeenCalled();
+    expect(callerSpecifiedCore.jasmine.ParallelReportDispatcher).toHaveBeenCalled();
+    expect(callerSpecifiedCore.jasmine.Timer).toHaveBeenCalled();
 
     this.testJasmine.execute();
     await poll(() => Object.values(this.cluster.workers).length > 0);
@@ -1318,8 +1317,9 @@ function getSpecFilesRan(workers) {
 
 function stubCore() {
   return {
-    boot() {
-      return {Timer, ParallelReportDispatcher: StubParallelReportDispatcher};
+    jasmine: {
+      Timer,
+      ParallelReportDispatcher: StubParallelReportDispatcher
     },
     files: []
   };

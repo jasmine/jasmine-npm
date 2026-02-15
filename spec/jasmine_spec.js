@@ -6,24 +6,23 @@ const {poll, shortPoll} = require('./poll');
 
 describe('Jasmine', function() {
   beforeEach(function () {
-    this.bootedJasmine = {
-      getEnv: jasmine.createSpy('getEnv').and.returnValue({
-        addReporter: jasmine.createSpy('addReporter'),
-        clearReporters: jasmine.createSpy('clearReporters'),
-        addMatchers: jasmine.createSpy('addMatchers'),
-        provideFallbackReporter: jasmine.createSpy('provideFallbackReporter'),
-        execute: jasmine.createSpy('execute')
-          .and.callFake(function () {
-            return Promise.reject(new Error('Unconfigured call to Env#execute'));
-          }),
-        configure: jasmine.createSpy('configure'),
-        topSuite: jasmine.createSpy('topSuite'),
-      }),
-      Timer: jasmine.createSpy('Timer')
-    };
-
     this.fakeJasmineCore = {
-      boot: jasmine.createSpy('boot').and.returnValue(this.bootedJasmine),
+      jasmine: {
+        getEnv: jasmine.createSpy('getEnv').and.returnValue({
+          addReporter: jasmine.createSpy('addReporter'),
+          clearReporters: jasmine.createSpy('clearReporters'),
+          addMatchers: jasmine.createSpy('addMatchers'),
+          provideFallbackReporter: jasmine.createSpy('provideFallbackReporter'),
+          execute: jasmine.createSpy('execute')
+            .and.callFake(function () {
+              return Promise.reject(new Error('Unconfigured call to Env#execute'));
+            }),
+          configure: jasmine.createSpy('configure'),
+          topSuite: jasmine.createSpy('topSuite'),
+        }),
+        Timer: jasmine.createSpy('Timer'),
+      },
+      installGlobals() {},
       files: {
         path: 'fake/jasmine/path'
       }
@@ -34,7 +33,7 @@ describe('Jasmine', function() {
     );
     this.testJasmine = new Jasmine({
       jasmineCore: this.fakeJasmineCore,
-      globalSetupOrTeardownRunner: this.globalSetupOrTeardownRunner
+      globalSetupOrTeardownRunner: this.globalSetupOrTeardownRunner,
     });
     this.testJasmine.exit = function () {
       // Don't actually exit the node process
@@ -361,7 +360,7 @@ describe('Jasmine', function() {
 
     describe('when a globalSetup is configured', function () {
       beforeEach(function () {
-        this.bootedJasmine.getEnv().execute.and.returnValue(
+        this.fakeJasmineCore.jasmine.getEnv().execute.and.returnValue(
           new Promise(() => {
           })
         );
@@ -382,9 +381,9 @@ describe('Jasmine', function() {
           () => this.globalSetupOrTeardownRunner.run.calls.any(),
           'globalSetupOrTeardownRunner.run to be called'
         );
-        expect(this.bootedJasmine.getEnv().execute).not.toHaveBeenCalled();
+        expect(this.fakeJasmineCore.jasmine.getEnv().execute).not.toHaveBeenCalled();
         resolve();
-        await poll(() => this.bootedJasmine.getEnv().execute());
+        await poll(() => this.fakeJasmineCore.jasmine.getEnv().execute());
       });
 
       it('fails if globalSetup fails', async function () {
@@ -428,7 +427,7 @@ describe('Jasmine', function() {
 
       beforeEach(function () {
         const promise = new Promise(res => resolveEnvExecute = res);
-        this.bootedJasmine.getEnv().execute.and.returnValue(promise);
+        this.fakeJasmineCore.jasmine.getEnv().execute.and.returnValue(promise);
         arbitraryOverallResult = {overallStatus: 'passed'};
       });
 
@@ -467,7 +466,7 @@ describe('Jasmine', function() {
       });
 
       it('runs globalTeardown even if env execution fails', async function () {
-        this.bootedJasmine.getEnv().execute
+        this.fakeJasmineCore.jasmine.getEnv().execute
           .and.rejectWith(new Error('env execute failure'));
         this.globalSetupOrTeardownRunner.run.and.resolveTo();
         this.testJasmine.loadConfig({
@@ -511,7 +510,7 @@ describe('Jasmine', function() {
       const loadRequires = spyOn(this.testJasmine, 'loadRequires');
       const loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
       const loadSpecs = spyOn(this.testJasmine, 'loadSpecs');
-      this.bootedJasmine.getEnv().topSuite
+      this.fakeJasmineCore.jasmine.getEnv().topSuite
         .and.returnValue({children: []});
 
       await this.testJasmine.enumerate();
@@ -519,7 +518,7 @@ describe('Jasmine', function() {
       expect(loadRequires).toHaveBeenCalledBefore(loadHelpers);
       expect(loadHelpers).toHaveBeenCalledBefore(loadSpecs);
       expect(loadSpecs).toHaveBeenCalledBefore(
-        this.bootedJasmine.getEnv().topSuite);
+        this.fakeJasmineCore.jasmine.getEnv().topSuite);
     });
 
     it('returns a serializable, id-less suite tree', async function() {
@@ -541,7 +540,7 @@ describe('Jasmine', function() {
       };
       topSuite.children[0].parentSuite = topSuite;
       topSuite.children[0].children[0].parentSuite = topSuite.children[0];
-      this.bootedJasmine.getEnv().topSuite.and.returnValue(topSuite);
+      this.fakeJasmineCore.jasmine.getEnv().topSuite.and.returnValue(topSuite);
 
       const result = await this.testJasmine.enumerate();
 
