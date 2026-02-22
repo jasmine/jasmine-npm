@@ -119,17 +119,20 @@ describe('ParallelRunner', function() {
   });
 
   it('can add and clear reporters', function() {
-    spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
-    spyOn(this.testJasmine.reportDispatcher_, 'clearReporters');
-    this.testJasmine.clearReporters();
-    expect(this.testJasmine.reportDispatcher_.clearReporters).toHaveBeenCalled();
     const reporter = {
       someProperty: 'some value',
-      reporterCapabilities: {parallel: true}
+      reporterCapabilities: {parallel: true},
+      jasmineStarted: jasmine.createSpy('reporter.jasmineStarted')
     };
+
     this.testJasmine.addReporter(reporter);
-    expect(this.testJasmine.reportDispatcher_.addReporter)
-      .toHaveBeenCalledWith(jasmine.is(reporter));
+    this.testJasmine.reportDispatcher_.jasmineStarted({});
+    expect(reporter.jasmineStarted).toHaveBeenCalled();
+
+    reporter.jasmineStarted.calls.reset();
+    this.testJasmine.clearReporters();
+    this.testJasmine.reportDispatcher_.jasmineStarted({});
+    expect(reporter.jasmineStarted).not.toHaveBeenCalled();
   });
 
   describe('Reporter validation', function() {
@@ -137,9 +140,8 @@ describe('ParallelRunner', function() {
       const expectedMsg = "Can't use this reporter because it doesn't support " +
         'parallel mode. (Add reporterCapabilities: {parallel: true} if ' +
         'the reporter meets the requirements for parallel mode.)';
-      spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
 
-      const reporter = {someProperty: 'some value'};
+      const reporter = jasmine.createSpyObj('reporter', ['jasmineStarted']);
       expect(() => this.testJasmine.addReporter(reporter))
         .withContext('no reporterCapabilities')
         .toThrowError(expectedMsg);
@@ -154,7 +156,8 @@ describe('ParallelRunner', function() {
         .withContext('reporterCapabilities.parallel = false')
         .toThrowError(expectedMsg);
 
-      expect(this.testJasmine.reportDispatcher_.addReporter).not.toHaveBeenCalled();
+      this.testJasmine.reportDispatcher_.jasmineStarted({});
+      expect(reporter.jasmineStarted).not.toHaveBeenCalled();
     });
 
     it('provides additional context when the reporter is in the config file', function() {
@@ -1215,17 +1218,17 @@ describe('ParallelRunner', function() {
   describe('Loading configuration', function() {
     it('adds specified reporters', function () {
       const reporters = [
-        {id: 'reporter1', reporterCapabilities: {parallel: true}},
-        {id: 'reporter2', reporterCapabilities: {parallel: true}},
+        {id: 'reporter1', reporterCapabilities: {parallel: true},
+          jasmineStarted: jasmine.createSpy('reporter1.jasmineStarted')},
+        {id: 'reporter2', reporterCapabilities: {parallel: true},
+          jasmineStarted: jasmine.createSpy('reporter2.jasmineStarted')},
       ];
-      spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
 
       this.testJasmine.loadConfig({reporters});
+      this.testJasmine.reportDispatcher_.jasmineStarted({});
 
-      expect(this.testJasmine.reportDispatcher_.addReporter)
-        .toHaveBeenCalledWith(reporters[0]);
-      expect(this.testJasmine.reportDispatcher_.addReporter)
-        .toHaveBeenCalledWith(reporters[1]);
+      expect(reporters[0].jasmineStarted).toHaveBeenCalled();
+      expect(reporters[1].jasmineStarted).toHaveBeenCalled();
     });
   });
 
