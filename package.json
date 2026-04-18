@@ -16,8 +16,8 @@
     "url": "https://github.com/jasmine/jasmine-npm"
   },
   "scripts": {
-    "test": "node ./bin/jasmine.js",
-    "posttest": "eslint \"bin/**/*.js\" \"lib/**/*.js\" \"spec/**/*.js\""
+    "test": "node ./bin/jasmine.js && npm run lint",
+    "lint": "eslint \"bin/**/*.js\" \"lib/**/*.js\" \"spec/**/*.js\""
   },
   "exports": {
     ".": "./lib/jasmine.js",
