@@ -7,145 +7,77 @@ describe('loader', function() {
     delete global.require_tester_was_loaded;
   });
 
-  it('sets alwaysImport to true by default', function() {
-    expect(new Loader().alwaysImport).toBeTrue();
-  });
-
   describe('#load', function() {
-    describe('With alwaysImport: true', function() {
-      describe('When the path ends in .mjs', function () {
-        esModuleSharedExamples('mjs', true);
-      });
+    describe('When the path ends in .mjs', function () {
+      esModuleSharedExamples('mjs', true);
+    });
 
-      describe('When the path does not end in .mjs', function () {
-        esModuleSharedExamples('js', true);
-      });
+    describe('When the path does not end in .mjs', function () {
+      esModuleSharedExamples('js', true);
+    });
 
-      describe('When the extension is not supported by import()', function() {
-        it('falls back to require()', async function() {
-          const error = new TypeError();
-          error.code = 'ERR_UNKNOWN_FILE_EXTENSION';
-          const payload = {};
-          const requireShim = jasmine.createSpy('requireShim')
-            .and.returnValue(Promise.resolve(payload));
-          const importShim = jasmine.createSpy('importShim')
-            .and.returnValue(Promise.reject(error));
-          const loader = new Loader({requireShim, importShim});
-          loader.alwaysImport = true;
-
-          const result = await loader.load('./spec.jsx');
-
-          expect(result).toBe(payload);
-          expect(requireShim).toHaveBeenCalled();
-          expect(importShim).toHaveBeenCalled();
-        });
-      });
-
-      it('imports non-local modules', async function() {
-        const payload = {default: {}};
-        const requireShim = jasmine.createSpy('requireShim');
-        const importShim = jasmine.createSpy('importShim')
-          .and.returnValue(Promise.resolve(payload));
-        const loader = new Loader({requireShim, importShim});
-        loader.alwaysImport = true;
-
-        const result = await loader.load('some-module');
-
-        expect(result).toBe(payload.default);
-        expect(requireShim).not.toHaveBeenCalled();
-        expect(importShim).toHaveBeenCalledWith('some-module');
-      });
-
-      it('imports namespaced modules', async function() {
-        const payload = {default: {}};
-        const requireShim = jasmine.createSpy('requireShim');
-        const importShim = jasmine.createSpy('importShim')
-          .and.returnValue(Promise.resolve(payload));
-        const loader = new Loader({requireShim, importShim});
-        loader.alwaysImport = true;
-
-        const result = await loader.load('@namespace/some-module');
-
-        expect(result).toBe(payload.default);
-        expect(requireShim).not.toHaveBeenCalled();
-        expect(importShim).toHaveBeenCalledWith('@namespace/some-module');
-      });
-
-      it('uses require to load JSON files', async function() {
+    describe('When the extension is not supported by import()', function() {
+      it('falls back to require()', async function() {
+        const error = new TypeError();
+        error.code = 'ERR_UNKNOWN_FILE_EXTENSION';
+        const payload = {};
         const requireShim = jasmine.createSpy('requireShim')
-          .and.returnValue(Promise.resolve());
-        const importShim = jasmine.createSpy('importShim');
+          .and.returnValue(Promise.resolve(payload));
+        const importShim = jasmine.createSpy('importShim')
+          .and.returnValue(Promise.reject(error));
         const loader = new Loader({requireShim, importShim});
-        loader.alwaysImport = true;
 
-        await expectAsync(loader.load('./jasmine.json')).toBeResolved();
+        const result = await loader.load('./spec.jsx');
 
-        expect(requireShim).toHaveBeenCalledWith('./jasmine.json');
-        expect(importShim).not.toHaveBeenCalled();
+        expect(result).toBe(payload);
+        expect(requireShim).toHaveBeenCalled();
+        expect(importShim).toHaveBeenCalled();
       });
     });
 
-    describe('With alwaysImport: false', function() {
-      describe('When the path ends in .mjs', function () {
-        esModuleSharedExamples('mjs', false);
-      });
+    it('imports non-local modules', async function() {
+      const payload = {default: {}};
+      const requireShim = jasmine.createSpy('requireShim');
+      const importShim = jasmine.createSpy('importShim')
+        .and.returnValue(Promise.resolve(payload));
+      const loader = new Loader({requireShim, importShim});
 
-      it('uses require to load JSON files', async function() {
-        const requireShim = jasmine.createSpy('requireShim')
-          .and.returnValue(Promise.resolve());
-        const importShim = jasmine.createSpy('importShim');
-        const loader = new Loader({requireShim, importShim});
-        loader.alwaysImport = false;
+      const result = await loader.load('some-module');
 
-        await expectAsync(loader.load('./jasmine.json')).toBeResolved();
+      expect(result).toBe(payload.default);
+      expect(requireShim).not.toHaveBeenCalled();
+      expect(importShim).toHaveBeenCalledWith('some-module');
+    });
 
-        expect(requireShim).toHaveBeenCalledWith('./jasmine.json');
-        expect(importShim).not.toHaveBeenCalled();
-      });
+    it('imports namespaced modules', async function() {
+      const payload = {default: {}};
+      const requireShim = jasmine.createSpy('requireShim');
+      const importShim = jasmine.createSpy('importShim')
+        .and.returnValue(Promise.resolve(payload));
+      const loader = new Loader({requireShim, importShim});
 
-      describe('When the path does not end in .mjs', function () {
-        it('loads the file as a commonjs module', async function () {
-          const requireShim = jasmine.createSpy('requireShim')
-            .and.returnValue(Promise.resolve());
-          const importShim = jasmine.createSpy('importShim');
-          const loader = new Loader({requireShim, importShim});
-          loader.alwaysImport = false;
+      const result = await loader.load('@namespace/some-module');
 
-          await expectAsync(loader.load('./foo/bar/baz')).toBeResolved();
+      expect(result).toBe(payload.default);
+      expect(requireShim).not.toHaveBeenCalled();
+      expect(importShim).toHaveBeenCalledWith('@namespace/some-module');
+    });
 
-          expect(requireShim).toHaveBeenCalledWith('./foo/bar/baz');
-          expect(importShim).not.toHaveBeenCalled();
-        });
+    it('uses require to load JSON files', async function() {
+      const requireShim = jasmine.createSpy('requireShim')
+        .and.returnValue(Promise.resolve());
+      const importShim = jasmine.createSpy('importShim');
+      const loader = new Loader({requireShim, importShim});
 
-        it('loads namespaced commonjs module', async function () {
-          const requireShim = jasmine.createSpy('requireShim')
-            .and.returnValue(Promise.resolve());
-          const importShim = jasmine.createSpy('importShim');
-          const loader = new Loader({requireShim, importShim});
-          loader.alwaysImport = false;
+      await expectAsync(loader.load('./jasmine.json')).toBeResolved();
 
-          await expectAsync(loader.load('@namespace/some-module')).toBeResolved();
-
-          expect(requireShim).toHaveBeenCalledWith('@namespace/some-module');
-          expect(importShim).not.toHaveBeenCalled();
-        });
-
-        it('propagates the error when import fails', async function () {
-          const underlyingError = new Error('nope');
-          const requireShim = jasmine.createSpy('requireShim')
-            .and.throwError(underlyingError);
-          const importShim = jasmine.createSpy('importShim');
-          const loader = new Loader({requireShim, importShim});
-          loader.alwaysImport = false;
-
-          await expectAsync(loader.load('foo')).toBeRejectedWith(underlyingError);
-        });
-      });
+      expect(requireShim).toHaveBeenCalledWith('./jasmine.json');
+      expect(importShim).not.toHaveBeenCalled();
     });
   });
 });
 
-function esModuleSharedExamples(extension, alwaysImport) {
+function esModuleSharedExamples(extension) {
   async function testBasicEsModuleLoading(separator) {
     const requireShim = jasmine.createSpy('requireShim');
     let resolve;
@@ -157,7 +89,6 @@ function esModuleSharedExamples(extension, alwaysImport) {
     const resolvePath = jasmine.createSpy('resolvePath')
       .and.returnValue('/the/path/to/the/module');
     const loader = new Loader({requireShim, importShim, resolvePath});
-    loader.alwaysImport = alwaysImport;
 
     const requestedPath = ['foo', 'bar', `baz.${extension}`].join(separator);
     const loaderPromise = loader.load(requestedPath);
@@ -185,7 +116,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
     const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
     try {
-      await loader.load(`foo.${extension}`, alwaysImport);
+      await loader.load(`foo.${extension}`);
       fail('Expected loader to throw but it did not');
     } catch (thrown) {
       expect(thrown.message).toEqual(
@@ -199,7 +130,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
     const underlyingError = new Error('nope');
     const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
-    await expectAsync(loader.load(`foo.${extension}`, alwaysImport)).toBeRejectedWith(underlyingError);
+    await expectAsync(loader.load(`foo.${extension}`)).toBeRejectedWith(underlyingError);
   });
 
   it('does not modify SyntaxErrors that mention the imported filename as a Unix-style path', async function() {
@@ -211,7 +142,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
       'maybe some more stack\n';
     const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
-    await expectAsync(loader.load(`path/to/foo.${extension}`, alwaysImport))
+    await expectAsync(loader.load(`path/to/foo.${extension}`))
       .toBeRejectedWith(underlyingError);
   });
 
@@ -220,7 +151,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
     underlyingError.stack += `\n     at async file:///the/absolute/path/to/foo.${extension}:1:1`;
     const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
-    await expectAsync(loader.load(`path/to/foo.${extension}`, alwaysImport))
+    await expectAsync(loader.load(`path/to/foo.${extension}`))
       .toBeRejectedWith(underlyingError);
   });
 
@@ -233,7 +164,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
       'maybe some more stack\n';
     const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
-    await expectAsync(loader.load(`path/to/foo.${extension}`, alwaysImport))
+    await expectAsync(loader.load(`path/to/foo.${extension}`))
       .toBeRejectedWith(underlyingError);
   });
 
@@ -242,7 +173,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
     underlyingError.stack += `\n     at async file:///c:/the/absolute/path/to/foo.${extension}:1:1`;
     const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
-    await expectAsync(loader.load(`path/to/foo.${extension}`, alwaysImport))
+    await expectAsync(loader.load(`path/to/foo.${extension}`))
       .toBeRejectedWith(underlyingError);
   });
 
@@ -251,7 +182,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
     underlyingError.stack = '/some/path/to/a/file.js:1\n\n\n\n' + underlyingError.stack;
     const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
-    await expectAsync(loader.load(`path/to/some/other/file.${extension}`, alwaysImport))
+    await expectAsync(loader.load(`path/to/some/other/file.${extension}`))
       .toBeRejectedWith(underlyingError);
   });
 
@@ -260,7 +191,7 @@ function esModuleSharedExamples(extension, alwaysImport) {
     underlyingError.stack = 'c:\\some\\path\\to\\a\\file.js:1\n\n\n\n' + underlyingError.stack;
     const loader = new Loader({importShim: () => Promise.reject(underlyingError)});
 
-    await expectAsync(loader.load(`path/to/some/other/file.${extension}`, alwaysImport))
+    await expectAsync(loader.load(`path/to/some/other/file.${extension}`))
       .toBeRejectedWith(underlyingError);
   });
 }

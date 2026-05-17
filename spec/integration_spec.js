@@ -53,22 +53,13 @@ describe('Integration', function () {
     expect(output).toContain('customReporter.js jasmineDone');
   });
 
-  it('loads .js files using import when jsLoader is "import"', async function() {
-    expect(await runJasmine('spec/fixtures/js-loader-import')).toBeSuccess();
-  });
-
-  it('loads .js files using require when jsLoader is "require"', async function() {
-    expect(await runJasmine('spec/fixtures/js-loader-require')).toBeSuccess();
-  });
-
-  it('loads .js files using import when jsLoader is undefined', async function() {
+  it('loads .js files using import', async function() {
     expect(await runJasmine('spec/fixtures/js-loader-default')).toBeSuccess();
   });
 
   it('falls back to require when loading extensions that import does not support', async function() {
     expect(await runJasmine('spec/fixtures/import-jsx')).toBeSuccess();
   });
-
 
   it('handles load-time exceptions from CommonJS specs properly', async function () {
     const {exitCode, output} = await runJasmine('spec/fixtures/cjs-load-exception');
@@ -122,6 +113,12 @@ describe('Integration', function () {
     expect(exitCode).toEqual(1);
     expect(output).toContain('nope');
     expect(output).toContain('throws.mjs');
+  });
+
+  it('supports custom loaders', async function() {
+    const {exitCode, output} = await runJasmine('spec/fixtures/custom-loader');
+    expect(exitCode).toEqual(3);
+    expect(output).toContain('1 spec, 1 failure');
   });
 
   it('can configure the env via the `env` config property', async function() {
@@ -416,9 +413,9 @@ describe('Integration', function () {
       expect(exitCode).toEqual(0);
     });
 
-    it('passes, the jsLoader config setting to workers', async function() {
+    it('passes, the loader config setting to workers', async function() {
       const {exitCode, output} = await runJasmine(
-        'spec/fixtures/parallel_jsLoader',
+        'spec/fixtures/parallel_custom_loader',
         'jasmine.json',
         ['--parallel=2']
       );

@@ -116,77 +116,77 @@ describe('Jasmine', function() {
         };
       });
 
-      it('can tell jasmine-core to stop spec on no expectations', function () {
-        this.fixtureJasmine.loadConfig({failSpecWithNoExpectations: true});
+      it('can tell jasmine-core to stop spec on no expectations', async function () {
+        await this.fixtureJasmine.loadConfig({failSpecWithNoExpectations: true});
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({failSpecWithNoExpectations: true});
       });
 
-      it('can tell jasmine-core to stop spec on expectation failure', function () {
-        this.fixtureJasmine.loadConfig({stopSpecOnExpectationFailure: true});
+      it('can tell jasmine-core to stop spec on expectation failure', async function () {
+        await this.fixtureJasmine.loadConfig({stopSpecOnExpectationFailure: true});
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopSpecOnExpectationFailure: true});
       });
 
-      it('can tell jasmine-core to stop execution when a spec fails', function () {
-        this.fixtureJasmine.loadConfig({stopOnSpecFailure: true});
+      it('can tell jasmine-core to stop execution when a spec fails', async function () {
+        await this.fixtureJasmine.loadConfig({stopOnSpecFailure: true});
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopOnSpecFailure: true});
       });
 
-      it('can tell jasmine-core to run random specs', function () {
-        this.fixtureJasmine.loadConfig({random: true});
+      it('can tell jasmine-core to run random specs', async function () {
+        await this.fixtureJasmine.loadConfig({random: true});
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({random: true});
       });
 
-      it('uses jasmine-core defaults if no config options specified', function () {
-        this.fixtureJasmine.loadConfig({});
+      it('uses jasmine-core defaults if no config options specified', async function () {
+        await this.fixtureJasmine.loadConfig({});
 
         expect(this.fixtureJasmine.env.configure).not.toHaveBeenCalled();
       });
 
-      it('can configure the env with arbitrary properties', function () {
+      it('can configure the env with arbitrary properties', async function () {
         const envConfig = {someProp: 'someVal'};
-        this.fixtureJasmine.loadConfig({env: envConfig});
+        await this.fixtureJasmine.loadConfig({env: envConfig});
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith(envConfig);
       });
 
-      it('passes verboseDeprecations to jasmine-core when specified', function () {
+      it('passes verboseDeprecations to jasmine-core when specified', async function () {
         this.configObject.verboseDeprecations = true;
-        this.fixtureJasmine.loadConfig(this.configObject);
+        await this.fixtureJasmine.loadConfig(this.configObject);
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith(
           jasmine.objectContaining({verboseDeprecations: true})
         );
       });
 
-      it('does not pass verboseDeprecations to jasmine-core when not specified', function () {
+      it('does not pass verboseDeprecations to jasmine-core when not specified', async function () {
         this.configObject.random = true; // or set any other property
-        this.fixtureJasmine.loadConfig(this.configObject);
+        await this.fixtureJasmine.loadConfig(this.configObject);
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalled();
         expect(this.fixtureJasmine.env.configure.calls.argsFor(0)[0].verboseDeprecations)
           .toBeUndefined();
       });
 
-      it('sets alwaysListPendingSpecs when present', function () {
-        this.fixtureJasmine.loadConfig({alwaysListPendingSpecs: false});
+      it('sets alwaysListPendingSpecs when present', async function () {
+        await this.fixtureJasmine.loadConfig({alwaysListPendingSpecs: false});
         expect(this.fixtureJasmine.alwaysListPendingSpecs_).toBeFalse();
       });
 
-      it('does not set alwaysListPendingSpecs when absent', function () {
-        this.fixtureJasmine.loadConfig({});
+      it('does not set alwaysListPendingSpecs when absent', async function () {
+        await this.fixtureJasmine.loadConfig({});
         expect(this.fixtureJasmine.alwaysListPendingSpecs_).toBeTrue();
       });
 
-      it('adds specified reporters', function () {
+      it('adds specified reporters', async function () {
         const reporter1 = {id: 'reporter1'};
         const reporter2 = {id: 'reporter2'};
         this.configObject.reporters = [reporter1, reporter2];
 
-        this.fixtureJasmine.loadConfig(this.configObject);
+        await this.fixtureJasmine.loadConfig(this.configObject);
 
         expect(this.fixtureJasmine.env.addReporter).toHaveBeenCalledWith(reporter1);
         expect(this.fixtureJasmine.env.addReporter).toHaveBeenCalledWith(reporter2);
@@ -375,7 +375,7 @@ describe('Jasmine', function() {
         function globalSetup() {
         }
 
-        this.testJasmine.loadConfig({globalSetup});
+        await this.testJasmine.loadConfig({globalSetup});
         this.testJasmine.execute();
         await shortPoll(
           () => this.globalSetupOrTeardownRunner.run.calls.any(),
@@ -388,7 +388,7 @@ describe('Jasmine', function() {
 
       it('fails if globalSetup fails', async function () {
         this.globalSetupOrTeardownRunner.run.and.rejectWith(new Error('nope'));
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalSetup() {
           }
         });
@@ -405,7 +405,7 @@ describe('Jasmine', function() {
         function globalSetup() {
         }
 
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalSetup,
           globalSetupTimeout: 17
         });
@@ -440,7 +440,7 @@ describe('Jasmine', function() {
         function globalTeardown() {
         }
 
-        this.testJasmine.loadConfig({globalTeardown});
+        await this.testJasmine.loadConfig({globalTeardown});
         const runnerExecutePromise = this.testJasmine.execute();
         await new Promise(res => setTimeout(res));
         expect(this.globalSetupOrTeardownRunner.run).not.toHaveBeenCalled();
@@ -456,7 +456,7 @@ describe('Jasmine', function() {
 
       it('fails if globalTeardown fails', async function () {
         this.globalSetupOrTeardownRunner.run.and.rejectWith(new Error('nope'));
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalTeardown() {
           }
         });
@@ -469,7 +469,7 @@ describe('Jasmine', function() {
         this.fakeJasmineCore.jasmine.getEnv().execute
           .and.rejectWith(new Error('env execute failure'));
         this.globalSetupOrTeardownRunner.run.and.resolveTo();
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalTeardown() {
           }
         });
@@ -487,7 +487,7 @@ describe('Jasmine', function() {
         function globalTeardown() {
         }
 
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalTeardown,
           globalTeardownTimeout: 17
         });

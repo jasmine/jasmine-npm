@@ -142,8 +142,8 @@ function sharedRunnerBehaviors(makeRunner) {
       });
 
       describe('from an object', function () {
-        it('adds unique spec and helper files', function() {
-          this.fixtureJasmine.loadConfig({
+        it('adds unique spec and helper files', async function() {
+          await this.fixtureJasmine.loadConfig({
             spec_dir: 'spec',
             spec_files: [
               'fixture_spec.js',
@@ -165,42 +165,26 @@ function sharedRunnerBehaviors(makeRunner) {
           expect(this.fixtureJasmine.specDir).toEqual('spec');
         });
 
-        it('sets the spec dir to the empty string when unspecified', function() {
-          this.fixtureJasmine.loadConfig({});
+        it('sets the spec dir to the empty string when unspecified', async function() {
+          await this.fixtureJasmine.loadConfig({});
           expect(this.fixtureJasmine.specDir).toEqual('');
         });
 
-        describe('with jsLoader: "require"', function () {
-          it('tells the loader not to always import', async function() {
-            this.fixtureJasmine.loadConfig({jsLoader: 'require'});
-            expect(this.fixtureJasmine.loader.alwaysImport).toBeFalse();
+        describe('with loader set', function() {
+          it('uses the custom loader exported by the specified module', async function() {
+            function customLoader() {}
+            spyOn(this.fixtureJasmine.loader, 'load')
+              .withArgs('some/loader/module')
+              .and.returnValue(Promise.resolve(customLoader));
+
+            await this.fixtureJasmine.loadConfig({loader: 'some/loader/module'});
+
+            expect(this.fixtureJasmine.loader).toEqual({load: customLoader});
           });
         });
 
-        describe('with jsLoader: "import"', function () {
-          it('tells the loader to always import', async function() {
-            this.fixtureJasmine.loadConfig({jsLoader: 'import'});
-            expect(this.fixtureJasmine.loader.alwaysImport).toBeTrue();
-          });
-        });
-
-        describe('with jsLoader set to an invalid value', function () {
-          it('throws an error', function() {
-            expect(() => {
-              this.fixtureJasmine.loadConfig({jsLoader: 'bogus'});
-            }).toThrowError(/"bogus" is not a valid value/);
-          });
-        });
-
-        describe('with jsLoader undefined', function () {
-          it('tells the loader to always import', async function() {
-            this.fixtureJasmine.loadConfig({});
-            expect(this.fixtureJasmine.loader.alwaysImport).toBeTrue();
-          });
-        });
-
-        it('adds requires', function() {
-          this.fixtureJasmine.loadConfig({
+        it('adds requires', async function() {
+          await this.fixtureJasmine.loadConfig({
             spec_dir: 'spec',
             requires: ['ts-node/register']
           });
