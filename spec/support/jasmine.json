@@ -8,6 +8,5 @@
   "helpers": [
     "helpers/**/*.js"
   ],
-  "random": true,
   "alwaysListPendingSpecs": false
 }

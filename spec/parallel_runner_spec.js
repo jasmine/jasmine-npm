@@ -894,7 +894,7 @@ describe('ParallelRunner', function() {
       beforeEach(async function () {
         this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir',
-          stopOnSpecFailure: true,
+          env: { stopOnSpecFailure: true },
         });
         this.testJasmine.addSpecFile('spec1.js');
         this.testJasmine.addSpecFile('spec2.js');

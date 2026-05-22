@@ -117,28 +117,115 @@ describe('Jasmine', function() {
         };
       });
 
-      it('can tell jasmine-core to stop spec on no expectations', function () {
-        this.fixtureJasmine.loadConfig({failSpecWithNoExpectations: true});
+      describe('Properties that duplicate core configuration', function() {
+        beforeEach(function () {
+          spyOn(console, 'warn');
+        });
 
-        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({failSpecWithNoExpectations: true});
-      });
+        it('forwards failSpecWithNoExpectations to the env configuration', function() {
+          this.fixtureJasmine.loadConfig({failSpecWithNoExpectations: true});
+          expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({
+            failSpecWithNoExpectations: true
+          });
+        });
 
-      it('can tell jasmine-core to stop spec on expectation failure', function () {
-        this.fixtureJasmine.loadConfig({stopSpecOnExpectationFailure: true});
+        it('emits a deprecation warning when failSpecWithNoExpectations is set', function() {
+          this.fixtureJasmine.loadConfig({failSpecWithNoExpectations: true});
+          expect(console.warn).toHaveBeenCalledWith(
+            'The failSpecWithNoExpectations configuration property is deprecated. Use env.failSpecWithNoExpectations instead.'
+          );
+        });
 
-        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopSpecOnExpectationFailure: true});
-      });
+        it('emits a more specific deprecation warning when failSpecWithNoExpectations is set to false', function() {
+          this.fixtureJasmine.loadConfig({failSpecWithNoExpectations: false});
+          expect(console.warn).toHaveBeenCalledWith(
+            "The failSpecWithNoExpectations configuration property is deprecated. Use env.failSpecWithNoExpectations instead, or omit it since you're using the default setting."
+          );
+        });
 
-      it('can tell jasmine-core to stop execution when a spec fails', function () {
-        this.fixtureJasmine.loadConfig({stopOnSpecFailure: true});
+        it('forwards stopSpecOnExpectationFailure to the env configuration', function() {
+          this.fixtureJasmine.loadConfig({stopSpecOnExpectationFailure: true});
+          expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({
+            stopSpecOnExpectationFailure: true
+          });
+        });
 
-        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({stopOnSpecFailure: true});
-      });
+        it('emits a deprecation warning when stopSpecOnExpectationFailure is set', function() {
+          this.fixtureJasmine.loadConfig({stopSpecOnExpectationFailure: true});
+          expect(console.warn).toHaveBeenCalledWith(
+            'The stopSpecOnExpectationFailure configuration property is deprecated. Use env.stopSpecOnExpectationFailure instead.'
+          );
+        });
 
-      it('can tell jasmine-core to run random specs', function () {
-        this.fixtureJasmine.loadConfig({random: true});
+        it('emits a more specific deprecation warning when stopSpecOnExpectationFailure is set to false', function() {
+          this.fixtureJasmine.loadConfig({stopSpecOnExpectationFailure: false});
+          expect(console.warn).toHaveBeenCalledWith(
+            "The stopSpecOnExpectationFailure configuration property is deprecated. Use env.stopSpecOnExpectationFailure instead, or omit it since you're using the default setting."
+          );
+        });
 
-        expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({random: true});
+        it('forwards stopOnSpecFailure to the env configuration', function() {
+          this.fixtureJasmine.loadConfig({stopOnSpecFailure: true});
+          expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({
+            stopOnSpecFailure: true
+          });
+        });
+
+        it('emits a deprecation warning when stopOnSpecFailure is set', function() {
+          this.fixtureJasmine.loadConfig({stopOnSpecFailure: true});
+          expect(console.warn).toHaveBeenCalledWith(
+            'The stopOnSpecFailure configuration property is deprecated. Use env.stopOnSpecFailure instead.'
+          );
+        });
+
+        it('emits a more specific deprecation warning when stopOnSpecFailure is set to false', function() {
+          this.fixtureJasmine.loadConfig({stopOnSpecFailure: false});
+          expect(console.warn).toHaveBeenCalledWith(
+            "The stopOnSpecFailure configuration property is deprecated. Use env.stopOnSpecFailure instead, or omit it since you're using the default setting."
+          );
+        });
+
+        it('forwards random to the env configuration', function() {
+          this.fixtureJasmine.loadConfig({random: false});
+          expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({
+            random: false
+          });
+        });
+
+        it('emits a deprecation warning when random is set', function() {
+          this.fixtureJasmine.loadConfig({random: false});
+          expect(console.warn).toHaveBeenCalledWith(
+            'The random configuration property is deprecated. Use env.random instead.'
+          );
+        });
+
+        it('emits a more specific deprecation warning when random is set to true', function() {
+          this.fixtureJasmine.loadConfig({random: true});
+          expect(console.warn).toHaveBeenCalledWith(
+            "The random configuration property is deprecated. Use env.random instead, or omit it since you're using the default setting."
+          );
+        });
+
+        it('forwards verboseDeprecations to the env configuration', function() {
+          this.fixtureJasmine.loadConfig({verboseDeprecations: true});
+          expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith({
+            verboseDeprecations: true
+          });
+        });
+
+        it('emits a deprecation warning when verboseDeprecations is set', function() {
+          this.fixtureJasmine.loadConfig({verboseDeprecations: true});
+          expect(console.warn).toHaveBeenCalledWith(
+            'The verboseDeprecations configuration property is deprecated. Use env.verboseDeprecations instead.'
+          );
+        });
+
+        it('emits a more specific deprecation warning when verboseDeprecations is set to false', function() {
+          this.fixtureJasmine.loadConfig({verboseDeprecations: false});
+          expect(console.warn).toHaveBeenCalledWith(
+            "The verboseDeprecations configuration property is deprecated. Use env.verboseDeprecations instead, or omit it since you're using the default setting."
+          );
+        });
       });
 
       it('uses jasmine-core defaults if no config options specified', function () {
@@ -155,16 +242,22 @@ describe('Jasmine', function() {
       });
 
       it('passes verboseDeprecations to jasmine-core when specified', function () {
+        spyOn(console, 'warn');
         this.configObject.verboseDeprecations = true;
         this.fixtureJasmine.loadConfig(this.configObject);
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith(
           jasmine.objectContaining({verboseDeprecations: true})
         );
+        expect(console.warn).toHaveBeenCalledWith(
+          'The verboseDeprecations configuration property is deprecated. Use env.verboseDeprecations instead.'
+        );
       });
 
       it('does not pass verboseDeprecations to jasmine-core when not specified', function () {
-        this.configObject.random = true; // or set any other property
+        this.configObject.env = {
+          random: true // or any other property
+        };
         this.fixtureJasmine.loadConfig(this.configObject);
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalled();
@@ -204,6 +297,7 @@ describe('Jasmine', function() {
 
   describe('#stopOnSpecFailure', function () {
     it('sets the stopOnSpecFailure value on the jasmine-core env', function () {
+      spyOn(console, 'warn');
       this.testJasmine.stopOnSpecFailure('blah');
       expect(this.testJasmine.env.configure).toHaveBeenCalledWith({stopOnSpecFailure: 'blah'});
     });
