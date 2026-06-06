@@ -188,7 +188,8 @@ describe('Integration', function () {
   });
 
   it('does not create globals when the globals option is false', async function() {
-    const {exitCode, output} = await runCommand('node', ['runner.js'], 'spec/fixtures/no-globals');
+    const {exitCode, output} = await runCommand('node', ['runner.js'],
+      'spec/fixtures/no-globals');
 
     expect(exitCode).toEqual(0);
     expect(output).toContain('1 spec, 0 failures');

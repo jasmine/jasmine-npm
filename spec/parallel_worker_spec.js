@@ -14,7 +14,6 @@ describe('ParallelWorker', function() {
     it('can use a caller-supplied jasmine-core', async function () {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
-      spyOn(core, 'boot').and.callThrough();
       loader.load.and.returnValue(Promise.resolve(core));
       new ParallelWorker({
         loader,
@@ -33,13 +32,12 @@ describe('ParallelWorker', function() {
 
       expect(loader.load).toHaveBeenCalledWith('./path/to/jasmine-core.js');
       expect(loader.load).not.toHaveBeenCalledWith('jasmine-core');
-      expect(core.boot).toHaveBeenCalledWith();
     });
 
-    it('boots jasmine-core normally if globals is undefined', async function () {
+    it('installs globals globals is undefined', async function () {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
-      spyOn(core, 'boot').and.callThrough();
+      spyOn(core, 'installGlobals');
       loader.load.and.returnValue(Promise.resolve(core));
       new ParallelWorker({
         loader,
@@ -56,14 +54,13 @@ describe('ParallelWorker', function() {
       await Promise.resolve();
 
       expect(loader.load).toHaveBeenCalledWith('jasmine-core');
-      expect(core.boot).toHaveBeenCalledWith();
+      expect(core.installGlobals).toHaveBeenCalled();
     });
 
-    it('disables globals if globals is false', async function() {
+    it('does not install globals if globals is false', async function() {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
-      spyOn(core, 'noGlobals').and.callThrough();
-      spyOn(core, 'boot').and.callThrough();
+      spyOn(core, 'installGlobals');
       loader.load.and.returnValue(Promise.resolve(core));
       new ParallelWorker({
         loader,
@@ -81,14 +78,13 @@ describe('ParallelWorker', function() {
       await Promise.resolve();
 
       expect(loader.load).toHaveBeenCalledWith('jasmine-core');
-      expect(core.noGlobals).toHaveBeenCalledWith();
-      expect(core.boot).not.toHaveBeenCalled();
+      expect(core.installGlobals).not.toHaveBeenCalled();
     });
 
     it('boots jasmine-core normally if globals is true', async function() {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
-      spyOn(core, 'boot').and.callThrough();
+      spyOn(core, 'installGlobals');
       loader.load.and.returnValue(Promise.resolve(core));
       new ParallelWorker({
         loader,
@@ -106,7 +102,7 @@ describe('ParallelWorker', function() {
       await Promise.resolve();
 
       expect(loader.load).toHaveBeenCalledWith('jasmine-core');
-      expect(core.boot).toHaveBeenCalledWith();
+      expect(core.installGlobals).toHaveBeenCalled();
     });
 
     it('sends a fatalError message when the core module fails to load', async function() {
@@ -246,10 +242,9 @@ describe('ParallelWorker', function() {
       expect(envConfig.specFilter({getFullName: () => ' foo'})).toEqual(false);
     });
 
-    it('loads helper files after booting the core', async function() {
+    it('loads helper files', async function() {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
-      spyOn(core, 'boot').and.callThrough();
       const helperPromises = [], resolveHelperPromises = [];
 
       for (let i = 0; i < 2; i++) {
@@ -296,7 +291,6 @@ describe('ParallelWorker', function() {
     it('loads requires before helpers', async function() {
       const loader = jasmine.createSpyObj('loader', ['load']);
       const core = dummyCore();
-      spyOn(core, 'boot').and.callThrough();
       const requirePromises = [], resolveRequirePromises = [];
 
       for (let i = 0; i < 2; i++) {
@@ -801,14 +795,8 @@ function dummyCore(env) {
   }
 
   return {
-    boot: function() {
-      return {getEnv};
-    },
-    noGlobals: function() {
-      return {
-        jasmine: {getEnv},
-      };
-    }
+    jasmine: {getEnv},
+    installGlobals() {}
   };
 }
 

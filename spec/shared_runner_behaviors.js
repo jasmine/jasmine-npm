@@ -127,7 +127,7 @@ function sharedRunnerBehaviors(makeRunner) {
 
       it('creates a reporter with a default option if an option is not specified', function () {
         this.testJasmine.configureDefaultReporter({});
-        
+
         expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
           randomSeedReproductionCmd: jasmine.any(Function)
         });
@@ -142,10 +142,6 @@ function sharedRunnerBehaviors(makeRunner) {
       });
 
       describe('from an object', function () {
-        beforeEach(function() {
-          this.loader = this.fixtureJasmine.loader = jasmine.createSpyObj('loader', ['load']);
-        });
-
         it('adds unique spec and helper files', function() {
           this.fixtureJasmine.loadConfig({
             spec_dir: 'spec',
@@ -177,14 +173,14 @@ function sharedRunnerBehaviors(makeRunner) {
         describe('with jsLoader: "require"', function () {
           it('tells the loader not to always import', async function() {
             this.fixtureJasmine.loadConfig({jsLoader: 'require'});
-            expect(this.loader.alwaysImport).toBeFalse();
+            expect(this.fixtureJasmine.loader.alwaysImport).toBeFalse();
           });
         });
 
         describe('with jsLoader: "import"', function () {
           it('tells the loader to always import', async function() {
             this.fixtureJasmine.loadConfig({jsLoader: 'import'});
-            expect(this.loader.alwaysImport).toBeTrue();
+            expect(this.fixtureJasmine.loader.alwaysImport).toBeTrue();
           });
         });
 
@@ -199,7 +195,7 @@ function sharedRunnerBehaviors(makeRunner) {
         describe('with jsLoader undefined', function () {
           it('tells the loader to always import', async function() {
             this.fixtureJasmine.loadConfig({});
-            expect(this.loader.alwaysImport).toBeTrue();
+            expect(this.fixtureJasmine.loader.alwaysImport).toBeTrue();
           });
         });
 

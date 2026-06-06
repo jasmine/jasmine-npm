@@ -4,7 +4,7 @@ const ConsoleReporter = require('@jasminejs/reporters/console');
 const {sharedRunnerBehaviors, pathEndingWith} = require('./shared_runner_behaviors');
 const ParallelRunner = require("../lib/parallel_runner");
 const {poll, shortPoll} = require('./poll');
-const realBootedJasmineCore = require('jasmine-core').boot(false);
+const realJasmineCore = require('jasmine-core');
 
 describe('ParallelRunner', function() {
   const forwardedReporterEvents = ['suiteStarted', 'suiteDone', 'specStarted', 'specDone'];
@@ -46,7 +46,7 @@ describe('ParallelRunner', function() {
     // global error handling so that we don't accidentally ignore errors in
     // the specs
     function ParallelReportDispatcher(onError) {
-      return new realBootedJasmineCore.ParallelReportDispatcher(
+      return new realJasmineCore.jasmine.ParallelReportDispatcher(
         onError,
         {globalErrors: new StubGlobalErrors()}
       );
@@ -119,17 +119,20 @@ describe('ParallelRunner', function() {
   });
 
   it('can add and clear reporters', function() {
-    spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
-    spyOn(this.testJasmine.reportDispatcher_, 'clearReporters');
-    this.testJasmine.clearReporters();
-    expect(this.testJasmine.reportDispatcher_.clearReporters).toHaveBeenCalled();
     const reporter = {
       someProperty: 'some value',
-      reporterCapabilities: {parallel: true}
+      reporterCapabilities: {parallel: true},
+      jasmineStarted: jasmine.createSpy('reporter.jasmineStarted')
     };
+
     this.testJasmine.addReporter(reporter);
-    expect(this.testJasmine.reportDispatcher_.addReporter)
-      .toHaveBeenCalledWith(jasmine.is(reporter));
+    this.testJasmine.reportDispatcher_.jasmineStarted({});
+    expect(reporter.jasmineStarted).toHaveBeenCalled();
+
+    reporter.jasmineStarted.calls.reset();
+    this.testJasmine.clearReporters();
+    this.testJasmine.reportDispatcher_.jasmineStarted({});
+    expect(reporter.jasmineStarted).not.toHaveBeenCalled();
   });
 
   describe('Reporter validation', function() {
@@ -137,9 +140,8 @@ describe('ParallelRunner', function() {
       const expectedMsg = "Can't use this reporter because it doesn't support " +
         'parallel mode. (Add reporterCapabilities: {parallel: true} if ' +
         'the reporter meets the requirements for parallel mode.)';
-      spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
 
-      const reporter = {someProperty: 'some value'};
+      const reporter = jasmine.createSpyObj('reporter', ['jasmineStarted']);
       expect(() => this.testJasmine.addReporter(reporter))
         .withContext('no reporterCapabilities')
         .toThrowError(expectedMsg);
@@ -154,7 +156,8 @@ describe('ParallelRunner', function() {
         .withContext('reporterCapabilities.parallel = false')
         .toThrowError(expectedMsg);
 
-      expect(this.testJasmine.reportDispatcher_.addReporter).not.toHaveBeenCalled();
+      this.testJasmine.reportDispatcher_.jasmineStarted({});
+      expect(reporter.jasmineStarted).not.toHaveBeenCalled();
     });
 
     it('provides additional context when the reporter is in the config file', function() {
@@ -178,31 +181,30 @@ describe('ParallelRunner', function() {
 
   it('can use a caller-specified jasmine-core', async function() {
     const jasmineCorePath = 'my-custom-jasmine-core.js';
-    const bootedCore = jasmine.createSpyObj('bootedCore', [
-      'ParallelReportDispatcher',
-      'Timer',
-    ]);
-    bootedCore.ParallelReportDispatcher.and.returnValue({
-      addReporter() {}
-    });
-    bootedCore.Timer.and.returnValue({
-      start() {}
-    });
-    const jasmineCore = {
-      boot: () => bootedCore,
+    const callerSpecifiedCore = {
+      jasmine: jasmine.createSpyObj('callerSpecifiedCore.jasmine', [
+        'ParallelReportDispatcher',
+        'Timer',
+      ]),
       files: {
         self: jasmineCorePath
       }
     };
+    callerSpecifiedCore.jasmine.ParallelReportDispatcher.and.returnValue({
+      addReporter() {}
+    });
+    callerSpecifiedCore.jasmine.Timer.and.returnValue({
+      start() {}
+    });
     this.testJasmine = new ParallelRunner({
-      jasmineCore,
+      jasmineCore: callerSpecifiedCore,
       cluster: this.cluster,
       ConsoleReporter: this.ConsoleReporter,
     });
     this.testJasmine.exit = dontExit;
 
-    expect(bootedCore.ParallelReportDispatcher).toHaveBeenCalled();
-    expect(bootedCore.Timer).toHaveBeenCalled();
+    expect(callerSpecifiedCore.jasmine.ParallelReportDispatcher).toHaveBeenCalled();
+    expect(callerSpecifiedCore.jasmine.Timer).toHaveBeenCalled();
 
     this.testJasmine.execute();
     await poll(() => Object.values(this.cluster.workers).length > 0);
@@ -1216,17 +1218,17 @@ describe('ParallelRunner', function() {
   describe('Loading configuration', function() {
     it('adds specified reporters', function () {
       const reporters = [
-        {id: 'reporter1', reporterCapabilities: {parallel: true}},
-        {id: 'reporter2', reporterCapabilities: {parallel: true}},
+        {id: 'reporter1', reporterCapabilities: {parallel: true},
+          jasmineStarted: jasmine.createSpy('reporter1.jasmineStarted')},
+        {id: 'reporter2', reporterCapabilities: {parallel: true},
+          jasmineStarted: jasmine.createSpy('reporter2.jasmineStarted')},
       ];
-      spyOn(this.testJasmine.reportDispatcher_, 'addReporter');
 
       this.testJasmine.loadConfig({reporters});
+      this.testJasmine.reportDispatcher_.jasmineStarted({});
 
-      expect(this.testJasmine.reportDispatcher_.addReporter)
-        .toHaveBeenCalledWith(reporters[0]);
-      expect(this.testJasmine.reportDispatcher_.addReporter)
-        .toHaveBeenCalledWith(reporters[1]);
+      expect(reporters[0].jasmineStarted).toHaveBeenCalled();
+      expect(reporters[1].jasmineStarted).toHaveBeenCalled();
     });
   });
 
@@ -1318,8 +1320,9 @@ function getSpecFilesRan(workers) {
 
 function stubCore() {
   return {
-    boot() {
-      return {Timer, ParallelReportDispatcher: StubParallelReportDispatcher};
+    jasmine: {
+      Timer,
+      ParallelReportDispatcher: StubParallelReportDispatcher
     },
     files: []
   };
