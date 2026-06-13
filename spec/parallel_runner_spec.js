@@ -160,18 +160,19 @@ describe('ParallelRunner', function() {
       expect(reporter.jasmineStarted).not.toHaveBeenCalled();
     });
 
-    it('provides additional context when the reporter is in the config file', function() {
-      expect(() => {
-        this.testJasmine.loadConfig({
-          reporters: [
-            {reporterCapabilities: {parallel: true}},
-            {}
-          ]
-        });
-      }).toThrowError("Can't use the reporter in position 1 of " +
+    it('provides additional context when the reporter is in the config file', async function() {
+      const promise = this.testJasmine.loadConfig({
+        reporters: [
+          {reporterCapabilities: {parallel: true}},
+          {}
+        ]
+      });
+      await expectAsync(promise).toBeRejectedWithError(
+        "Can't use the reporter in position 1 of " +
         "the configuration's reporters array because it doesn't support " +
         'parallel mode. (Add reporterCapabilities: {parallel: true} if ' +
-        'the reporter meets the requirements for parallel mode.)');
+        'the reporter meets the requirements for parallel mode.)'
+      );
     });
 
     it('accepts the built-in console reporter', function() {
@@ -252,8 +253,7 @@ describe('ParallelRunner', function() {
       const envConfig = {
         stopSpecOnExpectationFailure: true,
       };
-      this.testJasmine.loadConfig({
-        jsLoader: 'require',
+      await this.testJasmine.loadConfig({
         spec_dir: 'spec/fixtures/parallel_helpers',
         helpers: ['helper*.js'],
         requires: ['require1', 'require2'],
@@ -275,7 +275,6 @@ describe('ParallelRunner', function() {
 
       const expectedConfig = {
         filter: 'myFilterString',
-        jsLoader: 'require',
         spec_dir: 'spec/fixtures/parallel_helpers',
         helpers: [
           pathEndingWith('spec/fixtures/parallel_helpers/helper1.js')
@@ -307,7 +306,7 @@ describe('ParallelRunner', function() {
 
     it('initially assigns one spec file to each process', async function () {
       this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
+      await this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       const specFiles = ['spec1.js', 'spec2.js', 'spec3.js'];
@@ -341,7 +340,7 @@ describe('ParallelRunner', function() {
     describe('When a worker finishes processing a spec file', function () {
       it('assigns another spec file', async function () {
         this.testJasmine.numWorkers = 2;
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         const specFiles = ['spec1.js', 'spec2,js', 'spec3.js'];
@@ -366,7 +365,7 @@ describe('ParallelRunner', function() {
 
       it('finishes when all workers are idle', async function () {
         this.testJasmine.numWorkers = 2;
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         this.testJasmine.addSpecFile('spec1.js');
@@ -388,7 +387,7 @@ describe('ParallelRunner', function() {
 
     it('dispatches a jasmineStarted event at the start of execution', async function () {
       this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
+      await this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       this.testJasmine.addSpecFile('spec1.js');
@@ -404,7 +403,7 @@ describe('ParallelRunner', function() {
     describe('When all workers are idle', function () {
       beforeEach(async function () {
         this.testJasmine.numWorkers = 2;
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         this.testJasmine.addSpecFile('spec1.js');
@@ -446,7 +445,7 @@ describe('ParallelRunner', function() {
 
     it('sets the jasmineDone event status to failed when there are spec failures', async function () {
       this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
+      await this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       this.testJasmine.addSpecFile('spec1.js');
@@ -472,7 +471,7 @@ describe('ParallelRunner', function() {
 
     it('sets the jasmineDone event status to failed when there are suite failures', async function () {
       this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
+      await this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       this.testJasmine.addSpecFile('spec1.js');
@@ -498,7 +497,7 @@ describe('ParallelRunner', function() {
 
     it('sets the jasmineDone event status to incomplete when there are focused runables', async function () {
       this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
+      await this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       this.testJasmine.addSpecFile('spec1.js');
@@ -527,7 +526,7 @@ describe('ParallelRunner', function() {
 
     it('sets the jasmineDone event status to incomplete when there are no specs', async function () {
       this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
+      await this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       this.testJasmine.addSpecFile('spec1.js');
@@ -558,7 +557,7 @@ describe('ParallelRunner', function() {
 
     it('does not set the jasmineDone event status to incomplete when one file has no specs', async function () {
       this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
+      await this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       this.testJasmine.addSpecFile('spec1.js');
@@ -584,7 +583,7 @@ describe('ParallelRunner', function() {
 
     it('merges top level failedExpectations and deprecationWarnings from workers', async function () {
       this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
+      await this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       this.testJasmine.addSpecFile('spec1.js');
@@ -629,7 +628,7 @@ describe('ParallelRunner', function() {
 
     describe('Handling reporter events from workers', function () {
       beforeEach(async function () {
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         this.testJasmine.addSpecFile('spec1.js');
@@ -673,7 +672,7 @@ describe('ParallelRunner', function() {
 
     it('reports unhandled exceptions and promise rejections from workers', async function() {
       this.testJasmine.numWorkers = 2;
-      this.testJasmine.loadConfig({
+      await this.testJasmine.loadConfig({
         spec_dir: 'some/spec/dir'
       });
       this.testJasmine.addSpecFile('spec1.js');
@@ -754,7 +753,7 @@ describe('ParallelRunner', function() {
 
       it('moves on to the next file', async function() {
         this.testJasmine.numWorkers = 2;
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         const specFiles = ['spec1.js', 'spec2.js', 'spec3.js'];
@@ -801,7 +800,7 @@ describe('ParallelRunner', function() {
 
       it('reports the error', async function () {
         this.testJasmine.numWorkers = 2;
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         this.testJasmine.addSpecFile('spec1.js');
@@ -894,7 +893,7 @@ describe('ParallelRunner', function() {
 
     describe('When stopSpecOnExpectationFailure is true', function () {
       beforeEach(async function () {
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir',
           env: { stopOnSpecFailure: true },
         });
@@ -947,7 +946,7 @@ describe('ParallelRunner', function() {
           spyOn(this.testJasmine, 'exit');
           expect(this.testJasmine.exitOnCompletion).toBeTrue();
           this.testJasmine.numWorkers = 2;
-          this.testJasmine.loadConfig({
+          await this.testJasmine.loadConfig({
             spec_dir: 'some/spec/dir'
           });
           this.testJasmine.addSpecFile('spec1.js');
@@ -973,7 +972,7 @@ describe('ParallelRunner', function() {
           spyOn(this.testJasmine, 'exit');
           this.testJasmine.exitOnCompletion = false;
           this.testJasmine.numWorkers = 2;
-          this.testJasmine.loadConfig({
+          await this.testJasmine.loadConfig({
             spec_dir: 'some/spec/dir'
           });
           this.testJasmine.addSpecFile('spec1.js');
@@ -996,7 +995,7 @@ describe('ParallelRunner', function() {
       it('does not send additional runSpecFile messages after a fatal error', async function () {
         spyOn(console, 'error');
         this.testJasmine.numWorkers = 2;
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         this.testJasmine.addSpecFile('spec1.js');
@@ -1027,7 +1026,7 @@ describe('ParallelRunner', function() {
         spyOn(console, 'error');
         spyOn(this.testJasmine, 'exit');
         this.testJasmine.numWorkers = 2;
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         this.testJasmine.addSpecFile('spec1.js');
@@ -1047,7 +1046,7 @@ describe('ParallelRunner', function() {
         spyOn(console, 'error');
         spyOn(this.testJasmine, 'exit');
         this.testJasmine.numWorkers = 2;
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           spec_dir: 'some/spec/dir'
         });
         this.testJasmine.addSpecFile('spec1.js');
@@ -1080,7 +1079,7 @@ describe('ParallelRunner', function() {
           new Promise(res => resolve = res)
         );
         function globalSetup() {}
-        this.testJasmine.loadConfig({globalSetup});
+        await this.testJasmine.loadConfig({globalSetup});
         this.testJasmine.execute();
         await new Promise(res => setTimeout(res));
         expect(this.cluster.fork).not.toHaveBeenCalled();
@@ -1093,19 +1092,19 @@ describe('ParallelRunner', function() {
 
       it('fails if globalSetup fails', async function() {
         this.globalSetupOrTeardownRunner.run.and.rejectWith(new Error('nope'));
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalSetup() {}
         });
 
         await expectAsync(this.testJasmine.execute()).toBeRejectedWithError('nope');
       });
 
-      it('uses a configured timeout', function() {
+      it('uses a configured timeout', async function() {
         this.globalSetupOrTeardownRunner.run.and.returnValue(
           new Promise(() => {})
         );
         function globalSetup() {}
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalSetup,
           globalSetupTimeout: 17
         });
@@ -1128,7 +1127,7 @@ describe('ParallelRunner', function() {
           });
         });
         function globalTeardown() {}
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalTeardown,
           reporters: [{
             jasmineDone() {
@@ -1152,7 +1151,7 @@ describe('ParallelRunner', function() {
 
       it('fails if globalTeardown fails', async function() {
         this.globalSetupOrTeardownRunner.run.and.rejectWith(new Error('nope'));
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalTeardown() {}
         });
         const executePromise = this.testJasmine.execute();
@@ -1164,7 +1163,7 @@ describe('ParallelRunner', function() {
         spyOn(this.testJasmine, 'runSpecFiles_')
           .and.rejectWith(new Error('spec running failed'));
         this.globalSetupOrTeardownRunner.run.and.resolveTo();
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalTeardown() {}
         });
         const executePromise = this.testJasmine.execute();
@@ -1180,7 +1179,7 @@ describe('ParallelRunner', function() {
           new Promise(() => {})
         );
         function globalTeardown() {}
-        this.testJasmine.loadConfig({
+        await this.testJasmine.loadConfig({
           globalTeardown,
           globalTeardownTimeout: 17
         });
@@ -1216,7 +1215,7 @@ describe('ParallelRunner', function() {
   });
 
   describe('Loading configuration', function() {
-    it('adds specified reporters', function () {
+    it('adds specified reporters', async function () {
       const reporters = [
         {id: 'reporter1', reporterCapabilities: {parallel: true},
           jasmineStarted: jasmine.createSpy('reporter1.jasmineStarted')},
@@ -1224,7 +1223,7 @@ describe('ParallelRunner', function() {
           jasmineStarted: jasmine.createSpy('reporter2.jasmineStarted')},
       ];
 
-      this.testJasmine.loadConfig({reporters});
+      await this.testJasmine.loadConfig({reporters});
       this.testJasmine.reportDispatcher_.jasmineStarted({});
 
       expect(reporters[0].jasmineStarted).toHaveBeenCalled();

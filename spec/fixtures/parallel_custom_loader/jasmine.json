@@ -1,5 +1,5 @@
 {
-  "jsLoader": "require",
+  "loader": "./customLoader.js",
   "spec_dir": ".",
   "spec_files": ["a%20spec.js"]
 }

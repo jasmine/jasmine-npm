@@ -39,7 +39,7 @@ describe('ParallelWorker', function() {
       const core = dummyCore();
       spyOn(core, 'installGlobals');
       loader.load.and.returnValue(Promise.resolve(core));
-      new ParallelWorker({
+      const jasmineWorker = new ParallelWorker({
         loader,
         clusterWorker: this.clusterWorker,
         process: stubProcess()
@@ -51,7 +51,7 @@ describe('ParallelWorker', function() {
           helpers: [],
         }
       });
-      await Promise.resolve();
+      await waitForEnvPromise(jasmineWorker);
 
       expect(loader.load).toHaveBeenCalledWith('jasmine-core');
       expect(core.installGlobals).toHaveBeenCalled();
@@ -62,7 +62,7 @@ describe('ParallelWorker', function() {
       const core = dummyCore();
       spyOn(core, 'installGlobals');
       loader.load.and.returnValue(Promise.resolve(core));
-      new ParallelWorker({
+      const jasmineWorker = new ParallelWorker({
         loader,
         clusterWorker: this.clusterWorker,
         process: stubProcess()
@@ -75,7 +75,7 @@ describe('ParallelWorker', function() {
           helpers: [],
         }
       });
-      await Promise.resolve();
+      await waitForEnvPromise(jasmineWorker);
 
       expect(loader.load).toHaveBeenCalledWith('jasmine-core');
       expect(core.installGlobals).not.toHaveBeenCalled();
@@ -86,7 +86,7 @@ describe('ParallelWorker', function() {
       const core = dummyCore();
       spyOn(core, 'installGlobals');
       loader.load.and.returnValue(Promise.resolve(core));
-      new ParallelWorker({
+      const jasmineWorker = new ParallelWorker({
         loader,
         clusterWorker: this.clusterWorker,
         process: stubProcess()
@@ -99,7 +99,7 @@ describe('ParallelWorker', function() {
           helpers: [],
         }
       });
-      await Promise.resolve();
+      await waitForEnvPromise(jasmineWorker);
 
       expect(loader.load).toHaveBeenCalledWith('jasmine-core');
       expect(core.installGlobals).toHaveBeenCalled();
@@ -165,46 +165,44 @@ describe('ParallelWorker', function() {
       expect(env.configure).toHaveBeenCalledWith(envConfig);
     });
 
-    it('uses the configured jsLoader setting', async function() {
-      const loader = {
-        load() {
-          return Promise.resolve(dummyCore());
+    it('supports custom loaders', async function() {
+      function customLoader(path) {
+        return new Promise((resolve, reject) => {
+          if (path === 'jasmine-core') {
+            resolve(dummyCore());
+          } else {
+            reject(new Error(`Unexpected path: ${path}`));
+          }
+        });
+      }
+
+      const initialLoader = {
+        load(path) {
+          return new Promise((resolve, reject) => {
+            if (path === 'some/loader/module') {
+              resolve(customLoader);
+            } else {
+              reject(new Error(`Unexpected path: ${path}`));
+            }
+          });
         }
       };
-      new ParallelWorker({
-        loader,
+
+      const jasmineWorker = new ParallelWorker({
+        loader: initialLoader,
         clusterWorker: this.clusterWorker,
         process: stubProcess()
       });
+
       this.clusterWorker.emit('message', {
         type: 'configure',
         configuration: {
-          jsLoader: 'require'
+          loader: 'some/loader/module',
         }
       });
       await new Promise(res => setTimeout(res));
 
-      expect(loader.alwaysImport).toBeFalse();
-    });
-
-    it('defaults to import if jsLoader is not specified', async function() {
-      const loader = {
-        load() {
-          return Promise.resolve(dummyCore());
-        }
-      };
-      new ParallelWorker({
-        loader,
-        clusterWorker: this.clusterWorker,
-        process: stubProcess()
-      });
-      this.clusterWorker.emit('message', {
-        type: 'configure',
-        configuration: {}
-      });
-      await new Promise(res => setTimeout(res));
-
-      expect(loader.alwaysImport).toBeTrue();
+      expect(jasmineWorker.loader_).toEqual({load: customLoader});
     });
 
     it('applies a spec filter if specified', async function() {
@@ -362,7 +360,7 @@ describe('ParallelWorker', function() {
             helpers: [],
           }
         });
-        await this.jasmineWorker.envPromise_;
+        await waitForEnvPromise(this.jasmineWorker);
         this.loader.load.calls.reset();
       };
     });
@@ -563,7 +561,7 @@ describe('ParallelWorker', function() {
             helpers: [],
           }
         });
-        await jasmineWorker.envPromise_;
+        await waitForEnvPromise(jasmineWorker);
 
         const payload = {
           id: 'foo',
@@ -609,7 +607,7 @@ describe('ParallelWorker', function() {
             helpers: [],
           }
         });
-        await jasmineWorker.envPromise_;
+        await waitForEnvPromise(jasmineWorker);
 
         dispatchRepoterEvent(env, eventName, {});
 
@@ -641,7 +639,7 @@ describe('ParallelWorker', function() {
             helpers: [],
           }
         });
-        await jasmineWorker.envPromise_;
+        await waitForEnvPromise(jasmineWorker);
 
         this.clusterWorker.send.calls.reset();
         this.clusterWorker.send.and.callFake(function(msg) {
@@ -772,6 +770,11 @@ describe('ParallelWorker', function() {
     expect(this.clusterWorker.send).not.toHaveBeenCalled();
   });
 });
+
+async function waitForEnvPromise(jasmineWorker) {
+  await poll(() => !!jasmineWorker.envPromise_);
+  await(jasmineWorker.envPromise_);
+}
 
 function dispatchRepoterEvent(env, eventName, payload) {
   expect(env.addReporter).toHaveBeenCalled();
