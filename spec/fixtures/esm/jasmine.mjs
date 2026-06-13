@@ -10,6 +10,8 @@ const config = {
     "esm_helper.mjs"
   ],
   "stopSpecOnExpectationFailure": false,
-  "random": false
+  "env": {
+    "random": false
+  }
 };
 export default config;
