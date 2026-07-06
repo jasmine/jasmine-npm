@@ -160,6 +160,14 @@ function sharedRunnerBehaviors(makeRunner) {
           expect(this.fixtureJasmine.specDir).toEqual('');
         });
 
+        it('can configure the default reporter with arbitrary properties', async function () {
+          const reporterConfig = {someProp: 'someValue'};
+          spyOn(this.fixtureJasmine.reporter_, 'configure');
+          await this.fixtureJasmine.loadConfig({defaultReporter: reporterConfig});
+          expect(this.fixtureJasmine.reporter_.configure).toHaveBeenCalledWith(
+            reporterConfig);
+        });
+
         describe('with loader set', function() {
           it('uses the custom loader exported by the specified module', async function() {
             function customLoader() {}

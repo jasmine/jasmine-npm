@@ -129,14 +129,6 @@ describe('Jasmine', function() {
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith(envConfig);
       });
 
-      it('sets alwaysListPendingSpecs when present', async function () {
-        spyOn(this.fixtureJasmine.reporter_, 'configure');
-        await this.fixtureJasmine.loadConfig({alwaysListPendingSpecs: false});
-        expect(this.fixtureJasmine.reporter_.configure).toHaveBeenCalledWith({
-          alwaysListPendingSpecs: false
-        });
-      });
-
       it('adds specified reporters', async function () {
         const reporter1 = {id: 'reporter1'};
         const reporter2 = {id: 'reporter2'};
