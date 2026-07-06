@@ -128,15 +128,13 @@ describe('Jasmine', function() {
 
         expect(this.fixtureJasmine.env.configure).toHaveBeenCalledWith(envConfig);
       });
-      
-      it('sets alwaysListPendingSpecs when present', async function () {
-        await this.fixtureJasmine.loadConfig({alwaysListPendingSpecs: false});
-        expect(this.fixtureJasmine.alwaysListPendingSpecs_).toBeFalse();
-      });
 
-      it('does not set alwaysListPendingSpecs when absent', async function () {
-        await this.fixtureJasmine.loadConfig({});
-        expect(this.fixtureJasmine.alwaysListPendingSpecs_).toBeTrue();
+      it('sets alwaysListPendingSpecs when present', async function () {
+        spyOn(this.fixtureJasmine.reporter_, 'configure');
+        await this.fixtureJasmine.loadConfig({alwaysListPendingSpecs: false});
+        expect(this.fixtureJasmine.reporter_.configure).toHaveBeenCalledWith({
+          alwaysListPendingSpecs: false
+        });
       });
 
       it('adds specified reporters', async function () {
@@ -174,30 +172,16 @@ describe('Jasmine', function() {
     });
   });
 
-  it("showing colors can be configured", function () {
-    expect(this.testJasmine.showingColors).toBeUndefined();
-
-    this.testJasmine.showColors(false);
-
-    expect(this.testJasmine.showingColors).toBe(false);
-  });
-
   describe('#execute', function () {
     it('executes the env', async function () {
       await this.execute();
       expect(this.testJasmine.env.execute).toHaveBeenCalled();
     });
 
-    it('loads helper files before checking if any reporters were added', async function () {
-      const loadHelpers = spyOn(this.testJasmine, 'loadHelpers');
-      spyOn(this.testJasmine, 'configureDefaultReporter').and.callFake(function () {
-        expect(loadHelpers).toHaveBeenCalled();
-      });
-      spyOn(this.testJasmine, 'loadSpecs');
-
+    it('loads helper files', async function () {
+      spyOn(this.testJasmine, 'loadHelpers');
       await this.execute();
-
-      expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalled();
+      expect(this.testJasmine.loadHelpers).toHaveBeenCalled();
     });
 
     describe('Filtering', function() {

@@ -119,18 +119,8 @@ function sharedRunnerBehaviors(makeRunner) {
 
         this.testJasmine.configureDefaultReporter(reporterOptions);
 
-        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
-          ...reporterOptions,
-          randomSeedReproductionCmd: jasmine.any(Function)
-        });
-      });
-
-      it('creates a reporter with a default option if an option is not specified', function () {
-        this.testJasmine.configureDefaultReporter({});
-
-        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
-          randomSeedReproductionCmd: jasmine.any(Function)
-        });
+        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith(
+          reporterOptions);
       });
     });
 
@@ -335,41 +325,35 @@ function sharedRunnerBehaviors(makeRunner) {
       });
     });
 
-    describe('#execute', function() {
-      it('uses the default console reporter if no reporters were added', async function () {
-        spyOn(this.testJasmine, 'configureDefaultReporter');
+    describe('#showColors', function() {
+      it('forwards the setting to the default console reporter', function() {
+        if (!jasmine.isSpy(this.testJasmine.reporter_.configure)) {
+          spyOn(this.testJasmine.reporter_, 'configure');
+        }
 
-        await this.execute();
+        this.testJasmine.showColors(false);
 
-        expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-          color: undefined,
-          alwaysListPendingSpecs: true
+        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
+          color: false
         });
       });
+    });
 
-      it('configures the default console reporter with the right color settings', async function() {
-        spyOn(this.testJasmine, 'configureDefaultReporter');
-        this.testJasmine.showColors(false);
+    describe('#alwaysListPendingSpecs', function() {
+      it('forwards the setting to the default console reporter', function() {
+        if (!jasmine.isSpy(this.testJasmine.reporter_.configure)) {
+          spyOn(this.testJasmine.reporter_, 'configure');
+        }
+
         this.testJasmine.alwaysListPendingSpecs(false);
 
-        await this.execute();
-
-        expect(this.testJasmine.configureDefaultReporter).toHaveBeenCalledWith({
-          color: false,
+        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
           alwaysListPendingSpecs: false
         });
       });
+    });
 
-      it('does not configure the default reporter if this was already done', async function() {
-        this.testJasmine.configureDefaultReporter({color: false});
-
-        spyOn(this.testJasmine, 'configureDefaultReporter');
-
-        await this.execute();
-
-        expect(this.testJasmine.configureDefaultReporter).not.toHaveBeenCalled();
-      });
-
+    describe('#execute', function() {
       describe('completion behavior', function() {
         beforeEach(function() {
           spyOn(this.testJasmine, 'exit');
