@@ -245,7 +245,8 @@ describe('command', function() {
       it('should allow colors to be turned off', async function () {
         await this.run(['node', 'bin/jasmine.js', '--no-color']);
         expect(this.runner.configureDefaultReporter).toHaveBeenCalledWith({
-          color: false
+          color: false,
+          listNotApplicableSpecs: undefined
         });
       });
 
@@ -253,9 +254,18 @@ describe('command', function() {
         await withValueForIsTTY(undefined, async function () {
           await this.run(['node', 'bin/jasmine.js', '--color']);
           expect(this.runner.configureDefaultReporter).toHaveBeenCalledWith({
-            color: true
+            color: true,
+            listNotApplicableSpecs: undefined
           });
         }.bind(this));
+      });
+
+      it('allows listNotApplicableSpecs to be turned on', async function() {
+        await this.run(['node', 'bin/jasmine.js', '--list-not-applicable']);
+        expect(this.runner.configureDefaultReporter).toHaveBeenCalledWith({
+          listNotApplicableSpecs: true,
+          color: undefined,
+        });
       });
 
       it('does not enable verbose mode by default', async function() {
@@ -608,13 +618,12 @@ describe('command', function() {
       const output = this.out.getOutput();
       expect(output).toContain('version,-v    show jasmine and jasmine-core\n' +
         '              versions\n');
-      expect(output).toContain('   --parallel=auto    Run in parallel with an\n' +
-        '                      automatically chosen number\n' +
-        '                      of workers\n' +
-        '        --no-color    turn off color in spec\n' +
-        '                      output\n' +
-        '           --color    force turn on color in spec\n' +
-        '                      output\n');
+      expect(output).toContain(
+        '\n' +
+        '       --parallel=auto    Run in parallel with an\n' +
+        '                          automatically chosen\n' +
+        '                          number of workers\n'
+      );
       expect(output).toContain('The given arguments take precedence over options\n' +
         'in your jasmine.json.\n' +
         'The path to your optional jasmine.json can also be\n' +
@@ -634,8 +643,10 @@ describe('command', function() {
       this.command.run(['help']);
 
       const output = this.out.getOutput();
-      expect(output).toContain('   --parallel=auto    Run in parallel with an automatically chosen number of\n' +
-        '                      workers\n');
+      expect(output).toContain(
+        '\n' +
+        '       --parallel=auto    Run in parallel with an automatically chosen number of\n' +
+        '                          workers\n');
     });
   });
 });
