@@ -325,34 +325,6 @@ function sharedRunnerBehaviors(makeRunner) {
       });
     });
 
-    describe('#showColors', function() {
-      it('forwards the setting to the default console reporter', function() {
-        if (!jasmine.isSpy(this.testJasmine.reporter_.configure)) {
-          spyOn(this.testJasmine.reporter_, 'configure');
-        }
-
-        this.testJasmine.showColors(false);
-
-        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
-          color: false
-        });
-      });
-    });
-
-    describe('#alwaysListPendingSpecs', function() {
-      it('forwards the setting to the default console reporter', function() {
-        if (!jasmine.isSpy(this.testJasmine.reporter_.configure)) {
-          spyOn(this.testJasmine.reporter_, 'configure');
-        }
-
-        this.testJasmine.alwaysListPendingSpecs(false);
-
-        expect(this.testJasmine.reporter_.configure).toHaveBeenCalledWith({
-          alwaysListPendingSpecs: false
-        });
-      });
-    });
-
     describe('#execute', function() {
       describe('completion behavior', function() {
         beforeEach(function() {

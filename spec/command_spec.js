@@ -55,7 +55,7 @@ describe('command', function() {
     const commonMethods = [
       'loadConfigFile',
       'execute',
-      'showColors',
+      'configureDefaultReporter',
       'verbose',
       'coreVersion',
       'clearReporters',
@@ -178,7 +178,8 @@ describe('command', function() {
       await withValueForIsTTY(true, async function () {
         await this.command.run(['node', 'bin/jasmine.js', '--', '--no-color']);
         expect(this.out.getOutput()).toBe('');
-        expect(this.fakeJasmine.showColors).not.toHaveBeenCalledWith(false);
+        expect(this.fakeJasmine.configureDefaultReporter)
+          .not.toHaveBeenCalledWith({color: false});
       }.bind(this));
     });
   });
@@ -243,13 +244,17 @@ describe('command', function() {
 
       it('should allow colors to be turned off', async function () {
         await this.run(['node', 'bin/jasmine.js', '--no-color']);
-        expect(this.runner.showColors).toHaveBeenCalledWith(false);
+        expect(this.runner.configureDefaultReporter).toHaveBeenCalledWith({
+          color: false
+        });
       });
 
       it('should be able to force colors to be turned on', async function () {
         await withValueForIsTTY(undefined, async function () {
           await this.run(['node', 'bin/jasmine.js', '--color']);
-          expect(this.runner.showColors).toHaveBeenCalledWith(true);
+          expect(this.runner.configureDefaultReporter).toHaveBeenCalledWith({
+            color: true
+          });
         }.bind(this));
       });
 
